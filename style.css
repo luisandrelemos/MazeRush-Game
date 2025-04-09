@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000;
+  font-family: 'Montserrat', sans-serif;
+}
+
+canvas {
+  display: block;
+}
+
+/* Paleta */
+:root {
+  --vermelho-escuro: #A62C2C;
+  --vermelho-vivo: #E83F25;
+  --laranja: #EA7300;
+  --verde-claro: #D3CA79;
+}
+
+/* Menu */
+.menu-body {
+  background: linear-gradient(135deg, #A62C2C, #EA7300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.menu-screen {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 40px 50px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  color: #fff;
+}
+
+.title {
+  font-size: 3rem;
+  color: var(--verde-claro);
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.button {
+  background-color: var(--vermelho-vivo);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+  text-decoration: none;
+}
+
+.button:hover {
+  background-color: var(--laranja);
+}
+
+
+/* Submenu Pausa com Transição e Blur */
+#pause-menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 30px 40px;
+  border-radius: 14px;
+  text-align: center;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 100;
+  color: var(--verde-claro);
+}
+
+#pause-menu.active {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#pause-menu h2 {
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: var(--laranja);
+}
+
+.pause-button {
+  display: block;
+  background-color: var(--vermelho-vivo);
+  color: white;
+  border: none;
+  margin: 10px auto;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 200px;
+}
+
+.pause-button:hover {
+  background-color: var(--laranja);
+}
