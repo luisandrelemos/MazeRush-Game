@@ -137,7 +137,7 @@ canvas {
 
 #light-controls {
   position: fixed;
-  top: 10px;
+  bottom: 10px;
   right: 10px;
   background-color: rgba(0, 0, 0, 0.6);
   border-radius: 8px;
@@ -159,4 +159,18 @@ canvas {
   accent-color: #E83F25; /* cor personalizada do jogo */
   margin-right: 6px;
   transform: scale(1.2);
+}
+
+/* NEW: Minimapa Container */
+#minimap-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 220px;
+  height: 220px;
+  border-radius: 16px;     
+  overflow: hidden;        
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  background: rgba(255, 255, 255, 0.06); 
+  backdrop-filter: blur(6px);
 }
