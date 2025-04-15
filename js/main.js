@@ -86,7 +86,7 @@ const mazeMap = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
-const tileSize = 5;
+const tileSize = 6;
 const wallHeight = 6;
 const mapWidth = mazeMap[0].length;
 const mapHeight = mazeMap.length;
@@ -410,12 +410,21 @@ if (data.velocity !== 0) {
     cameraOrtho.lookAt(car.position);
   }
   else if (cameraMode === 2) {
-    // Estilo NFS (câmara traseira correta)
-    const backOffset = new THREE.Vector3(0, 1.5, 4).applyEuler(car.rotation); // Z positivo
-    const targetFollowPos = car.position.clone().add(backOffset);
+    // Estilo NFS com rotação pelo rato
+    if (!isDragging) targetRotationOffset *= 0.9;
+    cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.08;
+  
+    const baseOffset = new THREE.Vector3(0, 1.5, 4);
+    const rotationY = new THREE.Euler(0, cameraRotationOffset, 0);
+    const rotatedOffset = baseOffset.clone()
+      .applyEuler(rotationY)
+      .applyEuler(car.rotation);
+  
+    const targetFollowPos = car.position.clone().add(rotatedOffset);
     cameraFollow.position.lerp(targetFollowPos, 0.08);
     cameraFollow.lookAt(car.position);
-  }  
+  }
+   
 
   // Luzes dos faróis dianteiros seguem o carro
   const leftOffset = new THREE.Vector3(-0.2, 0.2, -0.6).applyEuler(car.rotation);
