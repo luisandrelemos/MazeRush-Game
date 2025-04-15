@@ -91,6 +91,15 @@ const wallHeight = 6;
 const mapWidth = mazeMap[0].length;
 const mapHeight = mazeMap.length;
 
+// NEW: Array de células visitadas (inicialmente false)
+const visitedCells = [];
+for (let z = 0; z < mapHeight; z++) {
+  visitedCells[z] = [];
+  for (let x = 0; x < mapWidth; x++) {
+    visitedCells[z][x] = false;
+  }
+}
+
 // Offset para centrar o labirinto
 const offsetX = -(mapWidth * tileSize) / 2 + tileSize / 2;
 const offsetZ = -(mapHeight * tileSize) / 2 + tileSize / 2;
@@ -137,6 +146,71 @@ mazeMap.forEach((row, z) => {
   });
 });
 
+// Bordas externas para evitar sair do mapa
+const borderThickness = 1;   // podes ajustar a espessura
+const borderMaterial = new THREE.MeshStandardMaterial({ color: '#0F223D' });
+
+// Parede de contorno (cima)
+{
+  const geometry = new THREE.BoxGeometry(mapWidth*tileSize, wallHeight, borderThickness);
+  const border = new THREE.Mesh(geometry, borderMaterial);
+  border.position.set(
+    offsetX + (mapWidth * tileSize)/2 - tileSize/1.7,
+    wallHeight/2,
+    offsetZ - tileSize/1.7
+  );
+  scene.add(border);
+  border.castShadow = true;
+  border.receiveShadow = true;
+  wallMeshes.push(border);
+}
+
+// Parede de contorno (baixo)
+{
+  const geometry = new THREE.BoxGeometry(mapWidth*tileSize, wallHeight, borderThickness);
+  const border = new THREE.Mesh(geometry, borderMaterial);
+  border.position.set(
+    offsetX + (mapWidth * tileSize)/2 - tileSize/2,
+    wallHeight/2,
+    offsetZ + (mapHeight * tileSize) - tileSize/2.5
+  );
+  scene.add(border);
+  border.castShadow = true;
+  border.receiveShadow = true;
+  wallMeshes.push(border);
+}
+
+// Parede de contorno (esquerda)
+{
+  const geometry = new THREE.BoxGeometry(borderThickness, wallHeight, mapHeight*tileSize);
+  const border = new THREE.Mesh(geometry, borderMaterial);
+  border.position.set(
+    offsetX - tileSize/1.7,
+    wallHeight/2,
+    offsetZ + (mapHeight * tileSize)/2 - tileSize/2
+  );
+  scene.add(border);
+  border.castShadow = true;
+  border.receiveShadow = true;
+  wallMeshes.push(border);
+}
+
+// Parede de contorno (direita)
+{
+  const geometry = new THREE.BoxGeometry(borderThickness, wallHeight, mapHeight*tileSize);
+  const border = new THREE.Mesh(geometry, borderMaterial);
+  border.position.set(
+    offsetX + (mapWidth * tileSize) - tileSize/2.4,
+    wallHeight/2,
+    offsetZ + (mapHeight * tileSize)/2 - tileSize/2
+  );
+  scene.add(border);
+  border.castShadow = true;
+  border.receiveShadow = true;
+  wallMeshes.push(border);
+}
+
+
 // Carro
 const textureLoader = new THREE.TextureLoader();
 const car = createCar(textureLoader);
@@ -145,7 +219,7 @@ car.castShadow = true;
 car.position.set(
   0 * tileSize + offsetX,
   0.2,
-  0 * tileSize + offsetZ - tileSize
+  0 * tileSize + offsetZ
 );
 
 // Faróis dianteiros realistas
@@ -173,7 +247,11 @@ const startPortal = new THREE.Mesh(
   new THREE.MeshStandardMaterial({ color: '#E83F25', emissive: '#E83F25', emissiveIntensity: 1.2 })
 );
 startPortal.rotation.x = Math.PI / 2;
-startPortal.position.set(0 * tileSize + offsetX, 1.7, 0 * tileSize + offsetZ - tileSize);
+startPortal.position.set(
+  0 * tileSize + offsetX,  // x=0
+  1.7,
+  0 * tileSize + offsetZ   // z=0
+);
 scene.add(startPortal);
 
 const startBase = new THREE.Mesh(
@@ -474,6 +552,23 @@ if (data.velocity !== 0) {
   targetLeft.position.copy(headlightLeft.position.clone().add(directionOffset));
   targetRight.position.copy(headlightRight.position.clone().add(directionOffset));
 
+  // NEW: Marcar célula atual como visitada
+  {
+    const cx = Math.floor((car.position.x - offsetX) / tileSize + 0.5);
+    const cz = Math.floor((car.position.z - offsetZ) / tileSize + 0.5);
+  
+    for (let dz = -1; dz <= 1; dz++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const nx = cx + dx;
+        const nz = cz + dz;
+        if (nx >= 0 && nx < mapWidth && nz >= 0 && nz < mapHeight) {
+          visitedCells[nz][nx] = true;
+        }
+      }
+    }
+  }
+
+  drawMinimap();
 
   // Render com a câmara ativa
   renderer.render(scene, activeCamera);
@@ -482,6 +577,71 @@ if (data.velocity !== 0) {
 }
 
 animate();
+
+function drawMinimap() {
+  const canvas = document.getElementById("minimap");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // Fundo gradiente linear
+  const gradient = ctx.createLinearGradient(0,0,0,h);
+  gradient.addColorStop(0, "#1a1a1a");
+  gradient.addColorStop(1, "#333333");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
+
+  // Cada célula no canvas
+  const cellW = w / mapWidth;
+  const cellH = h / mapHeight;
+
+  // Desenhar SOMENTE as células visitadas
+  for (let z = 0; z < mapHeight; z++) {
+    for (let x = 0; x < mapWidth; x++) {
+      // Se NÃO foi visitada, fica preto
+      if (!visitedCells[z][x]) {
+        ctx.fillStyle = "#000";
+      } else {
+        // Se É visitada, desenha consoante seja parede ou chão
+        if (mazeMap[z][x] === 1) {
+          ctx.fillStyle = "#445"; // parede
+        } else {
+          ctx.fillStyle = "#77a"; // chão
+        }
+      }
+
+      ctx.fillRect(x * cellW, z * cellH, cellW, cellH);
+    }
+  }
+
+  // Desenhar posição do carro
+  // Calcula a rotação do carro em degrees
+  const angle = car.rotation.y; // ou -car.rotation.y dependendo do teu sense
+  const carX = (car.position.x - offsetX + tileSize/2) / tileSize * cellW;
+  const carZ = (car.position.z - offsetZ + tileSize/2) / tileSize * cellH;
+
+  ctx.save();
+  ctx.translate(carX, carZ);
+  ctx.rotate(-angle); // gira no local
+
+  ctx.fillStyle = "#f33";
+  ctx.beginPath();
+  // triângulo
+  ctx.moveTo(0, -5); 
+  ctx.lineTo(4, 4);
+  ctx.lineTo(-4, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+}
+
+
+
 
 // Controlos de luz (ligar/desligar)
 document.getElementById('toggleAmbient').addEventListener('change', (e) => {
