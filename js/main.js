@@ -104,8 +104,10 @@ const floorMaterial = new THREE.MeshStandardMaterial({
 });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2;
+floor.position.set(offsetX + (mapWidth * tileSize) / 2 - tileSize / 2, 0, offsetZ + (mapHeight * tileSize) / 2 - tileSize / 2);
 scene.add(floor);
 floor.receiveShadow = true;
+
 
 // Paredes
 const wallMaterial = new THREE.MeshStandardMaterial({
@@ -165,28 +167,47 @@ scene.add(headlightLeft);
 scene.add(headlightRight);
 
 
-// Portais
-const startPortalGeometry = new THREE.TorusGeometry(2, 0.3, 16, 100);
-const startPortalMaterial = new THREE.MeshStandardMaterial({ color: '#E83F25', emissive: '#E83F25' });
-const startPortal = new THREE.Mesh(startPortalGeometry, startPortalMaterial);
+// ✅ INÍCIO BONITO
+const startPortal = new THREE.Mesh(
+  new THREE.TorusGeometry(2.5, 0.4, 16, 100),
+  new THREE.MeshStandardMaterial({ color: '#E83F25', emissive: '#E83F25', emissiveIntensity: 1.2 })
+);
 startPortal.rotation.x = Math.PI / 2;
-startPortal.position.set(0 * tileSize + offsetX, 1.5, 0 * tileSize + offsetZ - tileSize);
+startPortal.position.set(0 * tileSize + offsetX, 1.7, 0 * tileSize + offsetZ - tileSize);
 scene.add(startPortal);
 
-const startLight = new THREE.PointLight('#E83F25', 1.5, 10);
+const startBase = new THREE.Mesh(
+  new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32),
+  new THREE.MeshStandardMaterial({ color: '#3F1F1F', metalness: 0.4 })
+);
+startBase.position.set(startPortal.position.x, 0.1, startPortal.position.z);
+scene.add(startBase);
+
+const startLight = new THREE.PointLight('#E83F25', 2.0, 15);
 startLight.position.copy(startPortal.position);
 scene.add(startLight);
 
-const endPortalGeometry = new THREE.TorusGeometry(2, 0.3, 16, 100);
-const endPortalMaterial = new THREE.MeshStandardMaterial({ color: '#D3CA79', emissive: '#D3CA79' });
-const endPortal = new THREE.Mesh(endPortalGeometry, endPortalMaterial);
+
+// ✅ FIM BONITO
+const endPortal = new THREE.Mesh(
+  new THREE.TorusGeometry(2.5, 0.4, 16, 100),
+  new THREE.MeshStandardMaterial({ color: '#FFD700', emissive: '#FFD700', emissiveIntensity: 1.5 })
+);
 endPortal.rotation.x = Math.PI / 2;
 endPortal.position.set(9 * tileSize + offsetX, 1.5, 8 * tileSize + offsetZ);
 scene.add(endPortal);
 
-const endLight = new THREE.PointLight('#D3CA79', 1.5, 10);
+const endPillar = new THREE.Mesh(
+  new THREE.CylinderGeometry(2.5, 2.5, 0.3, 32),
+  new THREE.MeshStandardMaterial({ color: '#554422', metalness: 0.6 })
+);
+endPillar.position.set(endPortal.position.x, 0.15, endPortal.position.z);
+scene.add(endPillar);
+
+const endLight = new THREE.PointLight('#FFD700', 3.5, 20);
 endLight.position.copy(endPortal.position);
 scene.add(endLight);
+
 
 // Controlo de teclas
 const keysPressed = {};
@@ -198,14 +219,32 @@ document.addEventListener('keyup', (e) => {
 });
 
 // Função para verificar colisão
-function checkCollision(obj) {
-  const objBox = new THREE.Box3().setFromObject(obj);
-  for (let wall of wallMeshes) {
+function getBoundingBox(obj) {
+  const box = new THREE.Box3().setFromObject(obj.clone());
+  return box;
+}
+
+function checkCollisionAndReact(car, walls, velocityVec) {
+  car.updateMatrixWorld(true);
+  const carBox = getBoundingBox(car);
+
+  for (let wall of walls) {
+    wall.updateMatrixWorld(true);
     const wallBox = new THREE.Box3().setFromObject(wall);
-    if (objBox.intersectsBox(wallBox)) return true;
+    if (carBox.intersectsBox(wallBox)) {
+      // Recuar proporcional ao vetor de movimento
+      const pushBack = velocityVec.clone().multiplyScalar(-1.5);
+      car.position.add(pushBack);
+
+      // Reduzir velocidade (simulando impacto)
+      car.userData.velocity *= -0.3;
+
+      return true;
+    }
   }
   return false;
 }
+
 
 // Submenu de pausa
 const pauseMenu = document.getElementById('pause-menu');
@@ -320,7 +359,7 @@ function animate() {
   requestAnimationFrame(animate);
   if (isPaused) return;
 
-  const data = car.userData;
+const data = car.userData;
 const frontAxle = data.frontAxle;
 const steerSpeed = 0.025;
 const maxSteer = Math.PI / 6;
@@ -375,14 +414,12 @@ if (!isMoving) {
 // Mover o carro
 if (data.velocity !== 0) {
   direction.set(0, 0, -1).applyEuler(car.rotation).normalize();
-  const nextPos = car.position.clone().add(direction.clone().multiplyScalar(data.velocity));
+  const proposedPos = car.position.clone().add(direction.clone().multiplyScalar(data.velocity));
 
-  // Testar colisão
-  car.position.copy(nextPos);
-  if (checkCollision(car)) {
-    car.position.sub(direction.clone().multiplyScalar(data.velocity));
-    data.velocity = 0;
-  }
+  // Testar colisão ANTES de mover
+  car.position.copy(proposedPos);
+  checkCollisionAndReact(car, wallMeshes, direction.clone().multiplyScalar(data.velocity));
+
 
   // Rodar rodas visuais
   const wheelRotationSpeed = data.velocity * 10;

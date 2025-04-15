@@ -109,8 +109,10 @@ export function createCar(textureLoader) {
     velocity: 0,
     maxSpeed: 0.1,
     acceleration: 0.001,
-    friction: 0.96
+    friction: 0.96,
+    boundingBoxSize: new THREE.Vector3(1.2, 0.2, 2.2)
   };
+  
 
   return car;
 }
