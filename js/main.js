@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.152.2';
+import { createCar } from '../assets/models/CarModel.js';
 
 // Cena e nevoeiro
 const scene = new THREE.Scene();
@@ -24,8 +25,16 @@ const cameraOrtho = new THREE.OrthographicCamera(
   1000
 );
 
+const cameraFollow = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+
+
 // Variáveis para controlar qual câmara está ativa
-let usePerspective = true;
+let cameraMode = 0; // 0 = 3D Perspetiva, 1 = Vista Superior, 2 = NFS
 let activeCamera = cameraPerspective;
 
 // Renderer
@@ -127,10 +136,8 @@ mazeMap.forEach((row, z) => {
 });
 
 // Carro
-const carGeometry = new THREE.BoxGeometry(0.8, 0.4, 1.5);
-const carMaterial = new THREE.MeshStandardMaterial({ color: '#E83F25' });
-const car = new THREE.Mesh(carGeometry, carMaterial);
-car.rotation.y = Math.PI;
+const textureLoader = new THREE.TextureLoader();
+const car = createCar(textureLoader);
 scene.add(car);
 car.castShadow = true;
 car.position.set(
@@ -139,16 +146,24 @@ car.position.set(
   0 * tileSize + offsetZ - tileSize
 );
 
-// Foco de luz que segue o carro
-const spotLight = new THREE.SpotLight(0xffffff, 1.8, 20, Math.PI / 6, 0.2, 1);
-scene.add(spotLight);
-spotLight.castShadow = true;
-spotLight.shadow.mapSize.width = 1024;  // (opcional) mais qualidade
-spotLight.shadow.mapSize.height = 1024;
-spotLight.shadow.radius = 4;  // suaviza
-const lightTarget = new THREE.Object3D();
-scene.add(lightTarget);
-spotLight.target = lightTarget;
+// Faróis dianteiros realistas
+const headlightLeft = new THREE.SpotLight(0xffffff, 2, 20, Math.PI / 10, 0.3, 1);
+const headlightRight = new THREE.SpotLight(0xffffff, 2, 20, Math.PI / 10, 0.3, 1);
+
+// Alvos para os faróis
+const targetLeft = new THREE.Object3D();
+const targetRight = new THREE.Object3D();
+scene.add(targetLeft, targetRight);
+
+headlightLeft.target = targetLeft;
+headlightRight.target = targetRight;
+
+headlightLeft.castShadow = true;
+headlightRight.castShadow = true;
+
+scene.add(headlightLeft);
+scene.add(headlightRight);
+
 
 // Portais
 const startPortalGeometry = new THREE.TorusGeometry(2, 0.3, 16, 100);
@@ -252,13 +267,21 @@ document.addEventListener('mouseleave', () => {
 // Botão para alternar câmara
 const cameraToggleBtn = document.getElementById('camera-toggle-btn');
 cameraToggleBtn.addEventListener('click', () => {
-  usePerspective = !usePerspective;
-  activeCamera = usePerspective ? cameraPerspective : cameraOrtho;
-  cameraToggleBtn.textContent = usePerspective ? "Vista Superior" : "Vista 3D";
-
-  ambientLight.intensity = usePerspective
-    ? defaultAmbientIntensity
-    : brightAmbientIntensity;
+  cameraMode = (cameraMode + 1) % 3;
+  switch (cameraMode) {
+    case 0:
+      activeCamera = cameraPerspective;
+      cameraToggleBtn.textContent = "Vista Superior";
+      break;
+    case 1:
+      activeCamera = cameraOrtho;
+      cameraToggleBtn.textContent = "Vista NFS";
+      break;
+    case 2:
+      activeCamera = cameraFollow;
+      cameraToggleBtn.textContent = "Vista 3D";
+      break;
+  }
 });
 
 // Ajustar câmaras ao redimensionar a janela
@@ -266,6 +289,9 @@ window.addEventListener('resize', () => {
   // Atualizar perspetiva
   cameraPerspective.aspect = window.innerWidth / window.innerHeight;
   cameraPerspective.updateProjectionMatrix();
+  cameraFollow.aspect = window.innerWidth / window.innerHeight;
+  cameraFollow.updateProjectionMatrix();
+
 
   // Atualizar ortográfica
   const newAspect = window.innerWidth / window.innerHeight;
@@ -288,75 +314,120 @@ cameraOrtho.lookAt(0, 0, 0);
 // Definimos a câmara ativa inicialmente
 activeCamera = cameraPerspective;
 
+
 // Loop de animação
 function animate() {
   requestAnimationFrame(animate);
-
   if (isPaused) return;
 
-  // Movimento do carro
-  const moveSpeed = 0.1;
-  const rotateSpeed = 0.04;
-  let movingForward = false;
-  let movingBackward = false;
-  const direction = new THREE.Vector3();
+  const data = car.userData;
+const frontAxle = data.frontAxle;
+const steerSpeed = 0.025;
+const maxSteer = Math.PI / 6;
+const steerAngle = frontAxle.rotation.y;
+const direction = new THREE.Vector3();
 
-  if (keysPressed['w'] || keysPressed['arrowup']) {
-    movingForward = true;
-    direction.set(0, 0, -1).applyEuler(car.rotation).normalize();
-    car.position.add(direction.clone().multiplyScalar(moveSpeed));
-    if (checkCollision(car)) car.position.sub(direction.clone().multiplyScalar(moveSpeed));
+const accelerating = keysPressed['w'] || keysPressed['arrowup'];
+const braking = keysPressed['s'] || keysPressed['arrowdown'];
+
+// Aceleração e travagem
+if (accelerating) {
+  data.velocity = Math.min(data.velocity + data.acceleration, data.maxSpeed);
+} else if (braking) {
+  data.velocity = Math.max(data.velocity - data.acceleration * 1.2, -data.maxSpeed * 0.5);
+} else {
+  data.velocity *= data.friction;
+  if (Math.abs(data.velocity) < 0.001) data.velocity = 0;
+}
+
+const isMoving = data.velocity !== 0;
+const turningLeft = keysPressed['a'] || keysPressed['arrowleft'];
+const turningRight = keysPressed['d'] || keysPressed['arrowright'];
+
+// Atualizar direção das rodas
+if (!isMoving) {
+  if (turningLeft) {
+    frontAxle.rotation.y = Math.min(frontAxle.rotation.y + steerSpeed, maxSteer);
+  } else if (turningRight) {
+    frontAxle.rotation.y = Math.max(frontAxle.rotation.y - steerSpeed, -maxSteer);
+  } else {
+    frontAxle.rotation.y *= 0.85;
+    if (Math.abs(frontAxle.rotation.y) < 0.01) frontAxle.rotation.y = 0;
+  }
+} else {
+  // Atualizar ângulo com base nas teclas enquanto o carro está em movimento
+  if (turningLeft) {
+    frontAxle.rotation.y = Math.min(frontAxle.rotation.y + steerSpeed, maxSteer);
+  } else if (turningRight) {
+    frontAxle.rotation.y = Math.max(frontAxle.rotation.y - steerSpeed, -maxSteer);
+  } else {
+    frontAxle.rotation.y *= 0.9;
+    if (Math.abs(frontAxle.rotation.y) < 0.01) frontAxle.rotation.y = 0;
   }
 
-  if (keysPressed['s'] || keysPressed['arrowdown']) {
-    movingBackward = true;
-    direction.set(0, 0, 1).applyEuler(car.rotation).normalize();
-    car.position.add(direction.clone().multiplyScalar(moveSpeed));
-    if (checkCollision(car)) car.position.sub(direction.clone().multiplyScalar(moveSpeed));
+  // Aplicar curvatura ao carro
+  const rotationDirection = Math.sign(data.velocity);
+  const steerInfluence = frontAxle.rotation.y * 0.04;
+  car.rotation.y += steerInfluence * rotationDirection;
+}
+
+
+// Mover o carro
+if (data.velocity !== 0) {
+  direction.set(0, 0, -1).applyEuler(car.rotation).normalize();
+  const nextPos = car.position.clone().add(direction.clone().multiplyScalar(data.velocity));
+
+  // Testar colisão
+  car.position.copy(nextPos);
+  if (checkCollision(car)) {
+    car.position.sub(direction.clone().multiplyScalar(data.velocity));
+    data.velocity = 0;
   }
 
-  if (keysPressed['a'] || keysPressed['arrowleft']) {
-    // Se estiver a andar para trás, vira ao contrário
-    car.rotation.y += movingBackward ? -rotateSpeed : rotateSpeed;
-  }
-  if (keysPressed['d'] || keysPressed['arrowright']) {
-    car.rotation.y += movingBackward ? rotateSpeed : -rotateSpeed;
-  }
+  // Rodar rodas visuais
+  const wheelRotationSpeed = data.velocity * 10;
+  data.rotatingWheels.forEach(w => w.rotation.x += wheelRotationSpeed);
+}
 
+  
   // Se estamos na perspetiva, aplicamos a rotação de câmara
-  if (usePerspective) {
-    if (!isDragging) {
-      // Suaviza o retorno
-      targetRotationOffset *= 0.9;
-    }
+  if (cameraMode === 0) {
+    // Câmara 3D rotacional
+    if (!isDragging) targetRotationOffset *= 0.9;
     cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.08;
-
-    // Calcula a posição da câmara atrás do carro
+  
     const baseOffset = new THREE.Vector3(0, 8.5, 8.5);
     const rotationY = new THREE.Euler(0, cameraRotationOffset, 0);
-    const rotatedOffset = baseOffset.clone()
-      .applyEuler(rotationY)
-      .applyEuler(car.rotation);
-
+    const rotatedOffset = baseOffset.clone().applyEuler(rotationY).applyEuler(car.rotation);
+  
     const targetCamPos = car.position.clone().add(rotatedOffset);
     cameraPerspective.position.lerp(targetCamPos, 0.08);
     cameraPerspective.lookAt(car.position);
-
-  } else {
-    // Se estamos na câmara ortográfica, segue por cima
-    cameraOrtho.position.set(
-      car.position.x,
-      60, // altura
-      car.position.z + 20
-    );
+  }
+  else if (cameraMode === 1) {
+    // Vista superior
+    cameraOrtho.position.set(car.position.x, 60, car.position.z + 20);
     cameraOrtho.lookAt(car.position);
   }
+  else if (cameraMode === 2) {
+    // Estilo NFS (câmara traseira correta)
+    const backOffset = new THREE.Vector3(0, 1.5, 4).applyEuler(car.rotation); // Z positivo
+    const targetFollowPos = car.position.clone().add(backOffset);
+    cameraFollow.position.lerp(targetFollowPos, 0.08);
+    cameraFollow.lookAt(car.position);
+  }  
 
-  // Spotlight segue o carro
-  const lightOffset = new THREE.Vector3(0, 0.5, -1.5).applyEuler(car.rotation);
-  spotLight.position.copy(car.position.clone().add(lightOffset));
-  const forward = new THREE.Vector3(0, 0, -1).applyEuler(car.rotation).normalize();
-  lightTarget.position.copy(car.position.clone().add(forward));
+  // Luzes dos faróis dianteiros seguem o carro
+  const leftOffset = new THREE.Vector3(-0.2, 0.2, -0.6).applyEuler(car.rotation);
+  const rightOffset = new THREE.Vector3(0.2, 0.2, -0.6).applyEuler(car.rotation);
+  const directionOffset = new THREE.Vector3(0, 0, -2).applyEuler(car.rotation);   
+
+  headlightLeft.position.copy(car.position.clone().add(leftOffset));
+  headlightRight.position.copy(car.position.clone().add(rightOffset));
+
+  targetLeft.position.copy(headlightLeft.position.clone().add(directionOffset));
+  targetRight.position.copy(headlightRight.position.clone().add(directionOffset));
+
 
   // Render com a câmara ativa
   renderer.render(scene, activeCamera);
