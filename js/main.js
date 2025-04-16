@@ -227,11 +227,11 @@ let isRotating = false;
 
 document.addEventListener('keydown', (event) => {
     if (!isRotating) {// tecla rodar 180
-        if (event.key === 'r' || event.key === 'R') {
-            rotateCar180(car, 'right'); // rodar para a direita
-        } else if (event.key === 'l' || event.key === 'L') {
-            rotateCar180(car, 'left'); // rodar para a esquerda
-        }
+      if (event.key === 'q') {
+          rotateCar180(car, 'left');
+      } else if (event.key === 'e') {
+          rotateCar180(car, 'right');
+      }
     }
 
     if (event.code === 'Space' && !isJumping && !isRotating) { //tecla saltar
@@ -243,7 +243,7 @@ document.addEventListener('keydown', (event) => {
 
 //funcao para criar o fumo ao fazer o drift
 function createSmoke(textureLoader, position) {
-  const texture = textureLoader.load('textures/smoke.png');
+  const texture = textureLoader.load('./assets/textures/smoke.png');
   const material = new THREE.SpriteMaterial({
     map: texture,
     transparent: true,
@@ -291,7 +291,7 @@ function rotateCar180(car, direction = 'right') {
 
     const duration = 1000; // duração da animação
     const startRotation = car.rotation.y;
-    const angle = direction === 'left' ? -Math.PI : Math.PI;
+    const angle = (direction === 'left') ? Math.PI : -Math.PI;
     const targetRotation = startRotation + angle;
     const startTime = performance.now();
 
@@ -362,7 +362,7 @@ function jumpCar(car) {
 
 
 function createJumpDust(textureLoader, position, count = 12, spread = 0.5) {
-    const texture = textureLoader.load('textures/smoke.png');
+    const texture = textureLoader.load('./assets/textures/smoke.png');
 
     const particles = [];
 
