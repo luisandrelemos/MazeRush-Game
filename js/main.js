@@ -222,6 +222,197 @@ car.position.set(
   0 * tileSize + offsetZ
 );
 
+//180 do Carro
+let isRotating = false;
+
+document.addEventListener('keydown', (event) => {
+    if (!isRotating) {// tecla rodar 180
+      if (event.key === 'q') {
+          rotateCar180(car, 'left');
+      } else if (event.key === 'e') {
+          rotateCar180(car, 'right');
+      }
+    }
+
+    if (event.code === 'Space' && !isJumping && !isRotating) { //tecla saltar
+        jumpCar(car);
+    }
+
+});
+
+
+//funcao para criar o fumo ao fazer o drift
+function createSmoke(textureLoader, position) {
+  const texture = textureLoader.load('./assets/textures/smoke.png');
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    opacity: 0.7,
+    depthWrite: false // garante transparência correta
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(1.5, 1.5, 1.5);
+  sprite.position.copy(position.clone());
+  scene.add(sprite);
+
+  const startTime = performance.now();
+  const duration = 800;
+
+  function animateSmoke(time) {
+    const elapsed = time - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    sprite.material.opacity = 0.7 * (1 - progress);
+    sprite.scale.setScalar(1.5 + progress); // efeito de expansão
+
+    if (progress < 1) {
+      requestAnimationFrame(animateSmoke);
+    } else {
+      scene.remove(sprite);
+    }
+  }
+
+  requestAnimationFrame(animateSmoke);
+}
+
+//funcao para rodar o carro 180 graus
+function rotateCar180(car, direction = 'right') {
+    isRotating = true;
+
+    // Criar fumo nas rodas traseiras
+    const backLeft = new THREE.Vector3(-0.5, 0.2, 1.2);  // ajusta se necessário
+    const backRight = new THREE.Vector3(0.5, 0.2, 1.2);   // ajusta se necessário
+
+    car.localToWorld(backLeft);
+    car.localToWorld(backRight);
+
+    createSmoke(textureLoader, backLeft);
+    createSmoke(textureLoader, backRight);
+
+
+    const duration = 1000; // duração da animação
+    const startRotation = car.rotation.y;
+    const angle = (direction === 'left') ? Math.PI : -Math.PI;
+    const targetRotation = startRotation + angle;
+    const startTime = performance.now();
+
+    function animateRotation(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        car.rotation.y = startRotation + angle * easeOutCubic(progress);
+
+        if (progress < 1) {
+            requestAnimationFrame(animateRotation);
+        } else {
+            car.rotation.y = targetRotation;
+            isRotating = false;
+        }
+    }
+
+    requestAnimationFrame(animateRotation);
+}
+
+
+// Função de easing para suavidade no 180
+function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+}
+
+function easeInCubic(t) {
+    return t * t * t;
+}
+
+let isJumping = false;
+
+//funcao para o carro saltar
+function jumpCar(car) {
+    isJumping = true;
+
+    const durationUp = 300;
+    const durationDown = 400;
+    const jumpHeight = 3;
+    const startY = car.position.y;
+
+    const startTime = performance.now();
+
+    // Criar efeito de poeira no início do salto
+    const groundPosition = new THREE.Vector3();
+    car.getWorldPosition(groundPosition);
+    groundPosition.y = 0.1;
+    createJumpDust(textureLoader, groundPosition);
+
+    function animateJump(time) {
+        const elapsed = time - startTime;
+
+        if (elapsed < durationUp) {
+            const progress = elapsed / durationUp;
+            car.position.y = startY + jumpHeight * easeOutCubic(progress);
+            requestAnimationFrame(animateJump);
+        } else if (elapsed < durationUp + durationDown) {
+            const progress = (elapsed - durationUp) / durationDown;
+            car.position.y = startY + jumpHeight * (1 - easeInCubic(progress));
+            requestAnimationFrame(animateJump);
+        } else {
+            car.position.y = startY;
+            isJumping = false;
+        }
+    }
+
+    requestAnimationFrame(animateJump);
+}
+
+
+function createJumpDust(textureLoader, position, count = 12, spread = 0.5) {
+    const texture = textureLoader.load('./assets/textures/smoke.png');
+
+    const particles = [];
+
+    for (let i = 0; i < count; i++) {
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 0.6,
+            depthWrite: false
+        });
+
+        const sprite = new THREE.Sprite(material);
+        sprite.scale.set(0.3, 0.3, 0.3);
+
+        // Posição inicial ligeiramente aleatória à volta do ponto
+        sprite.position.copy(position.clone());
+        sprite.position.x += (Math.random() - 0.5) * spread;
+        sprite.position.z += (Math.random() - 0.5) * spread;
+
+        scene.add(sprite);
+        particles.push({ sprite, angle: Math.random() * Math.PI * 2 });
+    }
+
+    const startTime = performance.now();
+    const duration = 500;
+
+    function animateDust(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        particles.forEach((p) => {
+            // Expansão radial com fade
+            const radius = progress * 0.8;
+            p.sprite.position.x += Math.cos(p.angle) * 0.01;
+            p.sprite.position.z += Math.sin(p.angle) * 0.01;
+            p.sprite.material.opacity = 0.6 * (1 - progress);
+            p.sprite.scale.setScalar(0.3 + progress * 0.6);
+        });
+
+        if (progress < 1) {
+            requestAnimationFrame(animateDust);
+        } else {
+            particles.forEach((p) => scene.remove(p.sprite));
+        }
+    }
+
+    requestAnimationFrame(animateDust);
+}
+
+
 // Faróis dianteiros realistas
 const headlightLeft = new THREE.SpotLight(0xffffff, 2, 20, Math.PI / 10, 0.3, 1);
 const headlightRight = new THREE.SpotLight(0xffffff, 2, 20, Math.PI / 10, 0.3, 1);
