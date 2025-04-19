@@ -37,6 +37,14 @@ const cameraFollow = new THREE.PerspectiveCamera(
 let cameraMode = 0; // 0 = 3D Perspetiva, 1 = Vista Superior, 2 = NFS
 let activeCamera = cameraPerspective;
 
+const transitionCamera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
+
+
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
@@ -320,6 +328,11 @@ function easeOutCubic(t) {
 function easeInCubic(t) {
     return t * t * t;
 }
+
+function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
 
 let isJumping = false;
 
@@ -897,32 +910,48 @@ function startMapPreviewSequence() {
     console.log("🔍 Modo preview iniciado...");
 
     setTimeout(() => {
-        // Esconder texto com fade-out
+        // Texto: fade-out
         previewText.style.opacity = 0;
 
-        // Nevoeiro animado
-        scene.fog = new THREE.Fog('#000000', 200, 200);
-        let fogNear = 200;
-        let fogFar = 200;
-
-        const fogInterval = setInterval(() => {
-            fogNear -= 3;
-            fogFar -= 3;
-            if (fogNear <= 30) {
-                fogNear = 30;
-                fogFar = 80;
-                clearInterval(fogInterval);
-            }
-            scene.fog.near = fogNear;
-            scene.fog.far = fogFar;
-        }, 30);
-
-        activeCamera = previousCamera;
-
+        // Reativar nevoeiro
+        scene.fog = new THREE.Fog('#000000', 30, 80);
         document.getElementById('minimap-container').style.display = 'block';
 
-        console.log("✅ Transição concluída.");
+        // Ativar a camera de transição
+        transitionCamera.position.copy(cameraOrtho.position);
+        transitionCamera.quaternion.copy(cameraOrtho.quaternion);
+        transitionCamera.fov = cameraPerspective.fov;
+        transitionCamera.updateProjectionMatrix();
+        activeCamera = transitionCamera;
+
+        const duration = 1500;
+        const startTime = performance.now();
+
+        const startPos = cameraOrtho.position.clone();
+        const startQuat = cameraOrtho.quaternion.clone();
+        const endPos = cameraPerspective.position.clone();
+        const endQuat = cameraPerspective.quaternion.clone();
+
+        function animateTransition(time) {
+            const elapsed = time - startTime;
+            const t = Math.min(elapsed / duration, 1);
+            const easedT = easeInOutCubic(t);
+
+            transitionCamera.position.lerpVectors(startPos, endPos, easedT);
+            transitionCamera.quaternion.copy(startQuat.clone().slerp(endQuat, easedT));
+
+            if (t < 1) {
+                requestAnimationFrame(animateTransition);
+            } else {
+                activeCamera = cameraPerspective;
+                console.log("✅ Transição para cameraPerspective concluída.");
+            }
+        }
+
+
+        requestAnimationFrame(animateTransition);
     }, 3000);
+
 }
 
 
