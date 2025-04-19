@@ -858,3 +858,41 @@ document.getElementById('togglePoint').addEventListener('change', (e) => {
     scene.remove(pointLight);
   }
 });
+
+// Função inicial para preview do mapa
+function startMapPreviewSequence() {
+    // Remover nevoeiro inicialmente
+    scene.fog = null;
+
+    // Após 3 segundos, inicia o fade-out da imagem e ativa nevoeiro
+    setTimeout(() => {
+        // Ativar nevoeiro gradualmente
+        scene.fog = new THREE.Fog('#000000', 200, 200);
+        let fogNear = 200;
+        let fogFar = 200;
+        const fogInterval = setInterval(() => {
+            fogNear -= 3;
+            fogFar -= 3;
+            if (fogNear <= 30) {
+                fogNear = 30;
+                fogFar = 80;
+                clearInterval(fogInterval);
+            }
+            scene.fog.near = fogNear;
+            scene.fog.far = fogFar;
+        }, 30);
+
+        // Fade-out da imagem
+        const mapPreview = document.getElementById('map-preview');
+        mapPreview.style.opacity = 0;
+
+        // Remover a imagem após a transição de fade-out
+        setTimeout(() => {
+            mapPreview.remove();
+        }, 1500); // tempo corresponde à duração do CSS transition
+
+    }, 3000); // Espera inicial antes do fade-out e nevoeiro
+}
+
+// Chamar no início, logo antes ou depois do animate()
+startMapPreviewSequence();
