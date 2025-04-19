@@ -7,32 +7,36 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Botão para alternar câmaras -->
-  <button id="camera-toggle-btn">Vista Superior</button>
+    <!-- Botão para alternar câmaras -->
+    <button id="camera-toggle-btn">Vista Superior</button>
 
-  <div id="light-controls">
-    <label><input type="checkbox" id="toggleAmbient" checked> Luz Ambiente</label>
-    <label><input type="checkbox" id="toggleDirectional" checked> Luz Direcional</label>
-    <label><input type="checkbox" id="togglePoint" checked> Luz Pontual</label>
-  </div>
-  
-
-  <!-- Submenu Pausa -->
-  <div id="pause-menu">
-    <h2>Menu de Pausa</h2>
-    <button class="pause-button" id="resume-btn">Continuar</button>
-    <button class="pause-button" id="restart-btn">Reiniciar</button>
-    <button class="pause-button" id="exit-btn">Voltar ao Menu</button>
-  </div>
-
-  <!-- Canvas do Jogo -->
-  <div id="game-container"></div>
-
-  <div id="minimap-container">
-    <canvas id="minimap" width="220" height="220"></canvas>
-  </div>
+    <div id="light-controls">
+        <label><input type="checkbox" id="toggleAmbient" checked> Luz Ambiente</label>
+        <label><input type="checkbox" id="toggleDirectional" checked> Luz Direcional</label>
+        <label><input type="checkbox" id="togglePoint" checked> Luz Pontual</label>
+    </div>
 
 
-  <script type="module" src="js/main.js"></script>
+    <!-- Submenu Pausa -->
+    <div id="pause-menu">
+        <h2>Menu de Pausa</h2>
+        <button class="pause-button" id="resume-btn">Continuar</button>
+        <button class="pause-button" id="restart-btn">Reiniciar</button>
+        <button class="pause-button" id="exit-btn">Voltar ao Menu</button>
+    </div>
+
+    <!-- Canvas do Jogo -->
+    <div id="game-container"></div>
+    <div id="preview-text">Decora o labirinto!</div>
+
+
+    <div id="minimap-container">
+        <canvas id="minimap" width="220" height="220"></canvas>
+    </div>
+
+
+
+    <script type="module" src="js/main.js"></script>
+
 </body>
 </html>

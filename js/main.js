@@ -37,6 +37,14 @@ const cameraFollow = new THREE.PerspectiveCamera(
 let cameraMode = 0; // 0 = 3D Perspetiva, 1 = Vista Superior, 2 = NFS
 let activeCamera = cameraPerspective;
 
+const transitionCamera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
+
+
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
@@ -320,6 +328,11 @@ function easeOutCubic(t) {
 function easeInCubic(t) {
     return t * t * t;
 }
+
+function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
 
 let isJumping = false;
 
@@ -858,3 +871,94 @@ document.getElementById('togglePoint').addEventListener('change', (e) => {
     scene.remove(pointLight);
   }
 });
+
+function startMapPreviewSequence() {
+    const previousCamera = cameraPerspective;
+    const centerX = (mapWidth * tileSize) / 2 + offsetX - tileSize / 2;
+    const centerZ = (mapHeight * tileSize) / 2 + offsetZ - tileSize / 2;
+
+    const canvasAspect = window.innerWidth / window.innerHeight;
+    const mapRatio = mapWidth / mapHeight;
+    let zoomFactor = 1.1;
+
+    if (canvasAspect > mapRatio) {
+        orthoSize = (mapHeight * tileSize * zoomFactor) / 2;
+    } else {
+        orthoSize = ((mapWidth * tileSize) / canvasAspect * zoomFactor) / 2;
+    }
+
+    cameraOrtho.left = -orthoSize * canvasAspect;
+    cameraOrtho.right = orthoSize * canvasAspect;
+    cameraOrtho.top = orthoSize;
+    cameraOrtho.bottom = -orthoSize;
+    cameraOrtho.near = 0.1;
+    cameraOrtho.far = 1000;
+    cameraOrtho.updateProjectionMatrix();
+
+    cameraOrtho.position.set(centerX, 100, centerZ);
+    cameraOrtho.lookAt(centerX, 0, centerZ);
+
+    activeCamera = cameraOrtho;
+    scene.fog = null;
+
+    document.getElementById('minimap-container').style.display = 'none';
+
+    // ✅ Mostrar texto de preview
+    const previewText = document.getElementById('preview-text');
+    previewText.style.opacity = 1;
+
+    console.log("🔍 Modo preview iniciado...");
+
+    setTimeout(() => {
+        // Texto: fade-out
+        previewText.style.opacity = 0;
+
+        // Reativar nevoeiro
+        scene.fog = new THREE.Fog('#000000', 30, 80);
+        document.getElementById('minimap-container').style.display = 'block';
+
+        // Ativar a camera de transição
+        transitionCamera.position.copy(cameraOrtho.position);
+        transitionCamera.quaternion.copy(cameraOrtho.quaternion);
+        transitionCamera.fov = cameraPerspective.fov;
+        transitionCamera.updateProjectionMatrix();
+        activeCamera = transitionCamera;
+
+        const duration = 1500;
+        const startTime = performance.now();
+
+        const startPos = cameraOrtho.position.clone();
+        const startQuat = cameraOrtho.quaternion.clone();
+        const endPos = cameraPerspective.position.clone();
+        const endQuat = cameraPerspective.quaternion.clone();
+
+        function animateTransition(time) {
+            const elapsed = time - startTime;
+            const t = Math.min(elapsed / duration, 1);
+            const easedT = easeInOutCubic(t);
+
+            transitionCamera.position.lerpVectors(startPos, endPos, easedT);
+            transitionCamera.quaternion.copy(startQuat.clone().slerp(endQuat, easedT));
+
+            if (t < 1) {
+                requestAnimationFrame(animateTransition);
+            } else {
+                activeCamera = cameraPerspective;
+                console.log("✅ Transição para cameraPerspective concluída.");
+            }
+        }
+
+
+        requestAnimationFrame(animateTransition);
+    }, 3000);
+
+}
+
+
+
+
+
+
+
+// Chama esta função ao iniciar
+startMapPreviewSequence();
