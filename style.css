@@ -174,24 +174,22 @@ canvas {
   background: rgba(255, 255, 255, 0.06); 
   backdrop-filter: blur(6px);
 }
-/* Overlay da Imagem do Mapa */
-#map-preview {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2000;
-    background-color: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 1;
-    transition: opacity 1.5s ease;
+
+#preview-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 2.8rem;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 20px 40px;
+    border-radius: 14px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 1000;
+    pointer-events: none;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
 }
 
-    #map-preview img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }

@@ -859,17 +859,52 @@ document.getElementById('togglePoint').addEventListener('change', (e) => {
   }
 });
 
-// Função inicial para preview do mapa
 function startMapPreviewSequence() {
-    // Remover nevoeiro inicialmente
+    const previousCamera = cameraPerspective;
+    const centerX = (mapWidth * tileSize) / 2 + offsetX - tileSize / 2;
+    const centerZ = (mapHeight * tileSize) / 2 + offsetZ - tileSize / 2;
+
+    const canvasAspect = window.innerWidth / window.innerHeight;
+    const mapRatio = mapWidth / mapHeight;
+    let zoomFactor = 1.1;
+
+    if (canvasAspect > mapRatio) {
+        orthoSize = (mapHeight * tileSize * zoomFactor) / 2;
+    } else {
+        orthoSize = ((mapWidth * tileSize) / canvasAspect * zoomFactor) / 2;
+    }
+
+    cameraOrtho.left = -orthoSize * canvasAspect;
+    cameraOrtho.right = orthoSize * canvasAspect;
+    cameraOrtho.top = orthoSize;
+    cameraOrtho.bottom = -orthoSize;
+    cameraOrtho.near = 0.1;
+    cameraOrtho.far = 1000;
+    cameraOrtho.updateProjectionMatrix();
+
+    cameraOrtho.position.set(centerX, 100, centerZ);
+    cameraOrtho.lookAt(centerX, 0, centerZ);
+
+    activeCamera = cameraOrtho;
     scene.fog = null;
 
-    // Após 3 segundos, inicia o fade-out da imagem e ativa nevoeiro
+    document.getElementById('minimap-container').style.display = 'none';
+
+    // ✅ Mostrar texto de preview
+    const previewText = document.getElementById('preview-text');
+    previewText.style.opacity = 1;
+
+    console.log("🔍 Modo preview iniciado...");
+
     setTimeout(() => {
-        // Ativar nevoeiro gradualmente
+        // Esconder texto com fade-out
+        previewText.style.opacity = 0;
+
+        // Nevoeiro animado
         scene.fog = new THREE.Fog('#000000', 200, 200);
         let fogNear = 200;
         let fogFar = 200;
+
         const fogInterval = setInterval(() => {
             fogNear -= 3;
             fogFar -= 3;
@@ -882,17 +917,19 @@ function startMapPreviewSequence() {
             scene.fog.far = fogFar;
         }, 30);
 
-        // Fade-out da imagem
-        const mapPreview = document.getElementById('map-preview');
-        mapPreview.style.opacity = 0;
+        activeCamera = previousCamera;
 
-        // Remover a imagem após a transição de fade-out
-        setTimeout(() => {
-            mapPreview.remove();
-        }, 1500); // tempo corresponde à duração do CSS transition
+        document.getElementById('minimap-container').style.display = 'block';
 
-    }, 3000); // Espera inicial antes do fade-out e nevoeiro
+        console.log("✅ Transição concluída.");
+    }, 3000);
 }
 
-// Chamar no início, logo antes ou depois do animate()
+
+
+
+
+
+
+// Chama esta função ao iniciar
 startMapPreviewSequence();
