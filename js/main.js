@@ -208,19 +208,36 @@ function jumpCar(car){
 }
 
 /* ────────────────────────────  Colisão util  ─────────────────────────────── */
+function checkCollisionAndReact(car, walls) {
+  const carBox = new THREE.Box3().setFromObject(car);
 
-function getBoundingBox(obj){ return new THREE.Box3().setFromObject(obj.clone()); }
+  for (const wall of walls) {
+    const wallBox = new THREE.Box3().setFromObject(wall);
 
-function checkCollisionAndReact(car, walls, vel){
-  car.updateMatrixWorld(true);
-  const carBox=getBoundingBox(car);
-  for (const wall of walls){
-    if (carBox.intersectsBox(new THREE.Box3().setFromObject(wall))){
-      car.position.add(vel.clone().multiplyScalar(-1.5));
-      car.userData.velocity *= -0.3;
+    if (carBox.intersectsBox(wallBox)) {
+      // calcula o volume de interseção
+      const overlapBox = carBox.clone().intersect(wallBox);
+      const overlapSize = overlapBox.getSize(new THREE.Vector3());
+
+      // ignora colisões muito pequenas (tolerância)
+      const eps = 0.1;
+      if (overlapSize.x < eps && overlapSize.z < eps) continue;
+
+      // empurra o carro para fora na direção horizontal
+      const pushDir = new THREE.Vector3()
+        .subVectors(car.position, wall.position)
+        .setY(0)
+        .normalize();
+
+      // desloca pela maior dimensão de interseção
+      const pushDist = Math.max(overlapSize.x, overlapSize.z);
+      car.position.add(pushDir.multiplyScalar(pushDist));
+
+      car.userData.velocity = 0;
       return true;
     }
   }
+
   return false;
 }
 
@@ -314,55 +331,57 @@ function animate(){
   if (isPaused || !levelData) return;
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
-  const mapWidth=map[0].length, mapHeight=map.length;
+  const mapWidth  = map[0].length;
+  const mapHeight = map.length;
 
-  // ---- física do carro ----
-  const data=car.userData;
-  const frontAxle=data.frontAxle;
-  const steerSpeed=0.025, maxSteer=Math.PI/6;
-  const accelerating=keysPressed['w']||keysPressed['arrowup'];
-  const braking     =keysPressed['s']||keysPressed['arrowdown'];
+  // --- física básica ---
+  const data       = car.userData;
+  const frontAxle  = data.frontAxle;
+  const steerSpeed = 0.025, maxSteer = Math.PI/6;
+  const accel      = keysPressed['w']   || keysPressed['arrowup'];
+  const brake      = keysPressed['s']   || keysPressed['arrowdown'];
+  const left       = keysPressed['a']   || keysPressed['arrowleft'];
+  const right      = keysPressed['d']   || keysPressed['arrowright'];
 
   // velocidade
-  if (accelerating) data.velocity=Math.min(data.velocity+data.acceleration,data.maxSpeed);
-  else if (braking) data.velocity=Math.max(data.velocity-data.acceleration*1.2,-data.maxSpeed*0.5);
+  if (accel)      data.velocity = Math.min(data.velocity + data.acceleration, data.maxSpeed);
+  else if (brake) data.velocity = Math.max(data.velocity - data.acceleration * 1.2, -data.maxSpeed * 0.5);
   else {
-    data.velocity*=data.friction;
-    if (Math.abs(data.velocity)<0.001) data.velocity=0;
+    data.velocity *= data.friction;
+    if (Math.abs(data.velocity) < 0.001) data.velocity = 0;
   }
 
-  const turningLeft =keysPressed['a']||keysPressed['arrowleft'];
-  const turningRight=keysPressed['d']||keysPressed['arrowright'];
-  const isMoving = data.velocity!==0;
+  const isMoving = data.velocity !== 0;
 
-  // direção das rodas
-  if (!isMoving){
-    if (turningLeft)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed, maxSteer);
-    if (turningRight) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed,-maxSteer);
-    if (!turningLeft && !turningRight){
-      frontAxle.rotation.y*=0.85;
-      if (Math.abs(frontAxle.rotation.y)<0.01) frontAxle.rotation.y=0;
-    }
+  // ângulo das rodas
+  if (!isMoving) {
+    if (left)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y + steerSpeed,  maxSteer);
+    if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y - steerSpeed, -maxSteer);
+    if (!left && !right) frontAxle.rotation.y *= 0.85;
   } else {
-    if (turningLeft)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed, maxSteer);
-    if (turningRight) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed,-maxSteer);
-    if (!turningLeft && !turningRight){
-      frontAxle.rotation.y*=0.9;
-      if (Math.abs(frontAxle.rotation.y)<0.01) frontAxle.rotation.y=0;
-    }
-    const rotDir=Math.sign(data.velocity);
-    car.rotation.y += frontAxle.rotation.y*0.04*rotDir;
+    if (left)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y + steerSpeed,  maxSteer);
+    if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y - steerSpeed, -maxSteer);
+    if (!left && !right) frontAxle.rotation.y *= 0.9;
+    car.rotation.y += frontAxle.rotation.y * 0.04 * Math.sign(data.velocity);
   }
 
-  // mover carro
-  const direction = new THREE.Vector3();
-  if (data.velocity!==0){
-    direction.set(0,0,-1).applyEuler(car.rotation).normalize();
-    const proposedPos = car.position.clone().add(direction.clone().multiplyScalar(data.velocity));
-    car.position.copy(proposedPos);
-    checkCollisionAndReact(car, wallMeshes, direction.clone().multiplyScalar(data.velocity));
-    const wheelRotSpeed=data.velocity*10;
-    data.rotatingWheels.forEach(w=>w.rotation.x+=wheelRotSpeed);
+  // mover e colidir separado por eixos
+  if (data.velocity !== 0) {
+    const dir = new THREE.Vector3(0, 0, -1)
+      .applyEuler(car.rotation)
+      .multiplyScalar(data.velocity);
+
+    // X
+    car.position.x += dir.x;
+    checkCollisionAndReact(car, wallMeshes);
+
+    // Z
+    car.position.z += dir.z;
+    checkCollisionAndReact(car, wallMeshes);
+
+    // gira rodas visuais
+    const wheelSpeed = data.velocity * 10;
+    data.rotatingWheels.forEach(w => w.rotation.x += wheelSpeed);
   }
 
   // câmaras
