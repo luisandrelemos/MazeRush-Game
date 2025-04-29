@@ -21,6 +21,9 @@ const cameraOrtho = new THREE.OrthographicCamera(
 // câmara usada na transição do preview
 const transitionCamera  = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
 
+/* ───────────  HUD: Obtém o elemento do velocímetro  ─────────────────────── */
+const speedEl = document.getElementById('speedometer');
+
 /* ─────────  Alternância de câmaras (botão + tecla C) ───────── */
 
 let cameraMode = 0;               // 0-persp | 1-ortho | 2-follow
@@ -383,6 +386,10 @@ function animate(){
     cameraFollow.position.lerp(car.position.clone().add(off),0.08);
     cameraFollow.lookAt(car.position);
   }
+
+    // ─── ACTUALIZA HUD: velocímetro ───────────────────────────────────────
+    const kmh = Math.abs(data.velocity) * 600;        // ajusta factor conforme necessário
+    speedEl.textContent = `${kmh.toFixed(0)} km/h`;
 
   // faróis
   const leftOff  = new THREE.Vector3(-0.2,0.2,-0.6).applyEuler(car.rotation);

@@ -132,18 +132,18 @@ canvas {
 .cam-btn:active{ transform: scale(0.94); }
 
 
-#light-controls {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 8px;
-  padding: 10px 12px;
-  z-index: 1000;
-  font-family: 'Segoe UI', sans-serif;
-  color: white;
-  font-size: 14px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+#light-controls{
+  position:fixed;
+  bottom:20px;        
+  left:20px;
+  right:auto;           
+  background:rgba(0,0,0,.60);
+  border-radius:8px;
+  padding:10px 14px;
+  z-index:1000;
+  font-size:14px;
+  color:#fff;
+  box-shadow:0 0 8px rgb(0 0 0 / .45);
 }
 
 #light-controls label {
@@ -156,6 +156,18 @@ canvas {
   accent-color: #E83F25; /* cor personalizada do jogo */
   margin-right: 6px;
   transform: scale(1.2);
+}
+
+/* velocímetro — canto DIREITO em baixo */
+#speedometer{
+  position:fixed;
+  bottom:18px;
+  right:28px;
+  font:700 2.8rem 'Montserrat', sans-serif;   
+  color:#fff;
+  text-shadow:0 0 6px rgb(0 0 0 / .7);
+  pointer-events:none;                    
+  z-index:1000;
 }
 
 /* NEW: Minimapa Container */
