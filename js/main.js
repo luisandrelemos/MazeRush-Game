@@ -4,7 +4,6 @@ import { createCar }   from '../assets/models/CarModel.js';
 import { loadLevel }   from './LevelLoader.js';
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
-
 const scene = new THREE.Scene();
 
 /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
@@ -12,6 +11,25 @@ const countdownEl = document.createElement('div');
 countdownEl.id = 'countdown';
 countdownEl.textContent = ''; // ou inicia vazio
 document.body.appendChild(countdownEl);
+
+/* ───────────────────────────  Modal de nível ─────────────────────────── */
+const modal = document.getElementById('level-complete-modal');
+const nextBtn = document.getElementById('next-level-btn');
+
+/* ───────────────────────────  Controlo de níveis ───────────────────────── */
+let currentLevelIndex = 1;
+let levelComplete     = false;
+let controlsLocked    = true;
+
+/* ────────────────────────────  Função para verificar existência de JSON ───────────── */
+async function levelExists(idx) {
+  try {
+    const res = await fetch(`../assets/levels/level-${idx}/layout.json`, { method:'HEAD' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 // ▼ Câmaras principais
 const cameraPerspective = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
@@ -67,7 +85,6 @@ document.addEventListener('keydown', e => {
 });
 
 /* ─────────────────────────────  Renderer  ─────────────────────────────── */
-
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
@@ -75,7 +92,6 @@ renderer.setSize(innerWidth, innerHeight);
 document.getElementById('game-container').appendChild(renderer.domElement);
 
 /* ───────────────────────────  Luzes globais  ─────────────────────────── */
-
 const ambientLight     = new THREE.AmbientLight(0x334477, 0.2); scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0x8899ff, 0.9);
 directionalLight.position.set(-20,50,20);
@@ -95,7 +111,6 @@ pointLight.position.set(0,10,0);
 scene.add(pointLight);
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
-
 const textureLoader = new THREE.TextureLoader();
 const car = createCar(textureLoader);
 scene.add(car);
@@ -108,14 +123,12 @@ const carSphere = baseGeom.boundingSphere.clone();
 carSphere.radius *= 0.5;
 
 /* ───────────────────────────  Estado do nível  ─────────────────────────── */
-
 let levelData        = null;
 let wallMeshes       = [];
 let visitedCells     = [];
 let animationStarted = false;
 
 /* ─────────────────────────────  Faróis do carro ──────────────────────────── */
-
 const headlightLeft  = new THREE.SpotLight(0xffffff, 2, 20, Math.PI/10, 0.3, 1);
 const headlightRight = headlightLeft.clone();
 const targetLeft     = new THREE.Object3D();
@@ -312,56 +325,65 @@ window.addEventListener('resize', () => {
 });
 
 /* ───────────────────────  Carregar nível e arrancar  ─────────────────────── */
-async function initLevel(levelName = 'level-1') {
-  levelData = await loadLevel(levelName, scene, textureLoader);
-  wallMeshes = scene.children.filter(o => o.userData.levelObject && o.geometry?.type === 'BoxGeometry');
-  visitedCells = levelData.map.map(r => r.map(_ => false));
-  
-  car.position.copy(levelData.startPos);
+async function initLevel(idx) {
+  const levelName = `level-${idx}`;
 
-    // NOVO: rotação automática com base em célula livre ao lado do ponto de partida
-    const tileX = Math.round((levelData.startPos.x - levelData.offsetX) / levelData.tileSize);
-    const tileZ = Math.round((levelData.startPos.z - levelData.offsetZ) / levelData.tileSize);
-    const map = levelData.map;
-  
-    let angle = 0; // por defeito (virado para norte)
-  
-    // Testa direções: [dx, dz, ângulo em radianos]
-    const directions = [
-      [ 0,  1,  Math.PI],       // Sul (↓)
-      [ 1,  0,  Math.PI / 2],   // Este (→)
-      [ 0, -1,  0],             // Norte (↑)
-      [-1,  0, -Math.PI / 2],   // Oeste (←)
-    ];
-  
-    for (const [dx, dz, a] of directions) {
-      const nx = tileX + dx;
-      const nz = tileZ + dz;
-      if (map[nz]?.[nx] === 0) {
-        angle = a;
-        break;
-      }
-    }
-  
-    car.rotation.set(0, angle, 0);
+  // 1) esconder modal e resetar estado
+  modal.classList.remove('show');
+  levelComplete  = false;
+  controlsLocked = true;
 
+  // 2) carregar JSON e instanciar tudo
+  const data = await loadLevel(levelName, scene, textureLoader);
+  levelData   = data;
+  wallMeshes  = scene.children.filter(o => o.userData.levelObject && o.geometry?.type === 'BoxGeometry');
+  visitedCells = data.map.map(r => r.map(_ => false));
+
+  // 3) posicionar carro no início
+  car.position.copy(data.startPos);
   car.userData.velocity = 0;
 
-  const { color, near, far } = levelData.fog;
-  scene.fog = new THREE.Fog(color, near, far);
+  // 4) rotação automática inicial
+  {
+    const tx = Math.round((data.startPos.x - data.offsetX) / data.tileSize);
+    const tz = Math.round((data.startPos.z - data.offsetZ) / data.tileSize);
+    const dirs = [
+      [ 0,  1, Math.PI],       // Sul
+      [ 1,  0, Math.PI/2],     // Este
+      [ 0, -1, 0],             // Norte
+      [-1, 0, -Math.PI/2],     // Oeste
+    ];
+    let angle = 0;
+    for (const [dx,dz,a] of dirs) {
+      if (data.map[tz + dz]?.[tx + dx] === 0) { angle = a; break; }
+    }
+    car.rotation.set(0, angle, 0);
+  }
 
+  // 5) fog + iniciar loop e preview
+  scene.fog = new THREE.Fog(data.fog.color, data.fog.near, data.fog.far);
   if (!animationStarted) {
     animate();
     animationStarted = true;
   }
-
   startMapPreviewSequence();
-}
+} 
 
-initLevel();
+/* ─────────────────────  Handler do botão “Próximo Nível” ───────────────────── */
+nextBtn.onclick = async () => {
+  const nextIndex = currentLevelIndex + 1;
+  if (!await levelExists(nextIndex)) {
+    console.warn(`Level ${nextIndex} não existe — jogo terminado.`);
+    return;
+  }
+  currentLevelIndex = nextIndex;
+  await initLevel(currentLevelIndex);
+};
+
+/* ───────────────────────────  Lança o primeiro nível ────────────────────── */
+initLevel(currentLevelIndex);
 
 /* ─────────────────────────────  Loop  ────────────────────────────────────── */
-
 function animate() {
   requestAnimationFrame(animate);
   if (isPaused || !levelData) return;
@@ -475,8 +497,18 @@ function animate() {
   checkLevelComplete();
 }
 
-/* ───────────────────────────  Minimap  ───────────────────────────────────── */
+/* ───────────────────────────  checkLevelComplete ────────────────────── */
+function checkLevelComplete() {
+  if (levelComplete || !levelData?.endPortal || controlsLocked) return;
+  const dist = car.position.distanceTo(levelData.endPortal.position);
+  if (dist < 0.8) {
+    levelComplete  = true;
+    controlsLocked = true;
+    modal.classList.add('show');
+  }
+}
 
+/* ───────────────────────────  Minimap  ───────────────────────────────────── */
 function drawMinimap(w,h,ts,ox,oz) {
   const canvas = document.getElementById('minimap');
   if (!canvas) return;
@@ -516,7 +548,6 @@ function drawMinimap(w,h,ts,ox,oz) {
 }
 
 /* ───────────────────────────  UI: Toggle de luzes  ───────────────────────── */
-
 ['toggleAmbient','toggleDirectional','togglePoint'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
     if (id==='toggleAmbient')     e.target.checked ? scene.add(ambientLight)    : scene.remove(ambientLight);
@@ -527,8 +558,6 @@ function drawMinimap(w,h,ts,ox,oz) {
 });
 
 /* ───────────────────────  Preview inicial do mapa  ───────────────────────── */
-let controlsLocked = true; 
-
 function showCountdown(seconds = 5) {
   controlsLocked = true;
   let count = seconds;
@@ -623,33 +652,3 @@ function startMapPreviewSequence() {
     requestAnimationFrame(animateTransition);
   }, 3000);
 }
-
-/* ───────────────────────────  Modal de nível   ────────────────────── */
-const modal = document.getElementById('level-complete-modal');
-const nextBtn = document.getElementById('next-level-btn');
-
-let currentLevelIndex = 1;
-let levelComplete = false; // novo estado para evitar múltiplas ativações
-
-function checkLevelComplete() {
-  if (levelComplete || !levelData?.endPortal) return;
-
-  const portalCenter = levelData.endPortal.position;
-  const distance = car.position.distanceTo(portalCenter);
-
-  // Só considera completo se a distância ao centro for inferior a 0.8
-  if (distance < 0.8) {
-    levelComplete = true;
-    controlsLocked = true;
-    modal.classList.add('show');
-  }
-}
-
-nextBtn.onclick = () => {
-  modal.classList.remove('show');
-  currentLevelIndex++;
-  controlsLocked = false;
-  levelComplete = false; // reset do estado
-  const nextLevel = `level-${currentLevelIndex}`;
-  initLevel(nextLevel);
-};
