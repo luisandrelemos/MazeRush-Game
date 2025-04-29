@@ -7,6 +7,21 @@ import { loadLevel }   from './LevelLoader.js';
 
 const scene = new THREE.Scene();
 
+/* ───────────────────────────  Timer Countdown  ─────────────────────────── */
+const countdownEl = document.createElement('div');
+countdownEl.id = 'countdown';
+countdownEl.style.position = 'absolute';
+countdownEl.style.top = '50%';
+countdownEl.style.left = '50%';
+countdownEl.style.transform = 'translate(-50%, -50%)';
+countdownEl.style.fontSize = '6rem';
+countdownEl.style.color = 'white';
+countdownEl.style.fontFamily = 'Montserrat, sans-serif';
+countdownEl.style.zIndex = '10';
+countdownEl.style.opacity = '0';
+countdownEl.style.transition = 'opacity 0.3s';
+document.body.appendChild(countdownEl);
+
 // ▼ Câmaras principais
 const cameraPerspective = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
 const cameraFollow = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
@@ -27,9 +42,8 @@ const transitionCamera = new THREE.PerspectiveCamera(75, innerWidth / innerHeigh
 const speedEl = document.getElementById('speedometer');
 
 /* ─────────  Alternância de câmaras (botão + tecla C) ───────── */
-
-let cameraMode = 0; // 0-persp | 1-ortho | 2-follow
-let activeCamera = cameraPerspective;
+let cameraMode = 2; // 0-persp | 1-ortho | 2-follow
+let activeCamera = cameraFollow;
 
 const cameraToggleBtn = document.getElementById('camera-toggle-btn');
 function cycleCamera() {
@@ -357,82 +371,86 @@ initLevel();
 
 /* ─────────────────────────────  Loop  ────────────────────────────────────── */
 
-function animate(){
+function animate() {
   requestAnimationFrame(animate);
   if (isPaused || !levelData) return;
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapW = map[0].length, mapH = map.length;
 
-  // ───── Física ─────
   const data = car.userData;
   const frontAxle = data.frontAxle;
-  const steerSpeed = 0.025, maxSteer = Math.PI/6;
-  const accel = keysPressed['w']||keysPressed['arrowup'];
-  const brake = keysPressed['s']||keysPressed['arrowdown'];
-  const left  = keysPressed['a']||keysPressed['arrowleft'];
-  const right = keysPressed['d']||keysPressed['arrowright'];
+  const steerSpeed = 0.025, maxSteer = Math.PI / 6;
+  const accel = keysPressed['w'] || keysPressed['arrowup'];
+  const brake = keysPressed['s'] || keysPressed['arrowdown'];
+  const left = keysPressed['a'] || keysPressed['arrowleft'];
+  const right = keysPressed['d'] || keysPressed['arrowright'];
 
-  if      (accel) data.velocity = Math.min(data.velocity+data.acceleration, data.maxSpeed);
-  else if (brake) data.velocity = Math.max(data.velocity-data.acceleration*1.2, -data.maxSpeed*0.5);
-  else {
-    data.velocity *= data.friction;
-    if (Math.abs(data.velocity) < 0.001) data.velocity = 0;
-  }
+  // ───── BLOQUEIO de movimento ─────
+  if (!controlsLocked) {
+    if (accel) {
+      data.velocity = Math.min(data.velocity + data.acceleration, data.maxSpeed);
+    } else if (brake) {
+      data.velocity = Math.max(data.velocity - data.acceleration * 1.2, -data.maxSpeed * 0.5);
+    } else {
+      data.velocity *= data.friction;
+      if (Math.abs(data.velocity) < 0.001) data.velocity = 0;
+    }
 
-  const isMoving = data.velocity !== 0;
-  if (!isMoving) {
-    if (left)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed,  maxSteer);
-    if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed, -maxSteer);
-    if (!left && !right) frontAxle.rotation.y *= 0.85;
+    const isMoving = data.velocity !== 0;
+    if (!isMoving) {
+      if (left) frontAxle.rotation.y = Math.min(frontAxle.rotation.y + steerSpeed, maxSteer);
+      if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y - steerSpeed, -maxSteer);
+      if (!left && !right) frontAxle.rotation.y *= 0.85;
+    } else {
+      if (left) frontAxle.rotation.y = Math.min(frontAxle.rotation.y + steerSpeed, maxSteer);
+      if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y - steerSpeed, -maxSteer);
+      if (!left && !right) frontAxle.rotation.y *= 0.9;
+      car.rotation.y += frontAxle.rotation.y * 0.04 * Math.sign(data.velocity);
+    }
+
+    // Mover e colidir
+    if (data.velocity !== 0) {
+      const dir = new THREE.Vector3(0, 0, -1).applyEuler(car.rotation).multiplyScalar(data.velocity);
+      car.position.x += dir.x;
+      checkCollisionAndReact(car, wallMeshes);
+      car.position.z += dir.z;
+      checkCollisionAndReact(car, wallMeshes);
+
+      const wheelSpeed = data.velocity * 10;
+      data.rotatingWheels.forEach(w => w.rotation.x += wheelSpeed);
+    }
   } else {
-    if (left)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed,  maxSteer);
-    if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed, -maxSteer);
-    if (!left && !right) frontAxle.rotation.y *= 0.9;
-    car.rotation.y += frontAxle.rotation.y * 0.04 * Math.sign(data.velocity);
+    // Durante o lock: garantir velocidade 0
+    data.velocity = 0;
   }
 
-  // mover + colidir em X e Z
-  if (data.velocity !== 0) {
-    const dir = new THREE.Vector3(0,0,-1).applyEuler(car.rotation).multiplyScalar(data.velocity);
-    car.position.x += dir.x;
-    checkCollisionAndReact(car, wallMeshes);
-    car.position.z += dir.z;
-    checkCollisionAndReact(car, wallMeshes);
-    const wheelSpeed = data.velocity * 10;
-    data.rotatingWheels.forEach(w => w.rotation.x += wheelSpeed);
-  }
-
-  // ───── Câmaras ─────
+  // ───── Atualizar câmaras ─────
   if (cameraMode === 0) {
     if (!isDragging) targetRotationOffset *= 0.9;
     cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.08;
-    const base = new THREE.Vector3(0,8.5,8.5);
-    const off  = base.clone().applyEuler(new THREE.Euler(0,cameraRotationOffset,0)).applyEuler(car.rotation);
+    const base = new THREE.Vector3(0, 8.5, 8.5);
+    const off = base.clone().applyEuler(new THREE.Euler(0, cameraRotationOffset, 0)).applyEuler(car.rotation);
     cameraPerspective.position.lerp(car.position.clone().add(off), 0.08);
     cameraPerspective.lookAt(car.position);
 
   } else if (cameraMode === 1) {
     const aspect = innerWidth / innerHeight;
-    
-    orthoSizeTopView = aspect > 1 
-      ? (10 * zoomTopView) 
-      : (10 * zoomTopView / aspect);
-  
+    orthoSizeTopView = aspect > 1 ? (10 * zoomTopView) : (10 * zoomTopView / aspect);
     cameraOrtho.left = -orthoSizeTopView * aspect;
     cameraOrtho.right = orthoSizeTopView * aspect;
     cameraOrtho.top = orthoSizeTopView;
     cameraOrtho.bottom = -orthoSizeTopView;
     cameraOrtho.updateProjectionMatrix();
-  
+
     cameraOrtho.position.set(car.position.x, 60, car.position.z + 20);
     cameraOrtho.lookAt(car.position);
 
   } else {
     if (!isDragging) targetRotationOffset *= 0.9;
     cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.08;
-    const base = new THREE.Vector3(0,1.5,4);
-    const off  = base.clone().applyEuler(new THREE.Euler(0,cameraRotationOffset,0)).applyEuler(car.rotation);
+    const base = new THREE.Vector3(0, 1.5, 4);
+    const off = base.clone().applyEuler(new THREE.Euler(0, cameraRotationOffset, 0)).applyEuler(car.rotation);
     cameraFollow.position.lerp(car.position.clone().add(off), 0.08);
     cameraFollow.lookAt(car.position);
   }
@@ -442,25 +460,26 @@ function animate(){
   speedEl.textContent = `${kmh.toFixed(0)} km/h`;
 
   // ───── Faróis ─────
-  const leftOff  = new THREE.Vector3(-0.2,0.2,-0.6).applyEuler(car.rotation);
-  const rightOff = new THREE.Vector3( 0.2,0.2,-0.6).applyEuler(car.rotation);
-  const dirOff   = new THREE.Vector3(0,0,-2).applyEuler(car.rotation);
-  headlightLeft.position .copy(car.position.clone().add(leftOff));
+  const leftOff = new THREE.Vector3(-0.2, 0.2, -0.6).applyEuler(car.rotation);
+  const rightOff = new THREE.Vector3(0.2, 0.2, -0.6).applyEuler(car.rotation);
+  const dirOff = new THREE.Vector3(0, 0, -2).applyEuler(car.rotation);
+  headlightLeft.position.copy(car.position.clone().add(leftOff));
   headlightRight.position.copy(car.position.clone().add(rightOff));
-  targetLeft.position   .copy(headlightLeft.position.clone().add(dirOff));
-  targetRight.position  .copy(headlightRight.position.clone().add(dirOff));
+  targetLeft.position.copy(headlightLeft.position.clone().add(dirOff));
+  targetRight.position.copy(headlightRight.position.clone().add(dirOff));
 
   // ───── Minimap ─────
-  const cx = Math.floor((car.position.x-offsetX)/tileSize + 0.5);
-  const cz = Math.floor((car.position.z-offsetZ)/tileSize + 0.5);
-  for (let dz=-1; dz<=1; dz++){
-    for (let dx=-1; dx<=1; dx++){
-      const nx = cx+dx, nz = cz+dz;
-      if (nx>=0 && nx<mapW && nz>=0 && nz<mapH) visitedCells[nz][nx] = true;
+  const cx = Math.floor((car.position.x - offsetX) / tileSize + 0.5);
+  const cz = Math.floor((car.position.z - offsetZ) / tileSize + 0.5);
+  for (let dz = -1; dz <= 1; dz++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      const nx = cx + dx, nz = cz + dz;
+      if (nx >= 0 && nx < mapW && nz >= 0 && nz < mapH) visitedCells[nz][nx] = true;
     }
   }
   drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
 
+  // ───── Render ─────
   renderer.render(scene, activeCamera);
 }
 
@@ -516,30 +535,51 @@ function drawMinimap(w,h,ts,ox,oz) {
 });
 
 /* ───────────────────────  Preview inicial do mapa  ───────────────────────── */
-function startMapPreviewSequence(){
+let controlsLocked = true; // NOVO: bloquear o carro no início
+
+function showCountdown(seconds = 5) {
+  controlsLocked = true;
+  let count = seconds;
+  countdownEl.style.opacity = '1';
+  countdownEl.textContent = count;
+
+  const interval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdownEl.textContent = count;
+    } else {
+      countdownEl.textContent = 'GO!';
+      clearInterval(interval);
+      setTimeout(() => {
+        countdownEl.style.opacity = '0';
+        controlsLocked = false; // desbloquear após GO!
+      }, 1000);
+    }
+  }, 1000);
+}
+
+function startMapPreviewSequence() {
   if (!levelData) return;
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapWidth = map[0].length, mapHeight = map.length;
-
   const centerX = mapWidth * tileSize / 2 + offsetX - tileSize / 2;
   const centerZ = mapHeight * tileSize / 2 + offsetZ - tileSize / 2;
 
   const canvasAspect = innerWidth / innerHeight;
   const mapRatio = mapWidth / mapHeight;
-
   orthoSizePreview = canvasAspect > mapRatio
     ? (mapHeight * tileSize * zoomPreview) / 2
     : ((mapWidth * tileSize) / canvasAspect * zoomPreview) / 2;
 
-  cameraOrtho.left   = -orthoSizePreview * canvasAspect;
-  cameraOrtho.right  =  orthoSizePreview * canvasAspect;
-  cameraOrtho.top    =  orthoSizePreview;
+  cameraOrtho.left = -orthoSizePreview * canvasAspect;
+  cameraOrtho.right = orthoSizePreview * canvasAspect;
+  cameraOrtho.top = orthoSizePreview;
   cameraOrtho.bottom = -orthoSizePreview;
   cameraOrtho.updateProjectionMatrix();
 
-  cameraOrtho.position.set(centerX,100,centerZ);
-  cameraOrtho.lookAt(centerX,0,centerZ);
+  cameraOrtho.position.set(centerX, 100, centerZ);
+  cameraOrtho.lookAt(centerX, 0, centerZ);
 
   activeCamera = cameraOrtho;
   scene.fog = null;
@@ -550,25 +590,40 @@ function startMapPreviewSequence(){
 
   setTimeout(() => {
     previewText.style.opacity = 0;
-    scene.fog = new THREE.Fog('#000000',30,80);
+    scene.fog = new THREE.Fog('#000000', 30, 80);
     document.getElementById('minimap-container').style.display = 'block';
 
     transitionCamera.position.copy(cameraOrtho.position);
     transitionCamera.quaternion.copy(cameraOrtho.quaternion);
     activeCamera = transitionCamera;
 
-    const dur = 1500, start = performance.now(), startPos = cameraOrtho.position.clone(),
-          startQuat = cameraOrtho.quaternion.clone(),
-          endPos = cameraPerspective.position.clone(),
-          endQuat = cameraPerspective.quaternion.clone();
+    const fakeOffset = new THREE.Vector3(0, 1.5, 4)
+      .applyEuler(new THREE.Euler(0, 0, 0))
+      .applyEuler(car.rotation);
 
-    function anim(t){
-      const p = Math.min((t-start)/dur,1), e = easeInOutCubic(p);
+    const endPos = car.position.clone().add(fakeOffset);
+    const endQuat = new THREE.Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().lookAt(endPos, car.position, new THREE.Vector3(0, 1, 0))
+    );
+
+    const dur = 3000;
+    const start = performance.now();
+    const startPos = cameraOrtho.position.clone();
+    const startQuat = cameraOrtho.quaternion.clone();
+
+    function animateTransition(t) {
+      const p = Math.min((t - start) / dur, 1);
+      const e = easeInOutCubic(p);
       transitionCamera.position.lerpVectors(startPos, endPos, e);
       transitionCamera.quaternion.copy(startQuat.clone().slerp(endQuat, e));
-      if (p < 1) requestAnimationFrame(anim);
-      else activeCamera = cameraPerspective;
+      if (p < 1) {
+        requestAnimationFrame(animateTransition);
+      } else {
+        activeCamera = cameraFollow;
+        cameraMode = 2;
+      }
     }
-    requestAnimationFrame(anim);
+    showCountdown(); // mostrar o contador durante a animação
+    requestAnimationFrame(animateTransition);
   }, 3000);
 }

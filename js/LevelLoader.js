@@ -1,4 +1,3 @@
-// js/LevelLoader.js
 import * as THREE from 'https://cdn.skypack.dev/three@0.152.2';
 
 export async function loadLevel(levelName, scene, textureLoader) {
@@ -54,13 +53,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
     }
   }));
 
-  /* 5. Bordas exteriores (corrigido) */
+  /* 5. Bordas exteriores */
   if (lvl.borderThickness && lvl.borderThickness > 0) {
-    const bt = lvl.borderThickness;          // espessura
-    const w  = mapW * lvl.tileSize;          // largura total
-    const h  = mapH * lvl.tileSize;          // altura total
+    const bt = lvl.borderThickness;
+    const w  = mapW * lvl.tileSize;
+    const h  = mapH * lvl.tileSize;
 
-    // centro das paredes
     const leftX   = offsetX - lvl.tileSize/2 - bt/2;
     const rightX  = offsetX + w - lvl.tileSize/2 + bt/2;
     const topZ    = offsetZ - lvl.tileSize/2 - bt/2;
@@ -77,43 +75,47 @@ export async function loadLevel(levelName, scene, textureLoader) {
       scene.add(mesh);
     };
 
-    // topo e base
     makeBorder(w, bt, (leftX + rightX) / 2, topZ);
     makeBorder(w, bt, (leftX + rightX) / 2, bottomZ);
-
-    // esquerda e direita
     makeBorder(bt, h, leftX,  (topZ + bottomZ) / 2);
     makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
   }
 
-  /* 6. Portais */
-  const mkPortal = (cfg, pos) => {
+  /* 6. Novo design de portais (translúcido e plano) */
+  function mkPortal(cfg, pos) {
+    // Anel translúcido e plano
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(2.5, 0.4, 16, 60),
-      new THREE.MeshStandardMaterial({
+      new THREE.RingGeometry(1.5, 2.2, 64),
+      new THREE.MeshBasicMaterial({
         color: cfg.ringColor,
-        emissive: cfg.ringColor,
-        emissiveIntensity: 1.2
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.35
       })
     );
-    ring.rotation.x = Math.PI / 2;
-    ring.position.copy(pos).y = cfg.height;
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.copy(pos);
+    ring.position.y = 0.1;
     ring.userData.levelObject = true;
     scene.add(ring);
 
-    const base = new THREE.Mesh(
-      new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32),
-      new THREE.MeshStandardMaterial({ color: cfg.baseColor, metalness: 0.4 })
-    );
-    base.position.set(pos.x, 0.1, pos.z);
-    base.userData.levelObject = true;
-    scene.add(base);
+    // Animação de pulsação
+    const start = performance.now();
+    function animateRing(t) {
+      const elapsed = (t - start) / 1000;
+      const scale = 1 + 0.1 * Math.sin(elapsed * 3);
+      ring.scale.set(scale, scale, scale);
+      requestAnimationFrame(animateRing);
+    }
+    requestAnimationFrame(animateRing);
 
-    const light = new THREE.PointLight(cfg.lightColor, 2.0, 15);
-    light.position.copy(ring.position);
+    // Luz pontual suave
+    const light = new THREE.PointLight(cfg.lightColor, 1.0, 10, 2);
+    light.position.copy(pos);
+    light.position.y = 1;
     light.userData.levelObject = true;
     scene.add(light);
-  };
+  }
 
   const startPos = new THREE.Vector3(
     lvl.start.x * lvl.tileSize + offsetX,
