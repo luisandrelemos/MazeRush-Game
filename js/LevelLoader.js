@@ -115,6 +115,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
     light.position.y = 1;
     light.userData.levelObject = true;
     scene.add(light);
+
+    return ring;  // <-- ADICIONADO: Devolve o anel criado!
   }
 
   const startPos = new THREE.Vector3(
@@ -129,7 +131,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   );
 
   mkPortal(lvl.portalStart, startPos);
-  mkPortal(lvl.portalEnd, endPos);
+  lvl.endPortal = mkPortal(lvl.portalEnd, endPos);  // Agora `lvl.endPortal` guarda o portal final!
 
   /* 7. Devolver info ao main.js */
   return {
@@ -139,6 +141,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     map: lvl.map,
     fog: lvl.fog,
     startPos,
-    endPos
+    endPos,
+    endPortal: lvl.endPortal
   };
 }

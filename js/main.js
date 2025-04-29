@@ -472,6 +472,7 @@ function animate() {
 
   // ───── Render ─────
   renderer.render(scene, activeCamera);
+  checkLevelComplete();
 }
 
 /* ───────────────────────────  Minimap  ───────────────────────────────────── */
@@ -526,7 +527,7 @@ function drawMinimap(w,h,ts,ox,oz) {
 });
 
 /* ───────────────────────  Preview inicial do mapa  ───────────────────────── */
-let controlsLocked = true; // NOVO: bloquear o carro no início
+let controlsLocked = true; 
 
 function showCountdown(seconds = 5) {
   controlsLocked = true;
@@ -622,3 +623,33 @@ function startMapPreviewSequence() {
     requestAnimationFrame(animateTransition);
   }, 3000);
 }
+
+/* ───────────────────────────  Modal de nível   ────────────────────── */
+const modal = document.getElementById('level-complete-modal');
+const nextBtn = document.getElementById('next-level-btn');
+
+let currentLevelIndex = 1;
+let levelComplete = false; // novo estado para evitar múltiplas ativações
+
+function checkLevelComplete() {
+  if (levelComplete || !levelData?.endPortal) return;
+
+  const portalCenter = levelData.endPortal.position;
+  const distance = car.position.distanceTo(portalCenter);
+
+  // Só considera completo se a distância ao centro for inferior a 0.8
+  if (distance < 0.8) {
+    levelComplete = true;
+    controlsLocked = true;
+    modal.classList.add('show');
+  }
+}
+
+nextBtn.onclick = () => {
+  modal.classList.remove('show');
+  currentLevelIndex++;
+  controlsLocked = false;
+  levelComplete = false; // reset do estado
+  const nextLevel = `level-${currentLevelIndex}`;
+  initLevel(nextLevel);
+};
