@@ -45,13 +45,10 @@ const menuBtn     = document.getElementById('menu-btn');
 const settingsBtn = document.getElementById('settings-btn');
 
 retryBtn.onclick = () => {
-  modal.style.transition = 'none';
+  // esconde logo o modal
   modal.classList.remove('show');
-  void modal.offsetWidth;
-  modal.style.transition = '';
-  isTimerRunning = false;
-  timerEl.textContent = '0.00s';
-  initLevel(currentLevelIndex);
+  // recarrega a página (igual ao restart do pause-menu)
+  location.reload();
 };
 
 menuBtn.addEventListener('click', () => {
@@ -568,22 +565,16 @@ function checkLevelComplete() {
   if (dist < 0.8) {
     levelComplete  = true;
     controlsLocked = true;
-
-    // pára o timer
     isTimerRunning = false;
-    const finalTime = (performance.now() - levelStartTime) / 1000;
-    timerEl.textContent = `${finalTime.toFixed(2)}s`;
 
-    // remove exibição antiga e cria nova
+    // actualiza o tempo
     modal.querySelector('.time-display')?.remove();
     const p = document.createElement('p');
     p.className = 'time-display';
-    p.textContent = `Tempo: ${finalTime.toFixed(2)}s`;
-
-    // **aqui está a alteração**  
-    // insere imediatamente antes do próprio botão
+    p.textContent = `Tempo: ${((performance.now() - levelStartTime)/1000).toFixed(2)}s`;
     nextBtn.insertAdjacentElement('beforebegin', p);
 
+    // mostra o modal
     modal.classList.add('show');
   }
 }
