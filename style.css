@@ -14,12 +14,12 @@ canvas {
 /* Paleta */
 :root {
   --vermelho-escuro: #A62C2C;
-  --vermelho-vivo: #E83F25;
-  --laranja: #EA7300;
-  --verde-claro: #D3CA79;
+  --vermelho-vivo:   #E83F25;
+  --laranja:         #EA7300;
+  --verde-claro:     #D3CA79;
 }
 
-/* Menu */
+/* ─── Menu inicial (se usar) ─── */
 .menu-body {
   background: linear-gradient(135deg, #A62C2C, #EA7300);
   display: flex;
@@ -27,28 +27,24 @@ canvas {
   justify-content: center;
   height: 100vh;
 }
-
 .menu-screen {
   text-align: center;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255,255,255,0.07);
   padding: 40px 50px;
   border-radius: 16px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
   color: #fff;
 }
-
 .title {
   font-size: 3rem;
   color: var(--verde-claro);
   margin-bottom: 10px;
 }
-
 .subtitle {
   font-size: 1.2rem;
   margin-bottom: 30px;
 }
-
 .button {
   background-color: var(--vermelho-vivo);
   color: white;
@@ -61,19 +57,16 @@ canvas {
   transition: 0.3s ease;
   text-decoration: none;
 }
-
 .button:hover {
   background-color: var(--laranja);
 }
 
-
-/* Submenu Pausa com Transição e Blur */
+/* ─── Submenu Pausa ─── */
 #pause-menu {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
-  background: rgba(20, 20, 20, 0.6);
+  background: rgba(20,20,20,0.6);
   backdrop-filter: blur(10px);
   padding: 30px 40px;
   border-radius: 14px;
@@ -84,19 +77,16 @@ canvas {
   z-index: 100;
   color: var(--verde-claro);
 }
-
 #pause-menu.active {
   display: block;
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
-
 #pause-menu h2 {
   margin-bottom: 20px;
   font-size: 2rem;
   color: var(--laranja);
 }
-
 .pause-button {
   display: block;
   background-color: var(--vermelho-vivo);
@@ -111,104 +101,98 @@ canvas {
   transition: background-color 0.3s ease;
   width: 200px;
 }
-
 .pause-button:hover {
   background-color: var(--laranja);
 }
 
-.cam-btn{
+/* ─── Botão de câmara ─── */
+.cam-btn {
   position: absolute;
   top: 16px; left: 16px;
   width: 44px; height: 44px;
-  border: none; border-radius: 50%;
-  background:#ff5a1e;     /* cor da UI */
-  color:#fff;             /* ícone branco */
+  border: none;
+  border-radius: 50%;
+  background: #ff5a1e;
+  color: #fff;
   cursor: pointer;
   display:flex; align-items:center; justify-content:center;
   box-shadow:0 2px 6px rgb(0 0 0 / .35);
   transition: transform .15s;
 }
-.cam-btn:hover{ transform: scale(1.08); }
-.cam-btn:active{ transform: scale(0.94); }
+.cam-btn:hover { transform: scale(1.08); }
+.cam-btn:active { transform: scale(0.94); }
 
-
-#light-controls{
-  position:fixed;
-  bottom:20px;        
-  left:20px;
-  right:auto;           
-  background:rgba(0,0,0,.60);
-  border-radius:8px;
-  padding:10px 14px;
-  z-index:1000;
-  font-size:14px;
-  color:#fff;
-  box-shadow:0 0 8px rgb(0 0 0 / .45);
+/* ─── Controles de luz ─── */
+#light-controls {
+  position: fixed;
+  bottom: 20px; left: 20px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 8px;
+  padding: 10px 14px;
+  z-index: 1000;
+  font-size: 14px;
+  color: #fff;
+  box-shadow: 0 0 8px rgb(0 0 0 / .45);
 }
-
 #light-controls label {
   display: block;
   margin: 6px 0;
   cursor: pointer;
 }
-
 #light-controls input[type="checkbox"] {
-  accent-color: #E83F25; /* cor personalizada do jogo */
+  accent-color: #E83F25;
   margin-right: 6px;
   transform: scale(1.2);
 }
 
-/* velocímetro — canto DIREITO em baixo */
-#speedometer{
-  position:fixed;
-  bottom:18px;
-  right:28px;
-  font:700 2.8rem 'Montserrat', sans-serif;   
-  color:#fff;
-  text-shadow:0 0 6px rgb(0 0 0 / .7);
-  pointer-events:none;                    
-  z-index:1000;
+/* ─── Velocímetro ─── */
+#speedometer {
+  position: fixed;
+  bottom: 18px; right: 28px;
+  font: 700 2.8rem 'Montserrat', sans-serif;
+  color: #fff;
+  text-shadow: 0 0 6px rgb(0 0 0 / .7);
+  pointer-events: none;
+  z-index: 1000;
 }
 
-/* NEW: Minimapa Container */
+/* ─── Minimapa ─── */
 #minimap-container {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 220px;
-  height: 220px;
-  border-radius: 16px;     
-  overflow: hidden;        
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  background: rgba(255, 255, 255, 0.06); 
+  top: 20px; right: 20px;
+  width: 220px; height: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
   backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
+/* ─── Texto de Preview ─── */
 #preview-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #fff;
-    font-size: 2.8rem;
-    font-weight: 700;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 20px 40px;
-    border-radius: 14px;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    z-index: 1000;
-    pointer-events: none;
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 2.8rem;
+  font-weight: 700;
+  background: rgba(0,0,0,0.6);
+  padding: 20px 40px;
+  border-radius: 14px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1000;
+  pointer-events: none;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
 }
 
+/* ─── Contador ─── */
 #countdown {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(1);
   font-size: 6rem;
-  color: #ffffff;
+  color: #fff;
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
   z-index: 100;
@@ -218,6 +202,7 @@ canvas {
   pointer-events: none;
 }
 
+/* ─── Modal de Fim de Nível ─── */
 #level-complete-modal {
   position: fixed;
   top: 0; left: 0;
@@ -232,7 +217,6 @@ canvas {
   z-index: 20;
   backdrop-filter: blur(6px);
 }
-
 #level-complete-modal.show {
   opacity: 1;
   pointer-events: auto;
@@ -243,13 +227,12 @@ canvas {
   padding: 50px;
   border-radius: 20px;
   text-align: center;
+  transform: scale(0.95);
   animation: fadeBounce 0.8s ease forwards;
   box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-  color: #ffffff;
+  color: #fff;
   font-family: 'Montserrat', sans-serif;
-  transform: scale(0.95);
 }
-
 .modal-content h2 {
   font-size: 2.2rem;
   margin-bottom: 25px;
@@ -258,6 +241,7 @@ canvas {
   -webkit-text-fill-color: transparent;
 }
 
+/* Botão “Próximo Nível” (mantém destaque) */
 #next-level-btn {
   margin-top: 20px;
   padding: 14px 40px;
@@ -271,7 +255,6 @@ canvas {
   box-shadow: 0 0 15px #EA7300aa;
   transition: all 0.3s ease;
 }
-
 #next-level-btn:hover {
   background: linear-gradient(90deg, #ff8c1a, #ffe066);
   box-shadow: 0 0 20px #ff9900bb, 0 0 30px #ffd70088;
@@ -279,7 +262,59 @@ canvas {
 }
 
 @keyframes fadeBounce {
-  0% { transform: translateY(50px) scale(0.9); opacity: 0; }
-  60% { transform: translateY(-10px) scale(1.02); opacity: 1; }
+  0%   { transform: translateY(50px) scale(0.9); opacity: 0; }
+  60%  { transform: translateY(-10px) scale(1.02); opacity: 1; }
   100% { transform: translateY(0) scale(1); }
+}
+
+/* ─── Botões do modal empilhados ─── */
+.modal-content {
+  max-width: 360px;
+  width: 90%;
+}
+.modal-content .button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+.modal-content .button-group button {
+  width: 100%;
+  padding: 12px 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.modal-content .button-group button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+/* Cores individuais dos botões */
+#settings-btn {
+  background: linear-gradient(90deg, #5a5aff, #0077ff);
+  color: #fff;
+}
+#settings-btn:hover {
+  background: linear-gradient(90deg, #6f6fff, #3399ff);
+}
+
+#menu-btn {
+  background: linear-gradient(90deg, #44aa44, #22cc22);
+  color: #fff;
+}
+#menu-btn:hover {
+  background: linear-gradient(90deg, #55bb55, #33dd33);
+}
+
+#retry-btn {
+  background: linear-gradient(90deg, #bb2222, #ff4444);
+  color: #fff;
+}
+#retry-btn:hover {
+  background: linear-gradient(90deg, #cc3333, #ff6666);
 }

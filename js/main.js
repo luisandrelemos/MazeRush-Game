@@ -18,15 +18,19 @@ timerEl.id = 'level-timer';
 timerEl.textContent = '0.00s';
 Object.assign(timerEl.style, {
   position: 'absolute',
-  top: '12px',
-  right: '12px',
+  top: '20px',
+  left: '50%',
+  transform: 'translateX(-50%)',
   color: '#fff',
-  background: 'rgba(0,0,0,0.5)',
-  padding: '4px 8px',
-  borderRadius: '4px',
+  textShadow: '0 0 8px rgba(0, 0, 0, 0.8)',
   fontFamily: 'monospace',
-  fontSize: '16px',
-  zIndex: '10'
+  fontSize: '48px',
+  fontWeight: 'bold',
+  background: 'rgba(0, 0, 0, 0.3)',
+  padding: '4px 16px',
+  borderRadius: '8px',
+  pointerEvents: 'none',
+  zIndex: '100'
 });
 document.body.appendChild(timerEl);
 
@@ -36,6 +40,28 @@ let isTimerRunning = false;
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById('level-complete-modal');
 const nextBtn = document.getElementById('next-level-btn');
+const retryBtn    = document.getElementById('retry-btn');
+const menuBtn     = document.getElementById('menu-btn');
+const settingsBtn = document.getElementById('settings-btn');
+
+retryBtn.onclick = () => {
+  modal.style.transition = 'none';
+  modal.classList.remove('show');
+  void modal.offsetWidth;
+  modal.style.transition = '';
+  isTimerRunning = false;
+  timerEl.textContent = '0.00s';
+  initLevel(currentLevelIndex);
+};
+
+menuBtn.addEventListener('click', () => {
+  window.location.href = 'index.html';  // volta ao menu principal
+});
+
+settingsBtn.addEventListener('click', () => {
+  // aqui podes abrir o teu painel de definições
+  alert('Abrir definições...'); 
+});
 
 /* ───────────────────────────  Controlo de níveis ───────────────────────── */
 let currentLevelIndex = 1;
@@ -536,7 +562,7 @@ function animate() {
 
 /* ───────────────────────────  checkLevelComplete ────────────────────── */
 function checkLevelComplete() {
-  if (levelComplete || !levelData?.endPortal || controlsLocked) return;
+  if (levelComplete || !levelData?.endPortal) return;
 
   const dist = car.position.distanceTo(levelData.endPortal.position);
   if (dist < 0.8) {
@@ -612,7 +638,7 @@ function drawMinimap(w,h,ts,ox,oz) {
 });
 
 /* ───────────────────────  Preview inicial do mapa  ───────────────────────── */
-function showCountdown(seconds = 5) {
+function showCountdown(seconds = 3) {
   controlsLocked = true;
   let count = seconds;
   countdownEl.textContent = count;
