@@ -116,24 +116,21 @@ canvas {
   background-color: var(--laranja);
 }
 
-#camera-toggle-btn {
+.cam-btn{
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 999; /* para ficar sobre o canvas */
-  padding: 8px 14px;
-  font-size: 1rem;
-  background-color: var(--vermelho-vivo);
-  border: none;
-  color: #fff;
-  border-radius: 6px;
+  top: 16px; left: 16px;
+  width: 44px; height: 44px;
+  border: none; border-radius: 50%;
+  background:#ff5a1e;     /* cor da UI */
+  color:#fff;             /* ícone branco */
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 6px rgb(0 0 0 / .35);
+  transition: transform .15s;
 }
+.cam-btn:hover{ transform: scale(1.08); }
+.cam-btn:active{ transform: scale(0.94); }
 
-#camera-toggle-btn:hover {
-  background-color: var(--laranja);
-}
 
 #light-controls {
   position: fixed;
