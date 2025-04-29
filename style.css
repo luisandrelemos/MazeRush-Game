@@ -116,37 +116,34 @@ canvas {
   background-color: var(--laranja);
 }
 
-#camera-toggle-btn {
+.cam-btn{
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 999; /* para ficar sobre o canvas */
-  padding: 8px 14px;
-  font-size: 1rem;
-  background-color: var(--vermelho-vivo);
-  border: none;
-  color: #fff;
-  border-radius: 6px;
+  top: 16px; left: 16px;
+  width: 44px; height: 44px;
+  border: none; border-radius: 50%;
+  background:#ff5a1e;     /* cor da UI */
+  color:#fff;             /* ícone branco */
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 6px rgb(0 0 0 / .35);
+  transition: transform .15s;
 }
+.cam-btn:hover{ transform: scale(1.08); }
+.cam-btn:active{ transform: scale(0.94); }
 
-#camera-toggle-btn:hover {
-  background-color: var(--laranja);
-}
 
-#light-controls {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 8px;
-  padding: 10px 12px;
-  z-index: 1000;
-  font-family: 'Segoe UI', sans-serif;
-  color: white;
-  font-size: 14px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+#light-controls{
+  position:fixed;
+  bottom:20px;        
+  left:20px;
+  right:auto;           
+  background:rgba(0,0,0,.60);
+  border-radius:8px;
+  padding:10px 14px;
+  z-index:1000;
+  font-size:14px;
+  color:#fff;
+  box-shadow:0 0 8px rgb(0 0 0 / .45);
 }
 
 #light-controls label {
@@ -159,6 +156,18 @@ canvas {
   accent-color: #E83F25; /* cor personalizada do jogo */
   margin-right: 6px;
   transform: scale(1.2);
+}
+
+/* velocímetro — canto DIREITO em baixo */
+#speedometer{
+  position:fixed;
+  bottom:18px;
+  right:28px;
+  font:700 2.8rem 'Montserrat', sans-serif;   
+  color:#fff;
+  text-shadow:0 0 6px rgb(0 0 0 / .7);
+  pointer-events:none;                    
+  z-index:1000;
 }
 
 /* NEW: Minimapa Container */
