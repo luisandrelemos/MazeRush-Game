@@ -307,19 +307,52 @@ window.addEventListener('resize', () => {
 });
 
 /* ───────────────────────  Carregar nível e arrancar  ─────────────────────── */
-
-async function initLevel(levelName='level-1'){
+async function initLevel(levelName = 'level-1') {
   levelData = await loadLevel(levelName, scene, textureLoader);
-  wallMeshes    = scene.children.filter(o=>o.userData.levelObject && o.geometry?.type==='BoxGeometry');
-  visitedCells  = levelData.map.map(r=>r.map(_=>false));
+  wallMeshes = scene.children.filter(o => o.userData.levelObject && o.geometry?.type === 'BoxGeometry');
+  visitedCells = levelData.map.map(r => r.map(_ => false));
+  
   car.position.copy(levelData.startPos);
-  car.rotation.set(0, Math.PI / 1, 0);
+
+    // NOVO: rotação automática com base em célula livre ao lado do ponto de partida
+    const tileX = Math.round((levelData.startPos.x - levelData.offsetX) / levelData.tileSize);
+    const tileZ = Math.round((levelData.startPos.z - levelData.offsetZ) / levelData.tileSize);
+    const map = levelData.map;
+  
+    let angle = 0; // por defeito (virado para norte)
+  
+    // Testa direções: [dx, dz, ângulo em radianos]
+    const directions = [
+      [ 0,  1,  Math.PI],       // Sul (↓)
+      [ 1,  0,  Math.PI / 2],   // Este (→)
+      [ 0, -1,  0],             // Norte (↑)
+      [-1,  0, -Math.PI / 2],   // Oeste (←)
+    ];
+  
+    for (const [dx, dz, a] of directions) {
+      const nx = tileX + dx;
+      const nz = tileZ + dz;
+      if (map[nz]?.[nx] === 0) {
+        angle = a;
+        break;
+      }
+    }
+  
+    car.rotation.set(0, angle, 0);
+
   car.userData.velocity = 0;
+
   const { color, near, far } = levelData.fog;
   scene.fog = new THREE.Fog(color, near, far);
-  if (!animationStarted) { animate(); animationStarted = true; }
+
+  if (!animationStarted) {
+    animate();
+    animationStarted = true;
+  }
+
   startMapPreviewSequence();
 }
+
 initLevel();
 
 /* ─────────────────────────────  Loop  ────────────────────────────────────── */
