@@ -12,6 +12,27 @@ countdownEl.id = 'countdown';
 countdownEl.textContent = ''; // ou inicia vazio
 document.body.appendChild(countdownEl);
 
+/* ───────────────────────────  Timer de nível  ─────────────────────────── */
+const timerEl = document.createElement('div');
+timerEl.id = 'level-timer';
+timerEl.textContent = '0.00s';
+Object.assign(timerEl.style, {
+  position: 'absolute',
+  top: '12px',
+  right: '12px',
+  color: '#fff',
+  background: 'rgba(0,0,0,0.5)',
+  padding: '4px 8px',
+  borderRadius: '4px',
+  fontFamily: 'monospace',
+  fontSize: '16px',
+  zIndex: '10'
+});
+document.body.appendChild(timerEl);
+
+let levelStartTime = 0;
+let isTimerRunning = false;
+
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById('level-complete-modal');
 const nextBtn = document.getElementById('next-level-btn');
@@ -371,11 +392,21 @@ async function initLevel(idx) {
 
 /* ─────────────────────  Handler do botão “Próximo Nível” ───────────────────── */
 nextBtn.onclick = async () => {
+  // fecha o modal e pára o timer
+  modal.classList.remove('show');
+  isTimerRunning = false;
+  timerEl.textContent = '0.00s';
+
+  // calcula qual é o próximo nível
   const nextIndex = currentLevelIndex + 1;
+
+  // verifica se existe mesmo esse nível
   if (!await levelExists(nextIndex)) {
     console.warn(`Level ${nextIndex} não existe — jogo terminado.`);
     return;
   }
+
+  // atualiza o índice e carrega esse nível
   currentLevelIndex = nextIndex;
   await initLevel(currentLevelIndex);
 };
@@ -387,6 +418,12 @@ initLevel(currentLevelIndex);
 function animate() {
   requestAnimationFrame(animate);
   if (isPaused || !levelData) return;
+
+  // ───── Atualiza o timer se estiver rodando ─────
+  if (isTimerRunning) {
+    const elapsed = (performance.now() - levelStartTime) / 1000;
+    timerEl.textContent = `${elapsed.toFixed(2)}s`;
+  }
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapW = map[0].length, mapH = map.length;
@@ -500,10 +537,27 @@ function animate() {
 /* ───────────────────────────  checkLevelComplete ────────────────────── */
 function checkLevelComplete() {
   if (levelComplete || !levelData?.endPortal || controlsLocked) return;
+
   const dist = car.position.distanceTo(levelData.endPortal.position);
   if (dist < 0.8) {
     levelComplete  = true;
     controlsLocked = true;
+
+    // pára o timer
+    isTimerRunning = false;
+    const finalTime = (performance.now() - levelStartTime) / 1000;
+    timerEl.textContent = `${finalTime.toFixed(2)}s`;
+
+    // remove exibição antiga e cria nova
+    modal.querySelector('.time-display')?.remove();
+    const p = document.createElement('p');
+    p.className = 'time-display';
+    p.textContent = `Tempo: ${finalTime.toFixed(2)}s`;
+
+    // **aqui está a alteração**  
+    // insere imediatamente antes do próprio botão
+    nextBtn.insertAdjacentElement('beforebegin', p);
+
     modal.classList.add('show');
   }
 }
@@ -577,6 +631,8 @@ function showCountdown(seconds = 5) {
         countdownEl.style.opacity = '0';
         countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
         controlsLocked = false;
+        levelStartTime = performance.now();
+        isTimerRunning = true;
       }, 1000);
       clearInterval(interval);
     }
