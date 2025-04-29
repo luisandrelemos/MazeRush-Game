@@ -38,7 +38,10 @@ function cycleCamera() {
 }
 
 // clique no botão
-cameraToggleBtn.addEventListener('click', cycleCamera);
+cameraToggleBtn.addEventListener('click', () => {
+  cycleCamera();
+  cameraToggleBtn.blur();        // << tira foco imediatamente
+});
 
 // tecla C / c
 document.addEventListener('keydown', e => {
@@ -435,10 +438,25 @@ function drawMinimap(wCells,hCells,tileSize,offsetX,offsetZ){
 }
 
 /* ───────────────────────────  UI: Toggle de luzes  ───────────────────────── */
+['toggleAmbient', 'toggleDirectional', 'togglePoint'].forEach(id => {
+  document.getElementById(id).addEventListener('change', e => {
 
-document.getElementById('toggleAmbient').onchange   = e=> e.target.checked ? scene.add(ambientLight)    : scene.remove(ambientLight);
-document.getElementById('toggleDirectional').onchange = e=> e.target.checked ? scene.add(directionalLight): scene.remove(directionalLight);
-document.getElementById('togglePoint').onchange     = e=> e.target.checked ? scene.add(pointLight)      : scene.remove(pointLight);
+    // liga / desliga a luz correspondente
+    switch (id) {
+      case 'toggleAmbient':
+        e.target.checked ? scene.add(ambientLight)      : scene.remove(ambientLight);
+        break;
+      case 'toggleDirectional':
+        e.target.checked ? scene.add(directionalLight)  : scene.remove(directionalLight);
+        break;
+      case 'togglePoint':
+        e.target.checked ? scene.add(pointLight)        : scene.remove(pointLight);
+        break;
+    }
+
+    e.target.blur();    // remove o foco — evita “click” extra com a tecla Espaço
+  });
+});
 
 /* ───────────────────────  Preview inicial do mapa  ───────────────────────── */
 
