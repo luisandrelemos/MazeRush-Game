@@ -313,7 +313,7 @@ async function initLevel(levelName='level-1'){
   wallMeshes    = scene.children.filter(o=>o.userData.levelObject && o.geometry?.type==='BoxGeometry');
   visitedCells  = levelData.map.map(r=>r.map(_=>false));
   car.position.copy(levelData.startPos);
-  car.rotation.set(0,0,0);
+  car.rotation.set(0, Math.PI / 1, 0);
   car.userData.velocity = 0;
   const { color, near, far } = levelData.fog;
   scene.fog = new THREE.Fog(color, near, far);
