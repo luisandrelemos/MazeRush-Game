@@ -388,7 +388,7 @@ function animate(){
   }
 
     // ─── ACTUALIZA HUD: velocímetro ───────────────────────────────────────
-    const kmh = Math.abs(data.velocity) * 600;        // ajusta factor conforme necessário
+    const kmh = Math.abs(data.velocity) * 1000;    
     speedEl.textContent = `${kmh.toFixed(0)} km/h`;
 
   // faróis
