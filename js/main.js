@@ -5,52 +5,57 @@ import { loadLevel }   from './LevelLoader.js';
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 
-const scene = new THREE.Scene();        // fog será aplicado pelo LevelLoader
+const scene = new THREE.Scene();
 
 // ▼ Câmaras principais
-const cameraPerspective = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-const cameraFollow      = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-let   orthoSize = 10;
+const cameraPerspective = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+const cameraFollow = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+const zoomTopView = 0.8; 
+ const zoomPreview = 1.1;  
+let orthoSizeTopView = 10; 
+let orthoSizePreview = 10;
 const cameraOrtho = new THREE.OrthographicCamera(
-  -orthoSize * (innerWidth/innerHeight),
-   orthoSize * (innerWidth/innerHeight),
-   orthoSize,
-  -orthoSize,
+  -orthoSizeTopView * (innerWidth / innerHeight),
+   orthoSizeTopView * (innerWidth / innerHeight),
+   orthoSizeTopView,
+  -orthoSizeTopView,
   0.1, 1000
 );
-// câmara usada na transição do preview
-const transitionCamera  = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+const transitionCamera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
 
 /* ───────────  HUD: Obtém o elemento do velocímetro  ─────────────────────── */
 const speedEl = document.getElementById('speedometer');
 
 /* ─────────  Alternância de câmaras (botão + tecla C) ───────── */
 
-let cameraMode = 0;               // 0-persp | 1-ortho | 2-follow
+let cameraMode = 0; // 0-persp | 1-ortho | 2-follow
 let activeCamera = cameraPerspective;
 
 const cameraToggleBtn = document.getElementById('camera-toggle-btn');
-
 function cycleCamera() {
   cameraMode = (cameraMode + 1) % 3;
   switch (cameraMode) {
-    case 0: activeCamera = cameraPerspective; cameraToggleBtn.title = 'Vista Superior'; break;
-    case 1: activeCamera = cameraOrtho;       cameraToggleBtn.title = 'Vista 3D';       break;
-    case 2: activeCamera = cameraFollow;      cameraToggleBtn.title = 'Vista NFS';      break;
+    case 0:
+      activeCamera = cameraPerspective;
+      cameraToggleBtn.title = 'Vista Superior';
+      break;
+    case 1:
+      activeCamera = cameraOrtho;
+      cameraToggleBtn.title = 'Vista 3D';
+      break;
+    case 2:
+      activeCamera = cameraFollow;
+      cameraToggleBtn.title = 'Vista NFS';
+      break;
   }
 }
-
-// clique no botão
 cameraToggleBtn.addEventListener('click', () => {
   cycleCamera();
-  cameraToggleBtn.blur();        // << tira foco imediatamente
+  cameraToggleBtn.blur();
 });
-
-// tecla C / c
 document.addEventListener('keydown', e => {
   if (e.key.toLowerCase() === 'c' && !e.repeat) {
     cycleCamera();
-    // pequena animação visual do botão
     cameraToggleBtn.style.transform = 'scale(0.9)';
     setTimeout(() => cameraToggleBtn.style.transform = '', 120);
   }
@@ -66,17 +71,18 @@ document.getElementById('game-container').appendChild(renderer.domElement);
 
 /* ───────────────────────────  Luzes globais  ─────────────────────────── */
 
-const ambientLight = new THREE.AmbientLight(0x334477, 0.2);
-scene.add(ambientLight);
-
+const ambientLight     = new THREE.AmbientLight(0x334477, 0.2); scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0x8899ff, 0.9);
 directionalLight.position.set(-20,50,20);
 directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.set(4096,4096);
 directionalLight.shadow.radius = 6;
-const sCam = directionalLight.shadow.camera;
-Object.assign(sCam, { left:-100, right:100, top:100, bottom:-100, near:1, far:150 });
-sCam.updateProjectionMatrix();
+Object.assign(directionalLight.shadow.camera, {
+  left:-100, right:100,
+  top:100, bottom:-100,
+  near:1, far:150
+});
+directionalLight.shadow.camera.updateProjectionMatrix();
 scene.add(directionalLight);
 
 const pointLight = new THREE.PointLight(0x445577, 0.4, 60, 2);
@@ -87,7 +93,14 @@ scene.add(pointLight);
 
 const textureLoader = new THREE.TextureLoader();
 const car = createCar(textureLoader);
-scene.add(car); car.castShadow = true;
+scene.add(car);
+car.castShadow = true;
+
+// Bounding Sphere do carro (a partir do chassis)
+const baseGeom = car.children[0].geometry;
+baseGeom.computeBoundingSphere();
+const carSphere = baseGeom.boundingSphere.clone(); 
+carSphere.radius *= 0.5;
 
 /* ───────────────────────────  Estado do nível  ─────────────────────────── */
 
@@ -98,10 +111,10 @@ let animationStarted = false;
 
 /* ─────────────────────────────  Faróis do carro ──────────────────────────── */
 
-const headlightLeft  = new THREE.SpotLight(0xffffff, 2, 20, Math.PI / 10, 0.3, 1);
+const headlightLeft  = new THREE.SpotLight(0xffffff, 2, 20, Math.PI/10, 0.3, 1);
 const headlightRight = headlightLeft.clone();
-const targetLeft  = new THREE.Object3D();
-const targetRight = new THREE.Object3D();
+const targetLeft     = new THREE.Object3D();
+const targetRight    = new THREE.Object3D();
 scene.add(headlightLeft, headlightRight, targetLeft, targetRight);
 headlightLeft.target  = targetLeft;
 headlightRight.target = targetRight;
@@ -112,7 +125,7 @@ headlightLeft.castShadow = headlightRight.castShadow = true;
 function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 function easeInCubic(t){  return t * t * t; }
 function easeInOutCubic(t){
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
 }
 
 /* ──────────────────────  Efeitos visuais (fumo, salto)  ───────────────────── */
@@ -207,17 +220,20 @@ function jumpCar(car){
   requestAnimationFrame(anim);
 }
 
-/* ────────────────────────────  Colisão util  ─────────────────────────────── */
+/* ────────────────────────────  Colisão por Bounding Sphere  ─────────────────── */
 
-function getBoundingBox(obj){ return new THREE.Box3().setFromObject(obj.clone()); }
+function checkCollisionAndReact(car, walls) {
+  const worldSphere = carSphere.clone().applyMatrix4(car.matrixWorld);
 
-function checkCollisionAndReact(car, walls, vel){
-  car.updateMatrixWorld(true);
-  const carBox=getBoundingBox(car);
-  for (const wall of walls){
-    if (carBox.intersectsBox(new THREE.Box3().setFromObject(wall))){
-      car.position.add(vel.clone().multiplyScalar(-1.5));
-      car.userData.velocity *= -0.3;
+  for (const wall of walls) {
+    const wallBox = new THREE.Box3().setFromObject(wall);
+    if (worldSphere.intersectsBox(wallBox)) {
+      const pushDir = new THREE.Vector3()
+        .subVectors(car.position, wall.position)
+        .setY(0)
+        .normalize();
+      car.position.add(pushDir.multiplyScalar(worldSphere.radius * 0.5));
+      car.userData.velocity = 0;
       return true;
     }
   }
@@ -226,29 +242,27 @@ function checkCollisionAndReact(car, walls, vel){
 
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
-const keysPressed={};
-document.addEventListener('keydown',e=>{
-  keysPressed[e.key.toLowerCase()]=true;
-
+const keysPressed = {};
+document.addEventListener('keydown', e => {
+  keysPressed[e.key.toLowerCase()] = true;
   if (e.key==='q') rotateCar180(car,'left');
   if (e.key==='e') rotateCar180(car,'right');
-  if (e.code==='Space')  jumpCar(car);
+  if (e.code==='Space') jumpCar(car);
 });
-document.addEventListener('keyup',  e=>{ keysPressed[e.key.toLowerCase()]=false; });
+document.addEventListener('keyup',   e => keysPressed[e.key.toLowerCase()] = false );
 
-/* ─── Rato para rotação da câmara em 1ª pessoa / follow ─── */
-let isDragging=false, previousMousePosition={x:0,y:0};
-let cameraRotationOffset=0, targetRotationOffset=0;
-
-document.addEventListener('mousedown',e=>{ isDragging=true; previousMousePosition.x=e.clientX; });
-document.addEventListener('mouseup',  ()=>{ isDragging=false; });
-document.addEventListener('mousemove',e=>{
+/* ─── Rato para rotação da câmara (follow) ─────────────────────────────── */
+let isDragging = false, previousMousePosition = { x:0, y:0 };
+let cameraRotationOffset = 0, targetRotationOffset = 0;
+document.addEventListener('mousedown', e => { isDragging = true;  previousMousePosition.x = e.clientX; });
+document.addEventListener('mouseup',   ()=> { isDragging = false; });
+document.addEventListener('mousemove', e => {
   if (!isDragging) return;
-  const dx=e.clientX-previousMousePosition.x;
-  targetRotationOffset += dx*0.002;
-  previousMousePosition.x=e.clientX;
+  const dx = e.clientX - previousMousePosition.x;
+  targetRotationOffset += dx * 0.002;
+  previousMousePosition.x = e.clientX;
 });
-document.addEventListener('mouseleave',()=>{ isDragging=false; });
+document.addEventListener('mouseleave', () => { isDragging = false; });
 
 /* ─────────────────────────────  Pause menu  ──────────────────────────────── */
 
@@ -271,39 +285,40 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ─────────────────────────────  Resize  ──────────────────────────────────── */
-
 window.addEventListener('resize', () => {
-  cameraPerspective.aspect = innerWidth/innerHeight;
+  cameraPerspective.aspect = innerWidth / innerHeight;
   cameraPerspective.updateProjectionMatrix();
-  cameraFollow.aspect = innerWidth/innerHeight;
+  cameraFollow.aspect = innerWidth / innerHeight;
   cameraFollow.updateProjectionMatrix();
 
-  const aspect = innerWidth/innerHeight;
-  cameraOrtho.left = -orthoSize*aspect;
-  cameraOrtho.right=  orthoSize*aspect;
-  cameraOrtho.updateProjectionMatrix();
+  const aspect = innerWidth / innerHeight;
+  
+  orthoSizeTopView = aspect > 1 
+    ? (10 * zoomTopView) 
+    : (10 * zoomTopView / aspect);
 
+  cameraOrtho.left = -orthoSizeTopView * aspect;
+  cameraOrtho.right = orthoSizeTopView * aspect;
+  cameraOrtho.top = orthoSizeTopView;
+  cameraOrtho.bottom = -orthoSizeTopView;
+  cameraOrtho.updateProjectionMatrix();
+  
   renderer.setSize(innerWidth, innerHeight);
 });
 
 /* ───────────────────────  Carregar nível e arrancar  ─────────────────────── */
 
-async function initLevel(levelName='level-1'){
+async function initLevel(levelName='level-2'){
   levelData = await loadLevel(levelName, scene, textureLoader);
-
-  wallMeshes = scene.children.filter(o=>o.userData.levelObject && o.geometry?.type==='BoxGeometry');
-  visitedCells = levelData.map.map(row=>row.map(()=>false));
-
+  wallMeshes    = scene.children.filter(o=>o.userData.levelObject && o.geometry?.type==='BoxGeometry');
+  visitedCells  = levelData.map.map(r=>r.map(_=>false));
   car.position.copy(levelData.startPos);
   car.rotation.set(0,0,0);
-  car.userData.velocity=0;
-
-  const {color,near,far}=levelData.fog;
-  scene.fog = new THREE.Fog(color,near,far);
-
-  if (!animationStarted){ animate(); animationStarted=true; }
-
-  startMapPreviewSequence();   // mostra preview do mapa sempre que carrega
+  car.userData.velocity = 0;
+  const { color, near, far } = levelData.fog;
+  scene.fog = new THREE.Fog(color, near, far);
+  if (!animationStarted) { animate(); animationStarted = true; }
+  startMapPreviewSequence();
 }
 initLevel();
 
@@ -314,211 +329,213 @@ function animate(){
   if (isPaused || !levelData) return;
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
-  const mapWidth=map[0].length, mapHeight=map.length;
+  const mapW = map[0].length, mapH = map.length;
 
-  // ---- física do carro ----
-  const data=car.userData;
-  const frontAxle=data.frontAxle;
-  const steerSpeed=0.025, maxSteer=Math.PI/6;
-  const accelerating=keysPressed['w']||keysPressed['arrowup'];
-  const braking     =keysPressed['s']||keysPressed['arrowdown'];
+  // ───── Física ─────
+  const data = car.userData;
+  const frontAxle = data.frontAxle;
+  const steerSpeed = 0.025, maxSteer = Math.PI/6;
+  const accel = keysPressed['w']||keysPressed['arrowup'];
+  const brake = keysPressed['s']||keysPressed['arrowdown'];
+  const left  = keysPressed['a']||keysPressed['arrowleft'];
+  const right = keysPressed['d']||keysPressed['arrowright'];
 
-  // velocidade
-  if (accelerating) data.velocity=Math.min(data.velocity+data.acceleration,data.maxSpeed);
-  else if (braking) data.velocity=Math.max(data.velocity-data.acceleration*1.2,-data.maxSpeed*0.5);
+  if      (accel) data.velocity = Math.min(data.velocity+data.acceleration, data.maxSpeed);
+  else if (brake) data.velocity = Math.max(data.velocity-data.acceleration*1.2, -data.maxSpeed*0.5);
   else {
-    data.velocity*=data.friction;
-    if (Math.abs(data.velocity)<0.001) data.velocity=0;
+    data.velocity *= data.friction;
+    if (Math.abs(data.velocity) < 0.001) data.velocity = 0;
   }
 
-  const turningLeft =keysPressed['a']||keysPressed['arrowleft'];
-  const turningRight=keysPressed['d']||keysPressed['arrowright'];
-  const isMoving = data.velocity!==0;
-
-  // direção das rodas
-  if (!isMoving){
-    if (turningLeft)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed, maxSteer);
-    if (turningRight) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed,-maxSteer);
-    if (!turningLeft && !turningRight){
-      frontAxle.rotation.y*=0.85;
-      if (Math.abs(frontAxle.rotation.y)<0.01) frontAxle.rotation.y=0;
-    }
+  const isMoving = data.velocity !== 0;
+  if (!isMoving) {
+    if (left)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed,  maxSteer);
+    if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed, -maxSteer);
+    if (!left && !right) frontAxle.rotation.y *= 0.85;
   } else {
-    if (turningLeft)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed, maxSteer);
-    if (turningRight) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed,-maxSteer);
-    if (!turningLeft && !turningRight){
-      frontAxle.rotation.y*=0.9;
-      if (Math.abs(frontAxle.rotation.y)<0.01) frontAxle.rotation.y=0;
-    }
-    const rotDir=Math.sign(data.velocity);
-    car.rotation.y += frontAxle.rotation.y*0.04*rotDir;
+    if (left)  frontAxle.rotation.y = Math.min(frontAxle.rotation.y+steerSpeed,  maxSteer);
+    if (right) frontAxle.rotation.y = Math.max(frontAxle.rotation.y-steerSpeed, -maxSteer);
+    if (!left && !right) frontAxle.rotation.y *= 0.9;
+    car.rotation.y += frontAxle.rotation.y * 0.04 * Math.sign(data.velocity);
   }
 
-  // mover carro
-  const direction = new THREE.Vector3();
-  if (data.velocity!==0){
-    direction.set(0,0,-1).applyEuler(car.rotation).normalize();
-    const proposedPos = car.position.clone().add(direction.clone().multiplyScalar(data.velocity));
-    car.position.copy(proposedPos);
-    checkCollisionAndReact(car, wallMeshes, direction.clone().multiplyScalar(data.velocity));
-    const wheelRotSpeed=data.velocity*10;
-    data.rotatingWheels.forEach(w=>w.rotation.x+=wheelRotSpeed);
+  // mover + colidir em X e Z
+  if (data.velocity !== 0) {
+    const dir = new THREE.Vector3(0,0,-1).applyEuler(car.rotation).multiplyScalar(data.velocity);
+    car.position.x += dir.x;
+    checkCollisionAndReact(car, wallMeshes);
+    car.position.z += dir.z;
+    checkCollisionAndReact(car, wallMeshes);
+    const wheelSpeed = data.velocity * 10;
+    data.rotatingWheels.forEach(w => w.rotation.x += wheelSpeed);
   }
 
-  // câmaras
-  if (cameraMode===0){
-    if (!isDragging) targetRotationOffset*=0.9;
-    cameraRotationOffset += (targetRotationOffset-cameraRotationOffset)*0.08;
+  // ───── Câmaras ─────
+  if (cameraMode === 0) {
+    if (!isDragging) targetRotationOffset *= 0.9;
+    cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.08;
     const base = new THREE.Vector3(0,8.5,8.5);
     const off  = base.clone().applyEuler(new THREE.Euler(0,cameraRotationOffset,0)).applyEuler(car.rotation);
-    cameraPerspective.position.lerp(car.position.clone().add(off),0.08);
+    cameraPerspective.position.lerp(car.position.clone().add(off), 0.08);
     cameraPerspective.lookAt(car.position);
-  }
-  else if (cameraMode===1){
-    cameraOrtho.position.set(car.position.x,60,car.position.z+20);
+
+  } else if (cameraMode === 1) {
+    const aspect = innerWidth / innerHeight;
+    
+    orthoSizeTopView = aspect > 1 
+      ? (10 * zoomTopView) 
+      : (10 * zoomTopView / aspect);
+  
+    cameraOrtho.left = -orthoSizeTopView * aspect;
+    cameraOrtho.right = orthoSizeTopView * aspect;
+    cameraOrtho.top = orthoSizeTopView;
+    cameraOrtho.bottom = -orthoSizeTopView;
+    cameraOrtho.updateProjectionMatrix();
+  
+    cameraOrtho.position.set(car.position.x, 60, car.position.z + 20);
     cameraOrtho.lookAt(car.position);
-  }
-  else if (cameraMode===2){
-    if (!isDragging) targetRotationOffset*=0.9;
-    cameraRotationOffset += (targetRotationOffset-cameraRotationOffset)*0.08;
+
+  } else {
+    if (!isDragging) targetRotationOffset *= 0.9;
+    cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.08;
     const base = new THREE.Vector3(0,1.5,4);
     const off  = base.clone().applyEuler(new THREE.Euler(0,cameraRotationOffset,0)).applyEuler(car.rotation);
-    cameraFollow.position.lerp(car.position.clone().add(off),0.08);
+    cameraFollow.position.lerp(car.position.clone().add(off), 0.08);
     cameraFollow.lookAt(car.position);
   }
 
-    // ─── ACTUALIZA HUD: velocímetro ───────────────────────────────────────
-    const kmh = Math.abs(data.velocity) * 1000;    
-    speedEl.textContent = `${kmh.toFixed(0)} km/h`;
+  // ───── Velocímetro ─────
+  const kmh = Math.abs(data.velocity) * 1000;
+  speedEl.textContent = `${kmh.toFixed(0)} km/h`;
 
-  // faróis
+  // ───── Faróis ─────
   const leftOff  = new THREE.Vector3(-0.2,0.2,-0.6).applyEuler(car.rotation);
   const rightOff = new THREE.Vector3( 0.2,0.2,-0.6).applyEuler(car.rotation);
   const dirOff   = new THREE.Vector3(0,0,-2).applyEuler(car.rotation);
-  headlightLeft.position.copy(car.position.clone().add(leftOff));
+  headlightLeft.position .copy(car.position.clone().add(leftOff));
   headlightRight.position.copy(car.position.clone().add(rightOff));
-  targetLeft.position.copy(headlightLeft.position.clone().add(dirOff));
-  targetRight.position.copy(headlightRight.position.clone().add(dirOff));
+  targetLeft.position   .copy(headlightLeft.position.clone().add(dirOff));
+  targetRight.position  .copy(headlightRight.position.clone().add(dirOff));
 
-  // marcar células visitadas
-  const cx=Math.floor((car.position.x-offsetX)/tileSize+0.5);
-  const cz=Math.floor((car.position.z-offsetZ)/tileSize+0.5);
-  for (let dz=-1;dz<=1;dz++){
-    for (let dx=-1;dx<=1;dx++){
-      const nx=cx+dx,nz=cz+dz;
-      if (nx>=0&&nx<mapWidth&&nz>=0&&nz<mapHeight) visitedCells[nz][nx]=true;
+  // ───── Minimap ─────
+  const cx = Math.floor((car.position.x-offsetX)/tileSize + 0.5);
+  const cz = Math.floor((car.position.z-offsetZ)/tileSize + 0.5);
+  for (let dz=-1; dz<=1; dz++){
+    for (let dx=-1; dx<=1; dx++){
+      const nx = cx+dx, nz = cz+dz;
+      if (nx>=0 && nx<mapW && nz>=0 && nz<mapH) visitedCells[nz][nx] = true;
     }
   }
+  drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
 
-  drawMinimap(mapWidth, mapHeight, tileSize, offsetX, offsetZ);
   renderer.render(scene, activeCamera);
 }
 
 /* ───────────────────────────  Minimap  ───────────────────────────────────── */
 
-function drawMinimap(wCells,hCells,tileSize,offsetX,offsetZ){
-  const canvas=document.getElementById('minimap');
+function drawMinimap(w,h,ts,ox,oz) {
+  const canvas = document.getElementById('minimap');
   if (!canvas) return;
-  const ctx=canvas.getContext('2d'), wPx=canvas.width, hPx=canvas.height;
-  const cellW=wPx/wCells, cellH=hPx/hCells;
+  const ctx = canvas.getContext('2d'), wPx = canvas.width, hPx = canvas.height;
+  const cellW = wPx/w, cellH = hPx/h;
 
   // fundo
-  const g=ctx.createLinearGradient(0,0,0,hPx); g.addColorStop(0,'#1a1a1a'); g.addColorStop(1,'#333');
-  ctx.fillStyle=g; ctx.fillRect(0,0,wPx,hPx);
+  const g = ctx.createLinearGradient(0,0,0,hPx);
+  g.addColorStop(0,'#1a1a1a'); g.addColorStop(1,'#333');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,wPx,hPx);
 
   // células
-  for (let z=0;z<hCells;z++){
-    for (let x=0;x<wCells;x++){
-      if (!visitedCells[z][x]) ctx.fillStyle='#000';
-      else ctx.fillStyle = levelData.map[z][x]===1 ? '#445' : '#77a';
-      ctx.fillRect(x*cellW,z*cellH,cellW,cellH);
+  for (let z=0; z<h; z++){
+    for (let x=0; x<w; x++){
+      ctx.fillStyle = !visitedCells[z][x]
+        ? '#000'
+        : (levelData.map[z][x]===1 ? '#445' : '#77a');
+      ctx.fillRect(x*cellW, z*cellH, cellW, cellH);
     }
   }
 
-  // ícone do carro
-  const carX=(car.position.x-offsetX+tileSize/2)/tileSize*cellW;
-  const carZ=(car.position.z-offsetZ+tileSize/2)/tileSize*cellH;
-  ctx.save(); ctx.translate(carX,carZ); ctx.rotate(-car.rotation.y);
-  ctx.fillStyle='#f33';
-  ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(4,4); ctx.lineTo(-4,4); ctx.closePath(); ctx.fill();
+  // carro
+  const carX = (car.position.x-ox+ts/2)/ts * cellW;
+  const carZ = (car.position.z-oz+ts/2)/ts * cellH;
+  ctx.save();
+  ctx.translate(carX,carZ);
+  ctx.rotate(-car.rotation.y);
+  ctx.fillStyle = '#f33';
+  ctx.beginPath();
+  ctx.moveTo(0,-5);
+  ctx.lineTo(4,4);
+  ctx.lineTo(-4,4);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
 /* ───────────────────────────  UI: Toggle de luzes  ───────────────────────── */
-['toggleAmbient', 'toggleDirectional', 'togglePoint'].forEach(id => {
-  document.getElementById(id).addEventListener('change', e => {
 
-    // liga / desliga a luz correspondente
-    switch (id) {
-      case 'toggleAmbient':
-        e.target.checked ? scene.add(ambientLight)      : scene.remove(ambientLight);
-        break;
-      case 'toggleDirectional':
-        e.target.checked ? scene.add(directionalLight)  : scene.remove(directionalLight);
-        break;
-      case 'togglePoint':
-        e.target.checked ? scene.add(pointLight)        : scene.remove(pointLight);
-        break;
-    }
-
-    e.target.blur();    // remove o foco — evita “click” extra com a tecla Espaço
+['toggleAmbient','toggleDirectional','togglePoint'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    if (id==='toggleAmbient')     e.target.checked ? scene.add(ambientLight)    : scene.remove(ambientLight);
+    if (id==='toggleDirectional') e.target.checked ? scene.add(directionalLight): scene.remove(directionalLight);
+    if (id==='togglePoint')       e.target.checked ? scene.add(pointLight)      : scene.remove(pointLight);
+    e.target.blur();
   });
 });
 
 /* ───────────────────────  Preview inicial do mapa  ───────────────────────── */
-
 function startMapPreviewSequence(){
-  if (!levelData) return;   // garante que já temos dados
+  if (!levelData) return;
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
-  const mapWidth=map[0].length, mapHeight=map.length;
+  const mapWidth = map[0].length, mapHeight = map.length;
 
-  const centerX = mapWidth*tileSize/2 + offsetX - tileSize/2;
-  const centerZ = mapHeight*tileSize/2 + offsetZ - tileSize/2;
+  const centerX = mapWidth * tileSize / 2 + offsetX - tileSize / 2;
+  const centerZ = mapHeight * tileSize / 2 + offsetZ - tileSize / 2;
 
-  const canvasAspect = innerWidth/innerHeight;
-  const mapRatio = mapWidth/mapHeight;
-  const zoom=1.1;
-  orthoSize = canvasAspect>mapRatio
-    ? (mapHeight*tileSize*zoom)/2
-    : ((mapWidth*tileSize)/canvasAspect*zoom)/2;
+  const canvasAspect = innerWidth / innerHeight;
+  const mapRatio = mapWidth / mapHeight;
 
-  cameraOrtho.left=-orthoSize*canvasAspect;
-  cameraOrtho.right=orthoSize*canvasAspect;
-  cameraOrtho.top=orthoSize;
-  cameraOrtho.bottom=-orthoSize;
+  orthoSizePreview = canvasAspect > mapRatio
+    ? (mapHeight * tileSize * zoomPreview) / 2
+    : ((mapWidth * tileSize) / canvasAspect * zoomPreview) / 2;
+
+  cameraOrtho.left   = -orthoSizePreview * canvasAspect;
+  cameraOrtho.right  =  orthoSizePreview * canvasAspect;
+  cameraOrtho.top    =  orthoSizePreview;
+  cameraOrtho.bottom = -orthoSizePreview;
   cameraOrtho.updateProjectionMatrix();
 
   cameraOrtho.position.set(centerX,100,centerZ);
   cameraOrtho.lookAt(centerX,0,centerZ);
 
-  activeCamera=cameraOrtho;
-  scene.fog=null;
-  document.getElementById('minimap-container').style.display='none';
+  activeCamera = cameraOrtho;
+  scene.fog = null;
+  document.getElementById('minimap-container').style.display = 'none';
 
-  const previewText=document.getElementById('preview-text');
-  previewText.style.opacity=1;
+  const previewText = document.getElementById('preview-text');
+  previewText.style.opacity = 1;
 
-  setTimeout(()=>{
-    previewText.style.opacity=0;
-    scene.fog=new THREE.Fog('#000000',30,80);
-    document.getElementById('minimap-container').style.display='block';
+  setTimeout(() => {
+    previewText.style.opacity = 0;
+    scene.fog = new THREE.Fog('#000000',30,80);
+    document.getElementById('minimap-container').style.display = 'block';
 
     transitionCamera.position.copy(cameraOrtho.position);
     transitionCamera.quaternion.copy(cameraOrtho.quaternion);
-    activeCamera=transitionCamera;
+    activeCamera = transitionCamera;
 
-    const dur=1500,start=performance.now(),startPos=cameraOrtho.position.clone(),
-          startQuat=cameraOrtho.quaternion.clone(),
-          endPos=cameraPerspective.position.clone(),
-          endQuat=cameraPerspective.quaternion.clone();
+    const dur = 1500, start = performance.now(), startPos = cameraOrtho.position.clone(),
+          startQuat = cameraOrtho.quaternion.clone(),
+          endPos = cameraPerspective.position.clone(),
+          endQuat = cameraPerspective.quaternion.clone();
 
     function anim(t){
-      const p=Math.min((t-start)/dur,1), e=easeInOutCubic(p);
-      transitionCamera.position.lerpVectors(startPos,endPos,e);
-      transitionCamera.quaternion.copy(startQuat.clone().slerp(endQuat,e));
-      if (p<1) requestAnimationFrame(anim); else activeCamera=cameraPerspective;
+      const p = Math.min((t-start)/dur,1), e = easeInOutCubic(p);
+      transitionCamera.position.lerpVectors(startPos, endPos, e);
+      transitionCamera.quaternion.copy(startQuat.clone().slerp(endQuat, e));
+      if (p < 1) requestAnimationFrame(anim);
+      else activeCamera = cameraPerspective;
     }
     requestAnimationFrame(anim);
-  },3000);
+  }, 3000);
 }
