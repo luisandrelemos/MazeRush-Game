@@ -308,7 +308,7 @@ window.addEventListener('resize', () => {
 
 /* ───────────────────────  Carregar nível e arrancar  ─────────────────────── */
 
-async function initLevel(levelName='level-2'){
+async function initLevel(levelName='level-1'){
   levelData = await loadLevel(levelName, scene, textureLoader);
   wallMeshes    = scene.children.filter(o=>o.userData.levelObject && o.geometry?.type==='BoxGeometry');
   visitedCells  = levelData.map.map(r=>r.map(_=>false));
