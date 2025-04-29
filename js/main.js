@@ -10,16 +10,7 @@ const scene = new THREE.Scene();
 /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
 const countdownEl = document.createElement('div');
 countdownEl.id = 'countdown';
-countdownEl.style.position = 'absolute';
-countdownEl.style.top = '50%';
-countdownEl.style.left = '50%';
-countdownEl.style.transform = 'translate(-50%, -50%)';
-countdownEl.style.fontSize = '6rem';
-countdownEl.style.color = 'white';
-countdownEl.style.fontFamily = 'Montserrat, sans-serif';
-countdownEl.style.zIndex = '10';
-countdownEl.style.opacity = '0';
-countdownEl.style.transition = 'opacity 0.3s';
+countdownEl.textContent = ''; // ou inicia vazio
 document.body.appendChild(countdownEl);
 
 // ▼ Câmaras principais
@@ -540,20 +531,24 @@ let controlsLocked = true; // NOVO: bloquear o carro no início
 function showCountdown(seconds = 5) {
   controlsLocked = true;
   let count = seconds;
-  countdownEl.style.opacity = '1';
   countdownEl.textContent = count;
+  countdownEl.style.opacity = '1';
+  countdownEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
 
   const interval = setInterval(() => {
     count--;
     if (count > 0) {
       countdownEl.textContent = count;
+      countdownEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
     } else {
       countdownEl.textContent = 'GO!';
-      clearInterval(interval);
+      countdownEl.style.transform = 'translate(-50%, -50%) scale(1.4)';
       setTimeout(() => {
         countdownEl.style.opacity = '0';
-        controlsLocked = false; // desbloquear após GO!
+        countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
+        controlsLocked = false;
       }, 1000);
+      clearInterval(interval);
     }
   }, 1000);
 }

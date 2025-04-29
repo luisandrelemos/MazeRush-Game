@@ -206,11 +206,14 @@ canvas {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1);
   font-size: 6rem;
-  color: white;
-  font-family: Montserrat, sans-serif;
-  z-index: 10;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  z-index: 100;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  text-shadow: 0 0 10px #000, 0 0 20px #000;
+  pointer-events: none;
 }
