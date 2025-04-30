@@ -71,7 +71,7 @@ settingsBtn.addEventListener('click', () => {
 });
 
 /* ───────────────────────────  Controlo de níveis ───────────────────────── */
-let currentLevelIndex = parseInt((localStorage.getItem('selectedLevel') || 'level-1').split('-')[1]);
+let currentLevelIndex = 1;
 let levelComplete     = false;
 let controlsLocked    = true;
 
@@ -437,10 +437,12 @@ window.addEventListener('resize', () => {
 async function initLevel(idx) {
   const levelName = `level-${idx}`;
 
-  // 1) esconder modal e resetar estado
+  // 1) garantir que nenhum modal / tempo antigo fica no caminho
   modal.classList.remove('show');
+  modal.querySelector('.time-display')?.remove();
   levelComplete  = false;
   controlsLocked = true;
+  isInPreview = true;
 
   // 2) carregar JSON e instanciar tudo
   const data = await loadLevel(levelName, scene, textureLoader);
@@ -480,17 +482,15 @@ async function initLevel(idx) {
 
 /* ─────────────────────  Handler do botão “Próximo Nível” ───────────────────── */
 nextBtn.onclick = async () => {
-  // fecha o modal e pára o timer
+  // fecha o modal, limpa o tempo anterior e reseta o estado
   modal.classList.remove('show');
+  isTimerRunning = false;
+  timerEl.textContent = '0.00s';
 
-  // remover blur e desbloquear UI
   uiBlocks.forEach(el => {
     el.style.filter        = 'none';
     el.style.pointerEvents = 'auto';
   });
-
-  isTimerRunning = false;
-  timerEl.textContent = '0.00s';
 
   // calcula qual é o próximo nível
   const nextIndex = currentLevelIndex + 1;
@@ -631,7 +631,7 @@ function animate() {
 
 /* ───────────────────────────  checkLevelComplete ────────────────────── */
 function checkLevelComplete() {
-  if (levelComplete || !levelData?.endPortal) return;
+  if (levelComplete || isInPreview || !levelData?.endPortal) return;
 
   const dist = car.position.distanceTo(levelData.endPortal.position);
   if (dist < 0.8) {
@@ -729,26 +729,30 @@ function showCountdown(seconds = 3) {
     if (count > 0) {
       countdownEl.textContent = count;
       countdownEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
+      if (count === 2) {
+        // apenas tiramos o blur e devolvemos a UI
+        uiBlocks.forEach(el => {
+          el.style.filter        = 'none';
+          el.style.pointerEvents = 'auto';
+        });
+      }
     } else {
+      // GO!
       countdownEl.textContent = 'GO!';
       countdownEl.style.transform = 'translate(-50%, -50%) scale(1.4)';
 
-        setTimeout(() => {
-          // esconde contador…
-          countdownEl.style.opacity = '0';
-          countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
-  
-          isInPreview = false;
-          controlsLocked = false;
-          levelStartTime = performance.now();
-          isTimerRunning = true;
+      // desbloqueio IMEDIATO e arranque do timer
+      controlsLocked   = false;
+      levelStartTime   = performance.now();
+      isTimerRunning   = true;
+      isInPreview      = false;
 
-          // voltar a ativar UI
-          uiBlocks.forEach(el => {
-            el.style.filter        = 'none';
-            el.style.pointerEvents = 'auto';
-          });
-        }, 1000);
+      // mantemos o "GO!" 1s visível e depois só escondemos o contador
+      setTimeout(() => {
+        countdownEl.style.opacity   = '0';
+        countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
+      }, 1000);
+
       clearInterval(interval);
     }
   }, 1000);
