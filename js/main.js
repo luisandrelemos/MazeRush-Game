@@ -9,7 +9,7 @@ const scene = new THREE.Scene();
 /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
 const countdownEl = document.createElement('div');
 countdownEl.id = 'countdown';
-countdownEl.textContent = ''; // ou inicia vazio
+countdownEl.textContent = '';
 document.body.appendChild(countdownEl);
 
 /* ───────────────────────────  Timer de nível  ─────────────────────────── */
@@ -36,6 +36,7 @@ document.body.appendChild(timerEl);
 
 let levelStartTime = 0;
 let isTimerRunning = false;
+let pauseStartTime = 0;
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById('level-complete-modal');
@@ -47,6 +48,13 @@ const settingsBtn = document.getElementById('settings-btn');
 retryBtn.onclick = () => {
   // esconde logo o modal
   modal.classList.remove('show');
+
+  // remover blur e desbloquear UI
+  uiBlocks.forEach(el => {
+    el.style.filter        = 'none';
+    el.style.pointerEvents = 'auto';
+  });
+
   // recarrega a página (igual ao restart do pause-menu)
   location.reload();
 };
@@ -117,11 +125,13 @@ function cycleCamera() {
   }
 }
 cameraToggleBtn.addEventListener('click', () => {
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
   cycleCamera();
   cameraToggleBtn.blur();
 });
 document.addEventListener('keydown', e => {
-  if (e.key.toLowerCase() === 'c' && !e.repeat) {
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
+  if (e.key.toLowerCase() === 'c' && !e.repeat){
     cycleCamera();
     cameraToggleBtn.style.transform = 'scale(0.9)';
     setTimeout(() => cameraToggleBtn.style.transform = '', 120);
@@ -171,6 +181,7 @@ let levelData        = null;
 let wallMeshes       = [];
 let visitedCells     = [];
 let animationStarted = false;
+let isInPreview = false;
 
 /* ─────────────────────────────  Faróis do carro ──────────────────────────── */
 const headlightLeft  = new THREE.SpotLight(0xffffff, 2, 20, Math.PI/10, 0.3, 1);
@@ -306,12 +317,17 @@ function checkCollisionAndReact(car, walls) {
 
 const keysPressed = {};
 document.addEventListener('keydown', e => {
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
   keysPressed[e.key.toLowerCase()] = true;
   if (e.key==='q') rotateCar180(car,'left');
   if (e.key==='e') rotateCar180(car,'right');
   if (e.code==='Space') jumpCar(car);
 });
-document.addEventListener('keyup',   e => keysPressed[e.key.toLowerCase()] = false );
+
+document.addEventListener('keyup', e => {
+  if (isPaused) return;
+    keysPressed[e.key.toLowerCase()] = false;
+  });
 
 /* ─── Rato para rotação da câmara (follow) ─────────────────────────────── */
 let isDragging = false, previousMousePosition = { x:0, y:0 };
@@ -335,14 +351,61 @@ const exitBtn       = document.getElementById('exit-btn');
 const gameContainer = document.getElementById('game-container');
 
 let isPaused=false;
-resumeBtn.onclick  = ()=>{ isPaused=false; pauseMenu.classList.remove('active'); gameContainer.style.filter='none'; };
+resumeBtn.onclick = () => {
+  // retomar exatamente como se tivesse premido Escape
+  if (isPaused) {
+    const pausedDuration = performance.now() - pauseStartTime;
+    levelStartTime += pausedDuration;
+    isTimerRunning = true;
+  }
+  isPaused = false;
+  pauseMenu.classList.remove('active');
+  pauseOverlay.classList.remove('active');
+
+  // remover blur e desbloquear
+  uiBlocks.forEach(el => {
+    el.style.filter = 'none';
+    el.style.pointerEvents = 'auto';
+  });
+};
+
+const pauseOverlay = document.getElementById('pause-overlay');
+
+// elementos que vamos desfocar e bloquear
+const uiBlocks = [
+  document.getElementById('light-controls'),
+  document.getElementById('speedometer'),
+  document.getElementById('camera-toggle-btn'),
+  document.getElementById('minimap-container')
+];
+
+// … dentro do toggle-pause (Escape) e no resumeBtn.onclick, depois de mudar isPaused:
+pauseOverlay.classList.toggle('active', isPaused);
+
 restartBtn.onclick = ()=> location.reload();
 exitBtn.onclick    = ()=> window.location.href='index.html';
 document.addEventListener('keydown',e=>{
-  if (e.key==='Escape'){
+  if (e.key === 'Escape' && !modal.classList.contains('show') && !isInPreview) {
+    // 👉 se ainda não estava em pausa, marca o início da pausa
+    if (!isPaused) {
+      pauseStartTime = performance.now();
+      isTimerRunning = false;
+    } 
+    // 👉 se estava em pausa, calcula quanto tempo passou parado e “atualiza” o start
+    else {
+      const pausedDuration = performance.now() - pauseStartTime;
+      levelStartTime += pausedDuration;
+      isTimerRunning = true;
+    }
     isPaused = !isPaused;
-    pauseMenu.classList.toggle('active',isPaused);
-    gameContainer.style.filter = isPaused ? 'blur(6px)' : 'none';
+    pauseMenu.classList.toggle('active', isPaused);
+    pauseOverlay.classList.toggle('active', isPaused);
+
+    // desfocar e bloquear light-controls e speedometer
+    uiBlocks.forEach(el => {
+      el.style.filter        = isPaused ? 'blur(6px)' : 'none';
+      el.style.pointerEvents = isPaused ? 'none' : 'auto';
+    });
   }
 });
 
@@ -417,6 +480,13 @@ async function initLevel(idx) {
 nextBtn.onclick = async () => {
   // fecha o modal e pára o timer
   modal.classList.remove('show');
+
+  // remover blur e desbloquear UI
+  uiBlocks.forEach(el => {
+    el.style.filter        = 'none';
+    el.style.pointerEvents = 'auto';
+  });
+
   isTimerRunning = false;
   timerEl.textContent = '0.00s';
 
@@ -576,6 +646,15 @@ function checkLevelComplete() {
 
     // mostra o modal
     modal.classList.add('show');
+
+    // 👉 desfocar e bloquear UI extra
+    uiBlocks.forEach(el => {
+      el.style.filter        = 'blur(6px)';
+      el.style.pointerEvents = 'none';
+    });
+
+    // Opcional: impedir teclas/câmera enquanto o modal está aberto
+    controlsLocked = true;
   }
 }
 
@@ -621,6 +700,7 @@ function drawMinimap(w,h,ts,ox,oz) {
 /* ───────────────────────────  UI: Toggle de luzes  ───────────────────────── */
 ['toggleAmbient','toggleDirectional','togglePoint'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
+    if (isPaused) { e.target.checked = !e.target.checked; return; }
     if (id==='toggleAmbient')     e.target.checked ? scene.add(ambientLight)    : scene.remove(ambientLight);
     if (id==='toggleDirectional') e.target.checked ? scene.add(directionalLight): scene.remove(directionalLight);
     if (id==='togglePoint')       e.target.checked ? scene.add(pointLight)      : scene.remove(pointLight);
@@ -644,13 +724,23 @@ function showCountdown(seconds = 3) {
     } else {
       countdownEl.textContent = 'GO!';
       countdownEl.style.transform = 'translate(-50%, -50%) scale(1.4)';
-      setTimeout(() => {
-        countdownEl.style.opacity = '0';
-        countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
-        controlsLocked = false;
-        levelStartTime = performance.now();
-        isTimerRunning = true;
-      }, 1000);
+
+        setTimeout(() => {
+          // esconde contador…
+          countdownEl.style.opacity = '0';
+          countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
+  
+          isInPreview = false;
+          controlsLocked = false;
+          levelStartTime = performance.now();
+          isTimerRunning = true;
+
+          // voltar a ativar UI
+          uiBlocks.forEach(el => {
+            el.style.filter        = 'none';
+            el.style.pointerEvents = 'auto';
+          });
+        }, 1000);
       clearInterval(interval);
     }
   }, 1000);
@@ -658,6 +748,13 @@ function showCountdown(seconds = 3) {
 
 function startMapPreviewSequence() {
   if (!levelData) return;
+
+  isInPreview = true;
+  
+  uiBlocks.forEach(el => {
+    el.style.filter        = 'blur(6px)';
+    el.style.pointerEvents = 'none';
+  });
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapWidth = map[0].length, mapHeight = map.length;
@@ -721,6 +818,8 @@ function startMapPreviewSequence() {
         cameraMode = 2;
       }
     }
+
+    isInPreview = true;
     showCountdown(); // mostrar o contador durante a animação
     requestAnimationFrame(animateTransition);
   }, 3000);
