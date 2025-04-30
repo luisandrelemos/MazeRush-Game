@@ -721,26 +721,30 @@ function showCountdown(seconds = 3) {
     if (count > 0) {
       countdownEl.textContent = count;
       countdownEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
+      if (count === 2) {
+        // apenas tiramos o blur e devolvemos a UI
+        uiBlocks.forEach(el => {
+          el.style.filter        = 'none';
+          el.style.pointerEvents = 'auto';
+        });
+      }
     } else {
+      // GO!
       countdownEl.textContent = 'GO!';
       countdownEl.style.transform = 'translate(-50%, -50%) scale(1.4)';
 
-        setTimeout(() => {
-          // esconde contador…
-          countdownEl.style.opacity = '0';
-          countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
-  
-          isInPreview = false;
-          controlsLocked = false;
-          levelStartTime = performance.now();
-          isTimerRunning = true;
+      // desbloqueio IMEDIATO e arranque do timer
+      controlsLocked   = false;
+      levelStartTime   = performance.now();
+      isTimerRunning   = true;
+      isInPreview      = false;
 
-          // voltar a ativar UI
-          uiBlocks.forEach(el => {
-            el.style.filter        = 'none';
-            el.style.pointerEvents = 'auto';
-          });
-        }, 1000);
+      // mantemos o "GO!" 1s visível e depois só escondemos o contador
+      setTimeout(() => {
+        countdownEl.style.opacity   = '0';
+        countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
+      }, 1000);
+
       clearInterval(interval);
     }
   }, 1000);
