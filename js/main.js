@@ -125,12 +125,12 @@ function cycleCamera() {
   }
 }
 cameraToggleBtn.addEventListener('click', () => {
-  if (isPaused || modal.classList.contains('show')) return;
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
   cycleCamera();
   cameraToggleBtn.blur();
 });
 document.addEventListener('keydown', e => {
-  if (isPaused || modal.classList.contains('show')) return;
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
   if (e.key.toLowerCase() === 'c' && !e.repeat){
     cycleCamera();
     cameraToggleBtn.style.transform = 'scale(0.9)';
@@ -181,6 +181,7 @@ let levelData        = null;
 let wallMeshes       = [];
 let visitedCells     = [];
 let animationStarted = false;
+let isInPreview = false;
 
 /* ─────────────────────────────  Faróis do carro ──────────────────────────── */
 const headlightLeft  = new THREE.SpotLight(0xffffff, 2, 20, Math.PI/10, 0.3, 1);
@@ -316,7 +317,7 @@ function checkCollisionAndReact(car, walls) {
 
 const keysPressed = {};
 document.addEventListener('keydown', e => {
-  if (isPaused || modal.classList.contains('show')) return;
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
   keysPressed[e.key.toLowerCase()] = true;
   if (e.key==='q') rotateCar180(car,'left');
   if (e.key==='e') rotateCar180(car,'right');
@@ -384,7 +385,7 @@ pauseOverlay.classList.toggle('active', isPaused);
 restartBtn.onclick = ()=> location.reload();
 exitBtn.onclick    = ()=> window.location.href='index.html';
 document.addEventListener('keydown',e=>{
-  if (e.key==='Escape'){
+  if (e.key === 'Escape' && !modal.classList.contains('show') && !isInPreview) {
     // 👉 se ainda não estava em pausa, marca o início da pausa
     if (!isPaused) {
       pauseStartTime = performance.now();
@@ -723,13 +724,23 @@ function showCountdown(seconds = 3) {
     } else {
       countdownEl.textContent = 'GO!';
       countdownEl.style.transform = 'translate(-50%, -50%) scale(1.4)';
-      setTimeout(() => {
-        countdownEl.style.opacity = '0';
-        countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
-        controlsLocked = false;
-        levelStartTime = performance.now();
-        isTimerRunning = true;
-      }, 1000);
+
+        setTimeout(() => {
+          // esconde contador…
+          countdownEl.style.opacity = '0';
+          countdownEl.style.transform = 'translate(-50%, -50%) scale(1)';
+  
+          isInPreview = false;
+          controlsLocked = false;
+          levelStartTime = performance.now();
+          isTimerRunning = true;
+
+          // voltar a ativar UI
+          uiBlocks.forEach(el => {
+            el.style.filter        = 'none';
+            el.style.pointerEvents = 'auto';
+          });
+        }, 1000);
       clearInterval(interval);
     }
   }, 1000);
@@ -737,6 +748,13 @@ function showCountdown(seconds = 3) {
 
 function startMapPreviewSequence() {
   if (!levelData) return;
+
+  isInPreview = true;
+  
+  uiBlocks.forEach(el => {
+    el.style.filter        = 'blur(6px)';
+    el.style.pointerEvents = 'none';
+  });
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapWidth = map[0].length, mapHeight = map.length;
@@ -800,6 +818,8 @@ function startMapPreviewSequence() {
         cameraMode = 2;
       }
     }
+
+    isInPreview = true;
     showCountdown(); // mostrar o contador durante a animação
     requestAnimationFrame(animateTransition);
   }, 3000);
