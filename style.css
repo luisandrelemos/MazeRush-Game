@@ -62,6 +62,21 @@ canvas {
 }
 
 /* ─── Submenu Pausa ─── */
+#pause-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  backdrop-filter: blur(6px);
+  pointer-events: all;      
+  display: none;
+  z-index: 50;         
+}
+
+/* quando em pausa mostramos o overlay */
+#pause-overlay.active {
+  display: block;
+}
+
 #pause-menu {
   position: absolute;
   top: 50%; left: 50%;

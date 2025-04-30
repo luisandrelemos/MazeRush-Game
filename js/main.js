@@ -9,7 +9,7 @@ const scene = new THREE.Scene();
 /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
 const countdownEl = document.createElement('div');
 countdownEl.id = 'countdown';
-countdownEl.textContent = ''; // ou inicia vazio
+countdownEl.textContent = '';
 document.body.appendChild(countdownEl);
 
 /* ───────────────────────────  Timer de nível  ─────────────────────────── */
@@ -36,6 +36,7 @@ document.body.appendChild(timerEl);
 
 let levelStartTime = 0;
 let isTimerRunning = false;
+let pauseStartTime = 0;
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById('level-complete-modal');
@@ -117,11 +118,13 @@ function cycleCamera() {
   }
 }
 cameraToggleBtn.addEventListener('click', () => {
+  if (isPaused) return;
   cycleCamera();
   cameraToggleBtn.blur();
 });
 document.addEventListener('keydown', e => {
-  if (e.key.toLowerCase() === 'c' && !e.repeat) {
+  if (isPaused) return; 
+  if (e.key.toLowerCase() === 'c' && !e.repeat){
     cycleCamera();
     cameraToggleBtn.style.transform = 'scale(0.9)';
     setTimeout(() => cameraToggleBtn.style.transform = '', 120);
@@ -306,12 +309,17 @@ function checkCollisionAndReact(car, walls) {
 
 const keysPressed = {};
 document.addEventListener('keydown', e => {
+  if (isPaused) return;
   keysPressed[e.key.toLowerCase()] = true;
   if (e.key==='q') rotateCar180(car,'left');
   if (e.key==='e') rotateCar180(car,'right');
   if (e.code==='Space') jumpCar(car);
 });
-document.addEventListener('keyup',   e => keysPressed[e.key.toLowerCase()] = false );
+
+document.addEventListener('keyup', e => {
+  if (isPaused) return;
+    keysPressed[e.key.toLowerCase()] = false;
+  });
 
 /* ─── Rato para rotação da câmara (follow) ─────────────────────────────── */
 let isDragging = false, previousMousePosition = { x:0, y:0 };
@@ -335,14 +343,59 @@ const exitBtn       = document.getElementById('exit-btn');
 const gameContainer = document.getElementById('game-container');
 
 let isPaused=false;
-resumeBtn.onclick  = ()=>{ isPaused=false; pauseMenu.classList.remove('active'); gameContainer.style.filter='none'; };
+resumeBtn.onclick = () => {
+  // retomar exatamente como se tivesse premido Escape
+  if (isPaused) {
+    const pausedDuration = performance.now() - pauseStartTime;
+    levelStartTime += pausedDuration;
+    isTimerRunning = true;
+  }
+  isPaused = false;
+  pauseMenu.classList.remove('active');
+  pauseOverlay.classList.remove('active');
+
+  // remover blur e desbloquear
+  uiBlocks.forEach(el => {
+    el.style.filter = 'none';
+    el.style.pointerEvents = 'auto';
+  });
+};
+
+const pauseOverlay = document.getElementById('pause-overlay');
+
+// elementos que vamos desfocar e bloquear
+const uiBlocks = [
+  document.getElementById('light-controls'),
+  document.getElementById('speedometer')
+];
+
+// … dentro do toggle-pause (Escape) e no resumeBtn.onclick, depois de mudar isPaused:
+pauseOverlay.classList.toggle('active', isPaused);
+
 restartBtn.onclick = ()=> location.reload();
 exitBtn.onclick    = ()=> window.location.href='index.html';
 document.addEventListener('keydown',e=>{
   if (e.key==='Escape'){
+    // 👉 se ainda não estava em pausa, marca o início da pausa
+    if (!isPaused) {
+      pauseStartTime = performance.now();
+      isTimerRunning = false;
+    } 
+    // 👉 se estava em pausa, calcula quanto tempo passou parado e “atualiza” o start
+    else {
+      const pausedDuration = performance.now() - pauseStartTime;
+      levelStartTime += pausedDuration;
+      isTimerRunning = true;
+    }
     isPaused = !isPaused;
-    pauseMenu.classList.toggle('active',isPaused);
-    gameContainer.style.filter = isPaused ? 'blur(6px)' : 'none';
+    pauseMenu.classList.toggle('active', isPaused);
+    pauseOverlay.classList.toggle('active', isPaused);
+
+    // desfocar e bloquear light-controls e speedometer
+    uiBlocks.forEach(el => {
+      el.style.filter        = isPaused ? 'blur(6px)' : 'none';
+      el.style.pointerEvents = isPaused ? 'none' : 'auto';
+    });
   }
 });
 
@@ -621,6 +674,7 @@ function drawMinimap(w,h,ts,ox,oz) {
 /* ───────────────────────────  UI: Toggle de luzes  ───────────────────────── */
 ['toggleAmbient','toggleDirectional','togglePoint'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
+    if (isPaused) { e.target.checked = !e.target.checked; return; }
     if (id==='toggleAmbient')     e.target.checked ? scene.add(ambientLight)    : scene.remove(ambientLight);
     if (id==='toggleDirectional') e.target.checked ? scene.add(directionalLight): scene.remove(directionalLight);
     if (id==='togglePoint')       e.target.checked ? scene.add(pointLight)      : scene.remove(pointLight);
