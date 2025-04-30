@@ -48,6 +48,13 @@ const settingsBtn = document.getElementById('settings-btn');
 retryBtn.onclick = () => {
   // esconde logo o modal
   modal.classList.remove('show');
+
+  // remover blur e desbloquear UI
+  uiBlocks.forEach(el => {
+    el.style.filter        = 'none';
+    el.style.pointerEvents = 'auto';
+  });
+
   // recarrega a página (igual ao restart do pause-menu)
   location.reload();
 };
@@ -118,12 +125,12 @@ function cycleCamera() {
   }
 }
 cameraToggleBtn.addEventListener('click', () => {
-  if (isPaused) return;
+  if (isPaused || modal.classList.contains('show')) return;
   cycleCamera();
   cameraToggleBtn.blur();
 });
 document.addEventListener('keydown', e => {
-  if (isPaused) return; 
+  if (isPaused || modal.classList.contains('show')) return;
   if (e.key.toLowerCase() === 'c' && !e.repeat){
     cycleCamera();
     cameraToggleBtn.style.transform = 'scale(0.9)';
@@ -309,7 +316,7 @@ function checkCollisionAndReact(car, walls) {
 
 const keysPressed = {};
 document.addEventListener('keydown', e => {
-  if (isPaused) return;
+  if (isPaused || modal.classList.contains('show')) return;
   keysPressed[e.key.toLowerCase()] = true;
   if (e.key==='q') rotateCar180(car,'left');
   if (e.key==='e') rotateCar180(car,'right');
@@ -366,7 +373,9 @@ const pauseOverlay = document.getElementById('pause-overlay');
 // elementos que vamos desfocar e bloquear
 const uiBlocks = [
   document.getElementById('light-controls'),
-  document.getElementById('speedometer')
+  document.getElementById('speedometer'),
+  document.getElementById('camera-toggle-btn'),
+  document.getElementById('minimap-container')
 ];
 
 // … dentro do toggle-pause (Escape) e no resumeBtn.onclick, depois de mudar isPaused:
@@ -470,6 +479,13 @@ async function initLevel(idx) {
 nextBtn.onclick = async () => {
   // fecha o modal e pára o timer
   modal.classList.remove('show');
+
+  // remover blur e desbloquear UI
+  uiBlocks.forEach(el => {
+    el.style.filter        = 'none';
+    el.style.pointerEvents = 'auto';
+  });
+
   isTimerRunning = false;
   timerEl.textContent = '0.00s';
 
@@ -629,6 +645,15 @@ function checkLevelComplete() {
 
     // mostra o modal
     modal.classList.add('show');
+
+    // 👉 desfocar e bloquear UI extra
+    uiBlocks.forEach(el => {
+      el.style.filter        = 'blur(6px)';
+      el.style.pointerEvents = 'none';
+    });
+
+    // Opcional: impedir teclas/câmera enquanto o modal está aberto
+    controlsLocked = true;
   }
 }
 
