@@ -2,6 +2,8 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.152.2';
 import { createCar }   from '../assets/models/CarModel.js';
 import { loadLevel }   from './LevelLoader.js';
+import { unlockLevel } from './unlockSystem.js';
+
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -636,6 +638,12 @@ function checkLevelComplete() {
     levelComplete  = true;
     controlsLocked = true;
     isTimerRunning = false;
+
+    // ✅ Desbloqueia o próximo nível
+    const currentLevel = localStorage.getItem("selectedLevel") || "level-1";
+    const currentLevelNumber = parseInt(currentLevel.split("-")[1]);
+    const nextLevel = `level-${currentLevelNumber + 1}`;
+    unlockLevel(nextLevel);
 
     // actualiza o tempo
     modal.querySelector('.time-display')?.remove();
