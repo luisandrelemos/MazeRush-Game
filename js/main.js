@@ -437,10 +437,12 @@ window.addEventListener('resize', () => {
 async function initLevel(idx) {
   const levelName = `level-${idx}`;
 
-  // 1) esconder modal e resetar estado
+  // 1) garantir que nenhum modal / tempo antigo fica no caminho
   modal.classList.remove('show');
+  modal.querySelector('.time-display')?.remove();
   levelComplete  = false;
   controlsLocked = true;
+  isInPreview = true;
 
   // 2) carregar JSON e instanciar tudo
   const data = await loadLevel(levelName, scene, textureLoader);
@@ -480,17 +482,15 @@ async function initLevel(idx) {
 
 /* ─────────────────────  Handler do botão “Próximo Nível” ───────────────────── */
 nextBtn.onclick = async () => {
-  // fecha o modal e pára o timer
+  // fecha o modal, limpa o tempo anterior e reseta o estado
   modal.classList.remove('show');
+  isTimerRunning = false;
+  timerEl.textContent = '0.00s';
 
-  // remover blur e desbloquear UI
   uiBlocks.forEach(el => {
     el.style.filter        = 'none';
     el.style.pointerEvents = 'auto';
   });
-
-  isTimerRunning = false;
-  timerEl.textContent = '0.00s';
 
   // calcula qual é o próximo nível
   const nextIndex = currentLevelIndex + 1;
@@ -631,7 +631,7 @@ function animate() {
 
 /* ───────────────────────────  checkLevelComplete ────────────────────── */
 function checkLevelComplete() {
-  if (levelComplete || !levelData?.endPortal) return;
+  if (levelComplete || isInPreview || !levelData?.endPortal) return;
 
   const dist = car.position.distanceTo(levelData.endPortal.position);
   if (dist < 0.8) {
