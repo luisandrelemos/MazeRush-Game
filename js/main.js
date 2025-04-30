@@ -71,7 +71,7 @@ settingsBtn.addEventListener('click', () => {
 });
 
 /* ───────────────────────────  Controlo de níveis ───────────────────────── */
-let currentLevelIndex = 1;
+let currentLevelIndex = parseInt((localStorage.getItem('selectedLevel') || 'level-1').split('-')[1]);
 let levelComplete     = false;
 let controlsLocked    = true;
 
