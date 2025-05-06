@@ -501,6 +501,13 @@ nextBtn.onclick = async () => {
     return;
   }
 
+  // Se estivermos na ortho, forçámos passagem para perspective
+  if (cameraMode === 1) {
+    cameraMode     = 0;
+    activeCamera   = cameraPerspective;
+    cameraToggleBtn.title = 'Vista Superior';  
+  }
+
   // atualiza o índice e carrega esse nível
   currentLevelIndex = nextIndex;
   await initLevel(currentLevelIndex);
