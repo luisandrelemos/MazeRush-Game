@@ -133,6 +133,8 @@ canvas {
   display:flex; align-items:center; justify-content:center;
   box-shadow:0 2px 6px rgb(0 0 0 / .35);
   transition: transform .15s;
+  z-index: 2000; 
+  pointer-events: auto; 
 }
 .cam-btn:hover { transform: scale(1.08); }
 .cam-btn:active { transform: scale(0.94); }
@@ -172,15 +174,74 @@ canvas {
 }
 
 /* ─── Minimapa ─── */
+/* Minimap normal */
 #minimap-container {
   position: absolute;
-  top: 20px; right: 20px;
-  width: 220px; height: 220px;
+  top: 20px;
+  right: 20px;
+  width: 220px;
+  height: 220px;
   border-radius: 16px;
   overflow: hidden;
   background: rgba(255,255,255,0.06);
   backdrop-filter: blur(6px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition:
+    top    0.4s cubic-bezier(0.4,0,0.2,1),
+    right  0.4s cubic-bezier(0.4,0,0.2,1),
+    width  0.4s cubic-bezier(0.4,0,0.2,1),
+    height 0.4s cubic-bezier(0.4,0,0.2,1),
+    transform      0.4s cubic-bezier(0.4,0,0.2,1),
+    box-shadow     0.4s cubic-bezier(0.4,0,0.2,1),
+    border-radius  0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Hover só quando NÃO estiver expandido */
+#minimap-container:not(.expanded):hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(255,255,255,0.25);
+}
+
+/* Minimap expandido */
+#minimap-container.expanded {
+  /* centra na viewport */
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+
+  /* quadrado grande */
+  width: 80vmin !important;
+  height: 80vmin !important;
+
+  /* de novo cantos suaves */
+  border-radius: 16px !important;
+  background: none !important;
+  backdrop-filter: none !important;
+
+  /* glow mais suave e difuso */
+  box-shadow: 0 0 32px 12px rgba(255,255,255,0.5) !important;
+  z-index: 1000;
+}
+
+/* força o <canvas> a encher sempre o container sem pixelização */
+#minimap-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* faz o #game-container preparar suavemente o filter */
+#game-container {
+  transition: filter 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* quando o minimapa está expanded, adicionamos blur no jogo */
+body.minimap-expanded #game-container {
+  /* blur mínimo: ajusta para 1px ou 2px conforme quiseres */
+  filter: blur(2px);
 }
 
 /* ─── Texto de Preview ─── */

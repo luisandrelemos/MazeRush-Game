@@ -331,21 +331,55 @@ document.addEventListener('keyup', e => {
     keysPressed[e.key.toLowerCase()] = false;
   });
 
-/* ─── Rato para rotação da câmara (follow) ─────────────────────────────── */
-let isDragging = false, previousMousePosition = { x:0, y:0 };
-let cameraRotationOffset = 0, targetRotationOffset = 0;
-document.addEventListener('mousedown', e => { isDragging = true;  previousMousePosition.x = e.clientX; });
-document.addEventListener('mouseup',   ()=> { isDragging = false; });
+/* ─── Rato para rotação da câmara (follow) + Scroll-zoom ────────────────── */
+// Drag-to-rotate vars
+let isDragging             = false;
+let previousMousePosition  = { x: 0, y: 0 };
+let cameraRotationOffset   = 0;
+let targetRotationOffset   = 0;
+const rotationSensitivity  = 0.005;
+
+// Scroll-zoom vars
+let zoomLevel       = 1;
+let targetZoomLevel = 1;
+let zoomResetTimer  = null;
+
+// Mouse listeners
+document.addEventListener('mousedown', e => {
+  isDragging = true;
+  previousMousePosition.x = e.clientX;
+});
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+document.addEventListener('mouseleave', () => {
+  isDragging = false;
+});
 document.addEventListener('mousemove', e => {
   if (!isDragging) return;
   const dx = e.clientX - previousMousePosition.x;
-  targetRotationOffset += dx * 0.002;
+  targetRotationOffset += dx * rotationSensitivity;
   previousMousePosition.x = e.clientX;
 });
-document.addEventListener('mouseleave', () => { isDragging = false; });
+
+// Wheel zoom listener
+document.addEventListener('wheel', e => {
+  // se estivermos em top-view ortográfica, não faz nada
+  if (cameraMode === 1) return;
+  // continua a ignorar em pausa, modal aberto ou preview
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
+
+  targetZoomLevel = THREE.MathUtils.clamp(
+    targetZoomLevel - e.deltaY * 0.001,
+    0.5, 2
+  );
+  clearTimeout(zoomResetTimer);
+  zoomResetTimer = setTimeout(() => {
+    targetZoomLevel = 1;
+  }, 1500);
+});
 
 /* ─────────────────────────────  Pause menu  ──────────────────────────────── */
-
 const pauseMenu     = document.getElementById('pause-menu');
 const resumeBtn     = document.getElementById('resume-btn');
 const restartBtn    = document.getElementById('restart-btn');
@@ -380,6 +414,71 @@ const uiBlocks = [
   document.getElementById('camera-toggle-btn'),
   document.getElementById('minimap-container')
 ];
+
+// ─── Toggle expand/recolher minimapa com resize do canvas ─────────────────
+const minimapContainer = document.getElementById('minimap-container');
+const minimapCanvas    = minimapContainer.querySelector('canvas');
+const baseSize         = 220; // px, o tamanho original
+
+minimapContainer.addEventListener('click', e => {
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
+
+  // alterna a classe no próprio minimapa
+  const isNowExpanded = minimapContainer.classList.toggle('expanded');
+
+  // e também no body, para ativar o blur de fundo
+  document.body.classList.toggle('minimap-expanded', isNowExpanded);
+
+  // redimensiona o canvas para alta-dpi
+  const dpr = window.devicePixelRatio || 1;
+  requestAnimationFrame(() => {
+    let w, h;
+    if (isNowExpanded) {
+      const rect = minimapContainer.getBoundingClientRect();
+      w = rect.width * dpr;
+      h = rect.height * dpr;
+    } else {
+      w = baseSize * dpr;
+      h = baseSize * dpr;
+    }
+    minimapCanvas.width  = w;
+    minimapCanvas.height = h;
+  });
+});
+
+// fecha clicando fora
+document.addEventListener('click', e => {
+  if (!minimapContainer.classList.contains('expanded')) return;
+  if (e.target.closest('#minimap-container')) return;
+
+  minimapContainer.classList.remove('expanded');
+  document.body.classList.remove('minimap-expanded');
+
+  requestAnimationFrame(() => {
+    const dpr = window.devicePixelRatio || 1;
+    minimapCanvas.width  = baseSize * dpr;
+    minimapCanvas.height = baseSize * dpr;
+  });
+});
+
+// ─── Fecha minimapa expandido ao clicar fora ───────────────────────────────
+document.addEventListener('click', e => {
+  // só interessa se estiver expandido
+  if (!minimapContainer.classList.contains('expanded')) return;
+
+  // se o clique for dentro do minimap, ignora aqui (já tratado pelo toggle)
+  if (e.target.closest('#minimap-container')) return;
+
+  // senão, fecha o minimap expandido
+  minimapContainer.classList.remove('expanded');
+
+  // e redimensiona o canvas de volta ao tamanho base
+  requestAnimationFrame(() => {
+    const dpr = window.devicePixelRatio || 1;
+    minimapCanvas.width  = baseSize * dpr;
+    minimapCanvas.height = baseSize * dpr;
+  });
+});
 
 // … dentro do toggle-pause (Escape) e no resumeBtn.onclick, depois de mudar isPaused:
 pauseOverlay.classList.toggle('active', isPaused);
@@ -501,6 +600,13 @@ nextBtn.onclick = async () => {
     return;
   }
 
+  // Se estivermos na ortho, forçámos passagem para perspective
+  if (cameraMode === 1) {
+    cameraMode     = 0;
+    activeCamera   = cameraPerspective;
+    cameraToggleBtn.title = 'Vista Superior';  
+  }
+
   // atualiza o índice e carrega esse nível
   currentLevelIndex = nextIndex;
   await initLevel(currentLevelIndex);
@@ -592,13 +698,19 @@ function animate() {
     cameraOrtho.lookAt(car.position);
 
   } else {
+    // follow camera
     if (!isDragging) targetRotationOffset *= 0.9;
-    cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.08;
+    cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.1;
     const base = new THREE.Vector3(0, 1.5, 4);
     const off = base.clone().applyEuler(new THREE.Euler(0, cameraRotationOffset, 0)).applyEuler(car.rotation);
     cameraFollow.position.lerp(car.position.clone().add(off), 0.08);
     cameraFollow.lookAt(car.position);
   }
+
+  // ───── Aplicar Zoom Suave ─────
+  zoomLevel += (targetZoomLevel - zoomLevel) * 0.1;
+  activeCamera.zoom = zoomLevel;
+  activeCamera.updateProjectionMatrix();
 
   // ───── Velocímetro ─────
   const kmh = Math.abs(data.velocity) * 1000;
