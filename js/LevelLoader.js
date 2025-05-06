@@ -37,21 +37,63 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
 
   lvl.map.forEach((row, z) => row.forEach((cell, x) => {
-    if (cell === 1) {
-      const wall = new THREE.Mesh(
-        new THREE.BoxGeometry(lvl.tileSize, lvl.wallHeight, lvl.tileSize),
-        wallMat
-      );
-      wall.position.set(
-        x * lvl.tileSize + offsetX,
-        lvl.wallHeight / 2,
-        z * lvl.tileSize + offsetZ
-      );
-      wall.castShadow = wall.receiveShadow = true;
-      wall.userData.levelObject = true;
-      scene.add(wall);
+    let height = lvl.wallHeight;
+  
+    if (cell === 1 || cell === 2) {
+      if (cell === 2) {
+        height = lvl.wallHeight / 3;
+      
+        const left  = lvl.map[z]?.[x - 1] === 0;
+        const right = lvl.map[z]?.[x + 1] === 0;
+        const top   = lvl.map[z - 1]?.[x] === 0;
+        const down  = lvl.map[z + 1]?.[x] === 0;
+      
+        let geo;
+      
+        if ((left && right) && !(top && down)) {
+          // Caminho à esquerda e à direita → estreita no eixo X
+          geo = new THREE.BoxGeometry(lvl.tileSize * 0.2, height, lvl.tileSize);
+        } else if ((top && down) && !(left && right)) {
+          // Caminho em cima e em baixo → estreita no eixo Z
+          geo = new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize * 0.2);
+        } else {
+          // Fallback: nenhuma direção clara, criar pequeno bloco quadrado
+          geo = new THREE.BoxGeometry(lvl.tileSize * 0.2, height, lvl.tileSize * 0.2);
+          console.warn(`⚠️ Obstáculo (2) em (${x}, ${z}) sem direção clara.`);
+        }
+      
+        const wall = new THREE.Mesh(geo, wallMat);
+        wall.position.set(
+          x * lvl.tileSize + offsetX,
+          height / 2,
+          z * lvl.tileSize + offsetZ
+        );
+        wall.castShadow = wall.receiveShadow = true;
+        wall.userData.levelObject = true;
+        wall.userData.isLowWall = true;
+        scene.add(wall);
+      }
+      
+  
+      if (cell === 1) {
+        const wall = new THREE.Mesh(
+          new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize),
+          wallMat
+        );
+        wall.position.set(
+          x * lvl.tileSize + offsetX,
+          height / 2,
+          z * lvl.tileSize + offsetZ
+        );
+        wall.castShadow = wall.receiveShadow = true;
+        wall.userData.levelObject = true;
+        scene.add(wall);
+      }
     }
   }));
+  
+  
+  
 
   /* 5. Bordas exteriores */
   if (lvl.borderThickness && lvl.borderThickness > 0) {
