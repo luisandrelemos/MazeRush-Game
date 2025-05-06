@@ -415,6 +415,71 @@ const uiBlocks = [
   document.getElementById('minimap-container')
 ];
 
+// ─── Toggle expand/recolher minimapa com resize do canvas ─────────────────
+const minimapContainer = document.getElementById('minimap-container');
+const minimapCanvas    = minimapContainer.querySelector('canvas');
+const baseSize         = 220; // px, o tamanho original
+
+minimapContainer.addEventListener('click', e => {
+  if (isPaused || modal.classList.contains('show') || isInPreview) return;
+
+  // alterna a classe no próprio minimapa
+  const isNowExpanded = minimapContainer.classList.toggle('expanded');
+
+  // e também no body, para ativar o blur de fundo
+  document.body.classList.toggle('minimap-expanded', isNowExpanded);
+
+  // redimensiona o canvas para alta-dpi
+  const dpr = window.devicePixelRatio || 1;
+  requestAnimationFrame(() => {
+    let w, h;
+    if (isNowExpanded) {
+      const rect = minimapContainer.getBoundingClientRect();
+      w = rect.width * dpr;
+      h = rect.height * dpr;
+    } else {
+      w = baseSize * dpr;
+      h = baseSize * dpr;
+    }
+    minimapCanvas.width  = w;
+    minimapCanvas.height = h;
+  });
+});
+
+// fecha clicando fora
+document.addEventListener('click', e => {
+  if (!minimapContainer.classList.contains('expanded')) return;
+  if (e.target.closest('#minimap-container')) return;
+
+  minimapContainer.classList.remove('expanded');
+  document.body.classList.remove('minimap-expanded');
+
+  requestAnimationFrame(() => {
+    const dpr = window.devicePixelRatio || 1;
+    minimapCanvas.width  = baseSize * dpr;
+    minimapCanvas.height = baseSize * dpr;
+  });
+});
+
+// ─── Fecha minimapa expandido ao clicar fora ───────────────────────────────
+document.addEventListener('click', e => {
+  // só interessa se estiver expandido
+  if (!minimapContainer.classList.contains('expanded')) return;
+
+  // se o clique for dentro do minimap, ignora aqui (já tratado pelo toggle)
+  if (e.target.closest('#minimap-container')) return;
+
+  // senão, fecha o minimap expandido
+  minimapContainer.classList.remove('expanded');
+
+  // e redimensiona o canvas de volta ao tamanho base
+  requestAnimationFrame(() => {
+    const dpr = window.devicePixelRatio || 1;
+    minimapCanvas.width  = baseSize * dpr;
+    minimapCanvas.height = baseSize * dpr;
+  });
+});
+
 // … dentro do toggle-pause (Escape) e no resumeBtn.onclick, depois de mudar isPaused:
 pauseOverlay.classList.toggle('active', isPaused);
 
