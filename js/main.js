@@ -717,7 +717,7 @@ function animate(now) {
   // ───── Parâmetros de física ─────
   const d = car.userData;
   d.acceleration = 13;   // mais rápido: 12 m/s²
-  d.maxSpeed     = 17;   // mantém top speed em 15 m/s
+  d.maxSpeed     = 15;   // mantém top speed em 15 m/s
   const naturalDecel = 15;  // m/s²
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
