@@ -41,33 +41,33 @@ let isTimerRunning = false;
 let pauseStartTime = 0;
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
-const modal = document.getElementById('level-complete-modal');
-const nextBtn = document.getElementById('next-level-btn');
-const retryBtn    = document.getElementById('retry-btn');
-const menuBtn     = document.getElementById('menu-btn');
-const settingsBtn = document.getElementById('settings-btn');
+const modal = document.getElementById("level-complete-modal");
+const nextBtn = document.getElementById("next-level-btn");
+const retryBtn = document.getElementById("retry-btn");
+const menuBtn = document.getElementById("menu-btn");
+const settingsBtn = document.getElementById("settings-btn");
 
 // ─────────────────────────  Retry ─────────────────────────
 retryBtn.onclick = () => {
-  modal.classList.remove('show');
-  uiBlocks.forEach(el => {
-    el.style.filter        = 'none';
-    el.style.pointerEvents = 'auto';
+  modal.classList.remove("show");
+  uiBlocks.forEach((el) => {
+    el.style.filter = "none";
+    el.style.pointerEvents = "auto";
   });
-  retryBtn.blur();       // ← remove o foco
+  retryBtn.blur(); // ← remove o foco
   location.reload();
 };
 
 // ─────────────────────────  Menu ─────────────────────────
-menuBtn.addEventListener('click', () => {
-  window.location.href = 'index.html';
-  menuBtn.blur();       // ← remove o foco
+menuBtn.addEventListener("click", () => {
+  window.location.href = "index.html";
+  menuBtn.blur(); // ← remove o foco
 });
 
 // ─────────────────────────  Settings ─────────────────────────
-settingsBtn.addEventListener('click', () => {
-  alert('Abrir definições...');
-  settingsBtn.blur();   // ← remove o foco
+settingsBtn.addEventListener("click", () => {
+  alert("Abrir definições...");
+  settingsBtn.blur(); // ← remove o foco
 });
 
 /* ───────────────────────────  Controlo de níveis ───────────────────────── */
@@ -407,30 +407,29 @@ document.addEventListener("keyup", (e) => {
 
 /* ─── Rato para rotação da câmara (follow) + Scroll-zoom ────────────────── */
 // Drag-to-rotate vars
-let isDragging             = false;
-let previousMousePosition  = { x: 0, y: 0 };
-let cameraRotationOffset   = 0;
-let targetRotationOffset   = 0;
-const rotationSensitivity  = 0.005;
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+let cameraRotationOffset = 0;
+let targetRotationOffset = 0;
+const rotationSensitivity = 0.005;
 
 // Scroll-zoom vars
-let zoomLevel       = 1;
+let zoomLevel = 1;
 let targetZoomLevel = 1;
-let zoomResetTimer  = null;
+let zoomResetTimer = null;
 
 // Mouse listeners
-document.addEventListener('mousedown', e => {
+document.addEventListener("mousedown", (e) => {
   isDragging = true;
   previousMousePosition.x = e.clientX;
 });
-document.addEventListener('mouseup', () => {
+document.addEventListener("mouseup", () => {
   isDragging = false;
 });
-document.addEventListener('mouseleave', () => {
+document.addEventListener("mouseleave", () => {
   isDragging = false;
 });
-document.addEventListener('mousemove', e => {
-
+document.addEventListener("mousemove", (e) => {
   if (!isDragging) return;
   const dx = e.clientX - previousMousePosition.x;
   targetRotationOffset += dx * rotationSensitivity;
@@ -438,16 +437,16 @@ document.addEventListener('mousemove', e => {
 });
 
 // Wheel zoom listener
-document.addEventListener('wheel', e => {
+document.addEventListener("wheel", (e) => {
   // se estivermos em top-view ortográfica, não faz nada
   if (cameraMode === 1) return;
   // continua a ignorar em pausa, modal aberto ou preview
-  if (isPaused || modal.classList.contains('show') || isInPreview) return;
+  if (isPaused || modal.classList.contains("show") || isInPreview) return;
 
   targetZoomLevel = THREE.MathUtils.clamp(
     targetZoomLevel - e.deltaY * 0.001,
-    0.5, 2
-
+    0.5,
+    2
   );
   clearTimeout(zoomResetTimer);
   zoomResetTimer = setTimeout(() => {
@@ -456,11 +455,11 @@ document.addEventListener('wheel', e => {
 });
 
 /* ─────────────────────────────  Pause menu  ──────────────────────────────── */
-const pauseMenu     = document.getElementById('pause-menu');
-const resumeBtn     = document.getElementById('resume-btn');
-const restartBtn    = document.getElementById('restart-btn');
-const exitBtn       = document.getElementById('exit-btn');
-const gameContainer = document.getElementById('game-container');
+const pauseMenu = document.getElementById("pause-menu");
+const resumeBtn = document.getElementById("resume-btn");
+const restartBtn = document.getElementById("restart-btn");
+const exitBtn = document.getElementById("exit-btn");
+const gameContainer = document.getElementById("game-container");
 
 let isPaused = false;
 resumeBtn.onclick = () => {
@@ -492,18 +491,18 @@ const uiBlocks = [
 ];
 
 // ─── Toggle expand/recolher minimapa com resize do canvas ─────────────────
-const minimapContainer = document.getElementById('minimap-container');
-const minimapCanvas    = minimapContainer.querySelector('canvas');
-const baseSize         = 220; // px, o tamanho original
+const minimapContainer = document.getElementById("minimap-container");
+const minimapCanvas = minimapContainer.querySelector("canvas");
+const baseSize = 220; // px, o tamanho original
 
-minimapContainer.addEventListener('click', e => {
-  if (isPaused || modal.classList.contains('show') || isInPreview) return;
+minimapContainer.addEventListener("click", (e) => {
+  if (isPaused || modal.classList.contains("show") || isInPreview) return;
 
   // alterna a classe no próprio minimapa
-  const isNowExpanded = minimapContainer.classList.toggle('expanded');
+  const isNowExpanded = minimapContainer.classList.toggle("expanded");
 
   // e também no body, para ativar o blur de fundo
-  document.body.classList.toggle('minimap-expanded', isNowExpanded);
+  document.body.classList.toggle("minimap-expanded", isNowExpanded);
 
   // redimensiona o canvas para alta-dpi
   const dpr = window.devicePixelRatio || 1;
@@ -517,41 +516,41 @@ minimapContainer.addEventListener('click', e => {
       w = baseSize * dpr;
       h = baseSize * dpr;
     }
-    minimapCanvas.width  = w;
+    minimapCanvas.width = w;
     minimapCanvas.height = h;
   });
 });
 
 // fecha clicando fora
-document.addEventListener('click', e => {
-  if (!minimapContainer.classList.contains('expanded')) return;
-  if (e.target.closest('#minimap-container')) return;
+document.addEventListener("click", (e) => {
+  if (!minimapContainer.classList.contains("expanded")) return;
+  if (e.target.closest("#minimap-container")) return;
 
-  minimapContainer.classList.remove('expanded');
-  document.body.classList.remove('minimap-expanded');
+  minimapContainer.classList.remove("expanded");
+  document.body.classList.remove("minimap-expanded");
 
   requestAnimationFrame(() => {
     const dpr = window.devicePixelRatio || 1;
-    minimapCanvas.width  = baseSize * dpr;
+    minimapCanvas.width = baseSize * dpr;
     minimapCanvas.height = baseSize * dpr;
   });
 });
 
 // ─── Fecha minimapa expandido ao clicar fora ───────────────────────────────
-document.addEventListener('click', e => {
+document.addEventListener("click", (e) => {
   // só interessa se estiver expandido
-  if (!minimapContainer.classList.contains('expanded')) return;
+  if (!minimapContainer.classList.contains("expanded")) return;
 
   // se o clique for dentro do minimap, ignora aqui (já tratado pelo toggle)
-  if (e.target.closest('#minimap-container')) return;
+  if (e.target.closest("#minimap-container")) return;
 
   // senão, fecha o minimap expandido
-  minimapContainer.classList.remove('expanded');
+  minimapContainer.classList.remove("expanded");
 
   // e redimensiona o canvas de volta ao tamanho base
   requestAnimationFrame(() => {
     const dpr = window.devicePixelRatio || 1;
-    minimapCanvas.width  = baseSize * dpr;
+    minimapCanvas.width = baseSize * dpr;
     minimapCanvas.height = baseSize * dpr;
   });
 });
@@ -627,8 +626,10 @@ async function initLevel(idx) {
   );
   visitedCells = data.map.map((r) => r.map((_) => false));
 
+
   // 3) posicionar carro no início
   car.position.copy(data.startPos);
+  car.pos
   car.userData.velocity = 0;
 
   // 4) rotação automática inicial
@@ -683,9 +684,9 @@ nextBtn.onclick = async () => {
 
   // Se estivermos na ortho, forçámos passagem para perspective
   if (cameraMode === 1) {
-    cameraMode     = 0;
-    activeCamera   = cameraPerspective;
-    cameraToggleBtn.title = 'Vista Superior';  
+    cameraMode = 0;
+    activeCamera = cameraPerspective;
+    cameraToggleBtn.title = "Vista Superior";
   }
 
   // atualiza o índice e carrega esse nível

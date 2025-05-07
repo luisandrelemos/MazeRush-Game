@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.152.2';
 
+
 export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
@@ -171,9 +172,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
     0.2,
     lvl.end.z * lvl.tileSize + offsetZ
   );
-
-  mkPortal(lvl.portalStart, startPos);
-  lvl.endPortal = mkPortal(lvl.portalEnd, endPos);  // Agora `lvl.endPortal` guarda o portal final!
 
   /* 7. Devolver info ao main.js */
   return {
