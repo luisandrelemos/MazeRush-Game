@@ -47,27 +47,27 @@ const retryBtn    = document.getElementById('retry-btn');
 const menuBtn     = document.getElementById('menu-btn');
 const settingsBtn = document.getElementById('settings-btn');
 
+// ─────────────────────────  Retry ─────────────────────────
 retryBtn.onclick = () => {
-  // esconde logo o modal
   modal.classList.remove('show');
-
-  // remover blur e desbloquear UI
   uiBlocks.forEach(el => {
     el.style.filter        = 'none';
     el.style.pointerEvents = 'auto';
   });
-
-  // recarrega a página (igual ao restart do pause-menu)
+  retryBtn.blur();       // ← remove o foco
   location.reload();
 };
 
+// ─────────────────────────  Menu ─────────────────────────
 menuBtn.addEventListener('click', () => {
-  window.location.href = 'index.html';  // volta ao menu principal
+  window.location.href = 'index.html';
+  menuBtn.blur();       // ← remove o foco
 });
 
+// ─────────────────────────  Settings ─────────────────────────
 settingsBtn.addEventListener('click', () => {
-  // aqui podes abrir o teu painel de definições
-  alert('Abrir definições...'); 
+  alert('Abrir definições...');
+  settingsBtn.blur();   // ← remove o foco
 });
 
 /* ───────────────────────────  Controlo de níveis ───────────────────────── */
@@ -610,6 +610,8 @@ nextBtn.onclick = async () => {
   // atualiza o índice e carrega esse nível
   currentLevelIndex = nextIndex;
   await initLevel(currentLevelIndex);
+
+  nextBtn.blur();
 };
 
 /* ───────────────────────────  Lança o primeiro nível ────────────────────── */
