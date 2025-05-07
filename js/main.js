@@ -40,30 +40,33 @@ let isTimerRunning = false;
 let pauseStartTime = 0;
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
-const modal = document.getElementById("level-complete-modal");
-const nextBtn = document.getElementById("next-level-btn");
-const retryBtn = document.getElementById("retry-btn");
-const menuBtn = document.getElementById("menu-btn");
-const settingsBtn = document.getElementById("settings-btn");
+const modal = document.getElementById('level-complete-modal');
+const nextBtn = document.getElementById('next-level-btn');
+const retryBtn    = document.getElementById('retry-btn');
+const menuBtn     = document.getElementById('menu-btn');
+const settingsBtn = document.getElementById('settings-btn');
 
-retryBtn.onclick = async () => {
-  modal.classList.remove("show");
-
-  uiBlocks.forEach((el) => {
-    el.style.filter = "none";
-    el.style.pointerEvents = "auto";
+// ─────────────────────────  Retry ─────────────────────────
+retryBtn.onclick = () => {
+  modal.classList.remove('show');
+  uiBlocks.forEach(el => {
+    el.style.filter        = 'none';
+    el.style.pointerEvents = 'auto';
   });
-
-  await initLevel(currentLevelIndex); // reinicia o nível realmente atual
+  retryBtn.blur();       // ← remove o foco
+  location.reload();
 };
 
-menuBtn.addEventListener("click", () => {
-  window.location.href = "index.html"; // volta ao menu principal
+// ─────────────────────────  Menu ─────────────────────────
+menuBtn.addEventListener('click', () => {
+  window.location.href = 'index.html';
+  menuBtn.blur();       // ← remove o foco
 });
 
-settingsBtn.addEventListener("click", () => {
-  // aqui podes abrir o teu painel de definições
-  alert("Abrir definições...");
+// ─────────────────────────  Settings ─────────────────────────
+settingsBtn.addEventListener('click', () => {
+  alert('Abrir definições...');
+  settingsBtn.blur();   // ← remove o foco
 });
 
 /* ───────────────────────────  Controlo de níveis ───────────────────────── */
@@ -687,6 +690,8 @@ nextBtn.onclick = async () => {
   // atualiza o índice e carrega esse nível
   currentLevelIndex = nextIndex;
   await initLevel(currentLevelIndex);
+
+  nextBtn.blur();
 };
 
 /* ───────────────────────────  Lança o primeiro nível ────────────────────── */
