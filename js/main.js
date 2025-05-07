@@ -625,34 +625,10 @@ async function initLevel(idx) {
   );
   visitedCells = data.map.map((r) => r.map((_) => false));
 
-  if (idx === 6) {
-    const spikeGeometry = new THREE.BoxGeometry(1, 6, 1);
-    const spikeMaterial = new THREE.MeshStandardMaterial({ color: 0x990000 });
-
-    const spikePositions = [
-      { xIndex: 3, zIndex:  1},
-    ];
-
-    spikePositions.forEach((spike) => {
-      const xPos = levelData.offsetX + spike.xIndex * levelData.tileSize;
-      const zPos = levelData.offsetZ + spike.zIndex * levelData.tileSize;
-
-      const spikeMesh = new THREE.Mesh(spikeGeometry, spikeMaterial);
-      spikeMesh.position.set(xPos, 0.75, zPos); // altura = 1.5 → y = metade
-
-      spikeMesh.userData = {
-        type: "movingSpike",
-        baseX: xPos,
-        amplitude: 1.5 + Math.random(), // valores aleatórios entre 1.5 e 2.5
-        speed: 1.5 + Math.random(), // valores aleatórios entre 1.5 e 2.5
-      };
-
-      scene.add(spikeMesh);
-    });
-  }
 
   // 3) posicionar carro no início
   car.position.copy(data.startPos);
+  car.pos
   car.userData.velocity = 0;
 
   // 4) rotação automática inicial
@@ -875,26 +851,6 @@ function animate() {
     }
   }
   drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
-
-  scene.children.forEach((obj) => {
-    if (obj.userData.type === "movingSpike") {
-      const time = performance.now() / 1000;
-      const offset =
-        Math.sin(time * obj.userData.speed) * obj.userData.amplitude;
-      obj.position.x = obj.userData.baseX + offset;
-
-      // Colisão com o carro
-      const dist = car.position.distanceTo(obj.position);
-      if (dist < 0.6 && !car.userData.hit) {
-        car.userData.hit = true;
-
-        // Reiniciar nível com pequeno atraso
-        setTimeout(() => {
-          initLevel(currentLevelIndex);
-        }, 800);
-      }
-    }
-  });
 
   // ───── Render ─────
   renderer.render(scene, activeCamera);
