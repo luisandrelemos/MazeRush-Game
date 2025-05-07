@@ -758,10 +758,7 @@ function checkLevelComplete() {
     controlsLocked = true;
     isTimerRunning = false;
 
-    // ✅ Desbloqueia o próximo nível
-    const currentLevel = localStorage.getItem("selectedLevel") || "level-1";
-    const currentLevelNumber = parseInt(currentLevel.split("-")[1]);
-    const nextLevel = `level-${currentLevelNumber + 1}`;
+    const nextLevel = `level-${currentLevelIndex + 1}`;
     unlockLevel(nextLevel);
 
     // actualiza o tempo
