@@ -28,7 +28,7 @@ body {
 /* -------------- Menu Principal --------------- */
 .mazerush-menu {
   height: 100vh;
-  padding: 20px 20px 40px; /* menos padding no topo */
+  padding: 6vh 3vw 3vh; /* menos padding no topo */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,12 +37,12 @@ body {
 }
 
 .mazerush-title {
-  font-size: 10rem;
+  font-size: 20vh;
   font-weight: 700;
   letter-spacing: 3px;
   color: var(--azul-claro);
   text-shadow: 0 0 10px #000;
-  margin: 60px 0 40px; /* mais espaço no topo, menos em baixo */
+  margin: 5vh 0 3vh;
   transition: transform 0.3s ease;
 }
 
@@ -52,11 +52,11 @@ body {
 
 .mazerush-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 30px;
-  max-width: 700px;
+  grid-template-columns: repeat(auto-fit, minmax(14vh, 1fr));
+  gap: 4vh;
+  max-width: 50vw;
   width: 100%;
-  margin-bottom: 40px; /* separação da footer */
+  margin-bottom: 4vh;
 }
 
 .mazerush-card {
@@ -72,6 +72,7 @@ body {
   color: var(--quase-branco);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(6px);
+  margin-top: 50px;
 }
 
 .mazerush-card:hover {
@@ -89,33 +90,125 @@ body {
 }
 
 .mazerush-footer {
-  margin-top: 30px;
-  font-size: 0.85rem;
+  margin-top: 20vh;
+  font-size: 2vh;
   color: var(--quase-branco);
   opacity: 0.7;
 }
 
 /* ------------------ Seleção de Níveis ------------------------- */
-/* ─── Cabeçalho ─── */
+.levels-body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(120deg, var(--verde-escuro), var(--verde-médio));
+  background-size: 200% 200%;
+  animation: gradientAnim 12s ease infinite;
+  padding: 3vh 4vw;
+  color: var(--quase-branco);
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 2vh;
+  text-align: center;
+  color: var(--quase-branco);
+}
+
+.level-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--azul-claro);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.level-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(255, 255, 255, 0.1);
+}
+
+.level-card::before {
+  content: attr(data-level);
+  font-size: 5rem;
+  font-weight: 800;
+  color: var(--azul-claro);
+  opacity: 0.1;
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  pointer-events: none;
+}
+
+.level-card span {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  z-index: 2;
+  color: var(--quase-branco);
+}
+
+.play-button,
+.locked-button {
+  padding: 10px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  transition: 0.3s ease;
+}
+
+.play-button {
+  background: var(--verde-médio);
+  color: white;
+  cursor: pointer;
+}
+
+.play-button:hover {
+  background: var(--azul-claro);
+  color: var(--verde-escuro);
+}
+
+.locked-button {
+  background: #4d4d4d;
+  color: #ccc;
+  opacity: 0.7;
+  cursor: not-allowed;
+  border: 1px solid #666;
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 28px;
+  max-width: 1100px;
+  width: 100%;
+  margin: auto;
+}
+
 .levels-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
   max-width: 1100px;
-  margin: 30px auto 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
+  margin-bottom: 4vh;
 }
 
 .levels-title {
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--azul-claro);
-  flex-grow: 1;
+  font-size: 3rem;
   text-align: center;
+  flex: 1;
 }
 
-.back-button, .reset-button {
+.back-button,
+.reset-button {
   background: none;
   border: none;
   color: var(--quase-branco);
@@ -124,112 +217,24 @@ body {
   cursor: pointer;
   transition: color 0.3s ease;
 }
-.back-button:hover, .reset-button:hover {
+
+.back-button:hover,
+.reset-button:hover {
   color: var(--azul-claro);
 }
 
-/* ─── Secção dos níveis ─── */
-.categories {
-  max-width: 1100px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.categories h2 {
-  font-size: 1.8rem;
-  margin: 10px 0 20px;
-  color: var(--quase-branco);
-}
-
-.levels-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 24px;
-}
-
-/* ─── Cartão de Nível ─── */
-.level-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid var(--azul-claro);
-  border-radius: 16px;
-  padding: 16px;
-  text-align: center;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.level-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.4);
-}
-
-/* ─── Miniatura do nível (fictícia) ─── */
-.level-card::before {
-  content: attr(data-level);
-  display: block;
-  font-size: 4rem;
-  font-weight: 800;
-  color: var(--azul-claro);
-  opacity: 0.12;
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  pointer-events: none;
-}
-
-/* ─── Nome do nível ─── */
-.level-card span {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-  z-index: 2;
-  position: relative;
-  color: var(--quase-branco);
-}
-
-/* ─── Botões ─── */
-.play-button {
-  background: var(--verde-médio);
-  color: white;
-  font-weight: bold;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.play-button:hover {
-  background: var(--azul-claro);
-  color: var(--verde-escuro);
-}
-
-/* ─── Bloqueado ─── */
-.locked-button {
-  background: var(--bloqueado);
-  color: var(--texto-fraco);
-  border: 1px solid #666;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: not-allowed;
-  font-weight: 600;
-  opacity: 0.8;
-}
 
 /* ---------------------- Submenu de Perfil --------------------- */
 .profile-panel {
   background: rgba(255, 255, 255, 0.05);
-  border: 2px solid var(--azul-claro);
-  border-radius: 16px;
-  padding: 24px;
-  width: 360px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 0.2vw solid var(--azul-claro);
+  border-radius: 1.6vw;
+  padding: 2.4vh 2.4vw;
+  width: 25vw;
+  box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.5);
   text-align: left;
   position: relative;
+  margin-top: 8vh;
 }
 
 .profile-heading {
@@ -356,57 +361,73 @@ body {
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.4); /* camada escura suave */
   pointer-events: all;      
   display: none;
-  z-index: 50;         
+  z-index: 50;
 }
 
-/* quando em pausa mostramos o overlay */
+/* Mostrar quando ativo */
 #pause-overlay.active {
   display: block;
 }
 
+/* Menu de pausa centrado */
 #pause-menu {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
-  background: rgba(20,20,20,0.6);
-  backdrop-filter: blur(10px);
-  padding: 30px 40px;
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  padding: 40px 60px;
+  border-radius: 18px;
   text-align: center;
   display: none;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
   z-index: 100;
-  color: var(--verde-claro);
+  color: var(--quase-branco);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
 }
+
+/* Mostrar quando ativo */
 #pause-menu.active {
   display: block;
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
+
+/* Título do menu */
 #pause-menu h2 {
-  margin-bottom: 20px;
-  font-size: 2rem;
-  color: var(--laranja);
+  margin-bottom: 30px;
+  font-size: 2.2rem;
+  font-family: 'Orbitron', sans-serif;
+  color: var(--azul-claro);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
 }
+
+/* Botões do menu */
 .pause-button {
   display: block;
-  background-color: var(--vermelho-vivo);
-  color: white;
+  background: linear-gradient(135deg, var(--verde-médio), var(--azul-claro));
+  color: var(--verde-escuro);
   border: none;
-  margin: 10px auto;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
+  margin: 12px auto;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  width: 200px;
+  width: 220px;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
+
 .pause-button:hover {
-  background-color: var(--laranja);
+  background: var(--verde-médio);
+  color: white;
+  transform: translateY(-2px);
 }
 
 /* ─── Botão de câmara ─── */

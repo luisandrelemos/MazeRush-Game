@@ -5,18 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MazeRush - Níveis</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 </head>
 <body class="levels-body">
   <header class="levels-header">
     <button onclick="history.back()" class="back-button">←</button>
-    <h1 class="levels-title">MazeRush - Níveis</h1>
-    <button id="reset-btn" class="reset-button">Reiniciar</button>
+    <h1 class="levels-title">MazeRush <span style="opacity: 0.6;">— Níveis</span></h1>
+    <button id="reset-btn" class="reset-button">⟳ Reiniciar</button>
   </header>
 
-  <div class="categories">
-    <h2>Campanha</h2>
+  <main class="categories">
+    <h2 class="section-title">🌟 Campanha</h2>
     <div id="levels-container" class="levels-grid"></div>
-  </div>
+  </main>
 
   <script type="module">
     import { isLevelUnlocked, resetProgress } from "./js/unlockSystem.js";
@@ -35,24 +36,22 @@
     levels.forEach((level) => {
       const card = document.createElement("div");
       card.className = "level-card";
-      card.setAttribute("data-level", level.name.split(" ")[1]); // Exibe só o número
-
+      card.setAttribute("data-level", level.name.split(" ")[1]);
 
       const name = document.createElement("span");
       name.textContent = level.name;
       card.appendChild(name);
 
       const button = document.createElement("button");
-
       if (isLevelUnlocked(level.id)) {
-        button.textContent = "Jogar";
+        button.textContent = "▶ Jogar";
         button.className = "play-button";
         button.onclick = () => {
           localStorage.setItem("selectedLevel", level.id);
           window.location.href = "game.html";
         };
       } else {
-        button.textContent = "Bloqueado";
+        button.textContent = "🔒 Bloqueado";
         button.className = "locked-button";
         button.disabled = true;
       }
