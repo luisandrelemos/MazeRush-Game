@@ -1,65 +1,391 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
+/* ─── Paleta ─── */
+:root {
+  --verde-escuro:  #16423C;
+  --verde-médio:   #6A9C89;
+  --azul-claro:    #C4DAD2;
+  --quase-branco:  #E9EFEC;
+}
+
+/* ─── Estilos Globais ─── */
 body {
   margin: 0;
   overflow: hidden;
-  background-color: #000;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', sans-serif;
+  background: linear-gradient(120deg, var(--verde-escuro), var(--verde-médio));
+  background-size: 200% 200%;
+  animation: gradientAnim 12s ease infinite;
+  color: var(--quase-branco);
 }
 
-canvas {
-  display: block;
+@keyframes gradientAnim {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-/* Paleta */
-:root {
-  --vermelho-escuro: #A62C2C;
-  --vermelho-vivo:   #E83F25;
-  --laranja:         #EA7300;
-  --verde-claro:     #D3CA79;
-}
-
-/* ─── Menu inicial (se usar) ─── */
-.menu-body {
-  background: linear-gradient(135deg, #A62C2C, #EA7300);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* -------------- Menu Principal --------------- */
+.mazerush-menu {
   height: 100vh;
-}
-.menu-screen {
+  padding: 6vh 3vw 3vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   text-align: center;
-  background: rgba(255,255,255,0.07);
-  padding: 40px 50px;
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  color: #fff;
+  font-family: 'Orbitron', sans-serif;
 }
-.title {
-  font-size: 3rem;
-  color: var(--verde-claro);
+
+.mazerush-title {
+  font-size: 20vh;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--azul-claro);
+  text-shadow: 0 0 10px #000;
+  margin: 5vh 0 3vh;
+  transition: transform 0.3s ease;
+}
+
+.mazerush-title:hover {
+  transform: scale(1.03);
+}
+
+.mazerush-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14vh, 1fr));
+  gap: 4vh;
+  max-width: 50vw;
+  width: 100%;
+  margin-bottom: 4vh;
+}
+
+.mazerush-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--azul-claro);
+  border-radius: 16px;
+  padding: 26px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  color: var(--quase-branco);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  margin-top: 50px;
+}
+
+.mazerush-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  background-color: var(--verde-médio);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.mazerush-card svg {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 12px;
+  fill: var(--quase-branco);
+}
+
+.mazerush-footer {
+  margin-top: 20vh;
+  font-size: 2vh;
+  color: var(--quase-branco);
+  opacity: 0.7;
+}
+
+/* ------------------ Seleção de Níveis ------------------------- */
+.levels-body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(120deg, var(--verde-escuro), var(--verde-médio));
+  background-size: 200% 200%;
+  animation: gradientAnim 12s ease infinite;
+  padding: 3vh 4vw;
+  color: var(--quase-branco);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 2vh;
+  text-align: center;
+  color: var(--quase-branco);
+}
+
+.section-heading {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto 30px;
+}
+
+.section-heading h2 {
+  font-size: 2rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: var(--quase-branco);
   margin-bottom: 10px;
 }
-.subtitle {
-  font-size: 1.2rem;
-  margin-bottom: 30px;
+
+.section-line {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(to right, var(--quase-branco), transparent);
+  border-radius: 2px;
 }
-.button {
-  background-color: var(--vermelho-vivo);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+
+.level-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--azul-claro);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.level-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(255, 255, 255, 0.1);
+}
+
+.level-card::before {
+  content: attr(data-level);
+  font-size: 5rem;
+  font-weight: 800;
+  color: var(--azul-claro);
+  opacity: 0.1;
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  pointer-events: none;
+}
+
+.level-card span {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  z-index: 2;
+  color: var(--quase-branco);
+}
+
+.play-button,
+.locked-button {
+  padding: 10px 18px;
   font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
   transition: 0.3s ease;
-  text-decoration: none;
 }
-.button:hover {
-  background-color: var(--laranja);
+
+.play-button {
+  background: var(--verde-médio);
+  color: white;
+  cursor: pointer;
 }
+
+.play-button:hover {
+  background: var(--azul-claro);
+  color: var(--verde-escuro);
+}
+
+.locked-button {
+  background: #4d4d4d;
+  color: #ccc;
+  opacity: 0.7;
+  cursor: not-allowed;
+  border: 1px solid #666;
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 28px;
+  max-width: 1100px;
+  width: 100%;
+  margin: auto;
+}
+
+.levels-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1100px;
+  margin-bottom: 4vh;
+}
+
+.levels-title {
+  font-size: 3rem;
+  text-align: center;
+  flex: 1;
+}
+
+.back-button,
+.reset-button {
+  background: none;
+  border: none;
+  color: var(--quase-branco);
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.back-button:hover,
+.reset-button:hover {
+  color: var(--azul-claro);
+}
+
+
+/* ---------------------- Submenu de Perfil --------------------- */
+.profile-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.2vw solid var(--azul-claro);
+  border-radius: 1.6vw;
+  padding: 2.4vh 2.4vw;
+  width: 25vw;
+  box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.5);
+  text-align: left;
+  position: relative;
+  margin-top: 8vh;
+}
+
+.profile-heading {
+  font-size: 1.6rem;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  margin-bottom: 12px;
+  margin-top: -10px;
+  color: var(--quase-branco);
+}
+
+.profile-slot {
+  background: var(--verde-médio);
+  border-radius: 12px;
+  padding: 5px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  min-height: 56px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  margin-bottom: 16px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.profile-slot span {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.profile-slot.active:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  background: var(--azul-claro);
+  color: var(--verde-escuro);
+}
+
+.profile-slot.inactive::after {
+  content: '+';
+  font-size: 1.6rem;
+  color: var(--azul-claro);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  margin-left: auto;
+  margin-right: 4px;
+}
+
+.profile-slot.inactive:hover::after {
+  opacity: 1;
+}
+
+.profile-slot.inactive:hover {
+  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-slot.inactive {
+  opacity: 0.3;
+  background: rgba(255, 255, 255, 0.05);
+  justify-content: center;
+  font-style: italic;
+  cursor: default;
+}
+
+.profile-slot.active::before {
+  content: attr(data-profile);
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--quase-branco);
+  opacity: 0.85;
+  font-family: 'Orbitron', sans-serif;
+  pointer-events: none;
+}
+
+.profile-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.profile-buttons button {
+  flex: 1;
+  padding: 10px;
+  background: var(--verde-médio);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.profile-buttons button:hover {
+  background: var(--azul-claro);
+  color: var(--verde-escuro);
+}
+
+#nickname {
+  width: 100%;
+  max-width: 240px;
+  padding: 12px;
+  font-size: 1.1rem;
+  font-family: 'Orbitron', sans-serif;
+  background: var(--verde-escuro);
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+/* ----------------------------------------------------- */
+
 
 /* ─── Submenu Pausa ─── */
 #pause-overlay {
@@ -67,57 +393,73 @@ canvas {
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.4); /* camada escura suave */
   pointer-events: all;      
   display: none;
-  z-index: 50;         
+  z-index: 50;
 }
 
-/* quando em pausa mostramos o overlay */
+/* Mostrar quando ativo */
 #pause-overlay.active {
   display: block;
 }
 
+/* Menu de pausa centrado */
 #pause-menu {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
-  background: rgba(20,20,20,0.6);
-  backdrop-filter: blur(10px);
-  padding: 30px 40px;
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  padding: 40px 60px;
+  border-radius: 18px;
   text-align: center;
   display: none;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
   z-index: 100;
-  color: var(--verde-claro);
+  color: var(--quase-branco);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
 }
+
+/* Mostrar quando ativo */
 #pause-menu.active {
   display: block;
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
+
+/* Título do menu */
 #pause-menu h2 {
-  margin-bottom: 20px;
-  font-size: 2rem;
-  color: var(--laranja);
+  margin-bottom: 30px;
+  font-size: 2.2rem;
+  font-family: 'Orbitron', sans-serif;
+  color: var(--azul-claro);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
 }
+
+/* Botões do menu */
 .pause-button {
   display: block;
-  background-color: var(--vermelho-vivo);
-  color: white;
+  background: linear-gradient(135deg, var(--verde-médio), var(--azul-claro));
+  color: var(--verde-escuro);
   border: none;
-  margin: 10px auto;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
+  margin: 12px auto;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  width: 200px;
+  width: 220px;
+  font-family: 'Orbitron', sans-serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
+
 .pause-button:hover {
-  background-color: var(--laranja);
+  background: var(--verde-médio);
+  color: white;
+  transform: translateY(-2px);
 }
 
 /* ─── Botão de câmara ─── */
@@ -166,7 +508,7 @@ canvas {
 #speedometer {
   position: fixed;
   bottom: 18px; right: 28px;
-  font: 700 2.8rem 'Montserrat', sans-serif;
+  font: 700 2.8rem 'Orbitron', sans-serif;
   color: #fff;
   text-shadow: 0 0 6px rgb(0 0 0 / .7);
   pointer-events: none;
@@ -269,7 +611,7 @@ body.minimap-expanded #game-container {
   transform: translate(-50%, -50%) scale(1);
   font-size: 6rem;
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', sans-serif;
   font-weight: 800;
   z-index: 100;
   opacity: 0;
@@ -307,7 +649,7 @@ body.minimap-expanded #game-container {
   animation: fadeBounce 0.8s ease forwards;
   box-shadow: 0 15px 40px rgba(0,0,0,0.6);
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', sans-serif;
 }
 .modal-content h2 {
   font-size: 2.2rem;
@@ -394,90 +736,3 @@ body.minimap-expanded #game-container {
 #retry-btn:hover {
   background: linear-gradient(90deg, #cc3333, #ff6666);
 }
-
-/* Tela de Escolher Níveis */
-.levels-body {
-  background: linear-gradient(to bottom, #0f223d, #1a1a1a);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  margin: 0;
-  font-family: "Montserrat", sans-serif;
-}
-
-.levels-container {
-  text-align: center;
-}
-
-.levels-container .title {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  color: #d3ca79;
-}
-
-.levels-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 20px;
-  margin: 30px 0;
-  padding: 0 20px;
-}
-
-.level-card {
-  background-color: #d3ca79;
-  color: #0f223d;
-  padding: 20px;
-  border-radius: 12px;
-  font-weight: bold;
-  font-size: 1.2rem;
-  transition: transform 0.3s, background-color 0.3s, color 0.3s;
-  cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-
-.level-card:hover {
-  transform: scale(1.05);
-}
-
-.level-card.locked {
-  background-color: #555;
-  color: #ccc;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.level-card.locked:hover {
-  transform: none;
-}
-
-/* Botão Voltar */
-.button {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #e83f25;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 1.2rem;
-  transition: background-color 0.3s;
-}
-
-.button:hover {
-  background-color: #ea7300;
-}
-
-.button.warning {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  transition: background-color 0.3s ease;
-}
-
-.button.warning:hover {
-  background-color: #c0392b;
-}
-

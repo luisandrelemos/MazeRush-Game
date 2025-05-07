@@ -1,77 +1,74 @@
 <!DOCTYPE html>
 <html lang="pt">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MazeRush - Escolher Nível</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body class="levels-body">
-    <div class="levels-screen">
-      <h1 class="title">Escolhe o Nível</h1>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MazeRush - Níveis</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body class="levels-body">
+  <header class="levels-header">
+    <button onclick="history.back()" class="back-button">←</button>
+    <h1 class="levels-title">MazeRush <span style="opacity: 0.6;">— Níveis</span></h1>
+    <button id="reset-btn" class="reset-button">⟳ Reiniciar</button>
+  </header>
 
-      <div id="levels-container" class="levels-grid">
-        <!-- Níveis vão ser gerados aqui via JavaScript -->
-      </div>
-
-      <a href="index.html" class="button">← Voltar</a>
-      <button id="reset-btn" class="button warning">Reiniciar Jogo</button>
+  <main class="categories">
+    <div class="section-heading">
+      <h2>Campanha</h2>
+      <div class="section-line"></div>
     </div>
+    <div id="levels-container" class="levels-grid"></div>
+  </main>
 
-    <script type="module">
-      import { isLevelUnlocked } from "./js/unlockSystem.js";
+  <script type="module">
+    import { isLevelUnlocked, resetProgress } from "./js/unlockSystem.js";
 
-      const levels = [
-        { name: "Level 1", id: "level-1" },
-        { name: "Level 2", id: "level-2" },
-        { name: "Level 3", id: "level-3" },
-        { name: "Level 4", id: "level-4" },
-        { name: "Level 5", id: "level-5" },
-        { name: "Level 6", id: "level-6" }
-      ];
+    const levels = [
+      { name: "Nível 1", id: "level-1" },
+      { name: "Nível 2", id: "level-2" },
+      { name: "Nível 3", id: "level-3" },
+      { name: "Nível 4", id: "level-4" },
+      { name: "Nível 5", id: "level-5" },
+      { name: "Nível 6", id: "level-6" },
+    ];
 
-      const container = document.getElementById("levels-container");
+    const container = document.getElementById("levels-container");
 
-      levels.forEach((level) => {
-        const card = document.createElement("div");
-        card.className = "level-card";
+    levels.forEach((level) => {
+      const card = document.createElement("div");
+      card.className = "level-card";
+      card.setAttribute("data-level", level.name.split(" ")[1]);
 
-        const title = document.createElement("h2");
-        title.textContent = level.name;
-        card.appendChild(title);
+      const name = document.createElement("span");
+      name.textContent = level.name;
+      card.appendChild(name);
 
-        const button = document.createElement("button");
+      const button = document.createElement("button");
+      if (isLevelUnlocked(level.id)) {
+        button.textContent = "▶ Jogar";
+        button.className = "play-button";
+        button.onclick = () => {
+          localStorage.setItem("selectedLevel", level.id);
+          window.location.href = "game.html";
+        };
+      } else {
+        button.textContent = "🔒 Bloqueado";
+        button.className = "locked-button";
+        button.disabled = true;
+      }
 
-        if (isLevelUnlocked(level.id)) {
-          button.textContent = "Jogar";
-          button.className = "play-button";
-          button.onclick = () => {
-            // Guarda o nível escolhido para o game.html saber
-            localStorage.setItem("selectedLevel", level.id);
-            window.location.href = "game.html";
-          };
-        } else {
-          button.textContent = "Bloqueado 🔒";
-          button.className = "locked-button";
-          button.disabled = true;
-        }
+      card.appendChild(button);
+      container.appendChild(card);
+    });
 
-        card.appendChild(button);
-        container.appendChild(card);
-      });
-
-      import { resetProgress } from "./js/unlockSystem.js";
-
-      document.getElementById("reset-btn").addEventListener("click", () => {
-        if (
-          confirm(
-            "Tens a certeza que queres reiniciar o jogo?\nTodos os níveis serão bloqueados exceto o primeiro."
-          )
-        ) {
-          resetProgress();
-          location.reload();
-        }
-      });
-    </script>
-  </body>
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      if (confirm("Desejas reiniciar o progresso?")) {
+        resetProgress();
+        location.reload();
+      }
+    });
+  </script>
+</body>
 </html>

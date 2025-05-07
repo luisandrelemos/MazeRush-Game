@@ -1,16 +1,134 @@
 <!DOCTYPE html>
 <html lang="pt">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MazeRush - Menu</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body class="menu-body">
-    <div class="menu-screen">
-      <h1 class="title">MazeRush</h1>
-      <p class="subtitle">Desafia o labirinto. Consegues escapar?</p>
-      <a href="levels.html" class="button">Iniciar Jogo</a>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MazeRush</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body class="mazerush-menu">
+  <h1 class="mazerush-title">MazeRush</h1>
+
+  <!-- Menu Inicial -->
+  <div class="mazerush-grid" id="main-menu">
+    <a href="levels.html" class="mazerush-card mazerush-play">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <span>Jogar</span>
+    </a>
+    <a href="#" class="mazerush-card" onclick="openProfileMenu()">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+      <span>Perfil</span>
+    </a>
+    <a href="#" class="mazerush-card">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.07-.61.07-.94s-.03-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .11-.64l-1.91-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.62-.94L14 2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5l-.38 2.56c-.6.23-1.15.54-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22l-1.91 3.32a.5.5 0 0 0 .11.64l2.03 1.58c-.04.3-.07.61-.07.94s.03.64.07.94L2.86 14.52a.5.5 0 0 0-.11.64l1.91 3.32c.14.24.44.34.7.22l2.39-.96c.47.4 1.02.72 1.62.94l.38 2.56a.5.5 0 0 0 .5.5h3c.25 0 .46-.18.5-.42l.38-2.56c.6-.23 1.15-.54 1.62-.94l2.39.96c.26.1.56 0 .7-.22l1.91-3.32a.5.5 0 0 0-.11-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"/></svg>
+      <span>Definições</span>
+    </a>
+    <a href="#" class="mazerush-card">
+      <svg viewBox="0 0 24 24"><path d="M4 17h16v2H4v-2zm0-5h16v2H4v-2zm0-5h16v2H4V7z"/></svg>
+      <span>Personalizar</span>
+    </a>
+  </div>
+
+  <!-- Submenu Perfis -->
+  <div id="profile-list" class="profile-panel hidden">
+    <h2 class="profile-heading">Perfis</h2>
+
+    <div class="profile-slot active" onclick="openEditPopup()" data-profile="1">
+      <span id="profile-name-slot">Jogador</span>
+    </div>      
+
+    <div class="profile-slot inactive">Vazio</div>
+    <div class="profile-slot inactive">Vazio</div>
+
+    <div class="profile-buttons">
+      <button onclick="closeProfileMenu()">← Voltar</button>
     </div>
-  </body>
+  </div>
+
+  <!-- Popup de edição -->
+  <div id="profile-popup" class="profile-panel hidden">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 class="profile-heading" style="margin-bottom: 0;">Alcunha</h2>
+      <button id="delete-profile" onclick="deleteProfile()" style="
+        background: none;
+        border: none;
+        color: var(--quase-branco);
+        font-size: 1.4rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+      " title="Eliminar Perfil">🗑️</button>
+    </div>
+
+    <div style="display: flex; justify-content: center; margin: 12px 0;">
+      <input type="text" id="nickname" maxlength="12" value="Jogador" />
+    </div>
+
+    <p style="font-size: 0.9rem; margin: 10px 0 20px; color: var(--quase-branco); opacity: 0.8;">
+      Escolha uma alcunha para ser exibida na tabela de classificação. A sua alcunha pode ser alterada a qualquer momento.
+    </p>
+
+    <div class="profile-buttons" style="justify-content: center;">
+      <button id="confirm-profile" style="max-width: 160px;" onclick="confirmEdit()">Ok</button>
+    </div>
+  </div>
+
+  <div class="mazerush-footer">MazeRush — v0.1 | Criado com 💛</div>
+
+  <script>
+    const nickname = document.getElementById('nickname');
+    const popup = document.getElementById('profile-popup');
+    const profileList = document.getElementById('profile-list');
+    const mainMenu = document.getElementById('main-menu');
+    const footer = document.querySelector('.mazerush-footer');
+    const nameSlot = document.getElementById('profile-name-slot');
+
+    function openProfileMenu() {
+      mainMenu.style.display = 'none';
+      footer.style.display = 'none';
+      profileList.classList.remove('hidden');
+    }
+
+    function closeProfileMenu() {
+      profileList.classList.add('hidden');
+      mainMenu.style.display = 'grid';
+      footer.style.display = 'block';
+    }
+
+    function openEditPopup() {
+      profileList.classList.add('hidden');
+      popup.classList.remove('hidden');
+      nickname.value = localStorage.getItem('playerName') || 'Jogador';
+    }
+
+    function confirmEdit() {
+      const name = nickname.value.trim();
+      if (name) {
+        localStorage.setItem('playerName', name);
+        nameSlot.textContent = name;
+      }
+      popup.classList.add('hidden');
+      profileList.classList.remove('hidden');
+    }
+
+    function deleteProfile() {
+      if (confirm("Eliminar o perfil atual?")) {
+        localStorage.removeItem('playerName');
+        nameSlot.textContent = 'Jogador';
+        nickname.value = '';
+        popup.classList.add('hidden');
+        profileList.classList.remove('hidden');
+      }
+    }
+
+    window.onload = () => {
+      const saved = localStorage.getItem('playerName');
+      if (saved) {
+        nameSlot.textContent = saved;
+        nickname.value = saved;
+      }
+    };
+  </script>
+</body>
 </html>
