@@ -631,9 +631,6 @@ async function initLevel(idx) {
 
     const spikePositions = [
       { xIndex: 3, zIndex:  1},
-      
-
-      
     ];
 
     spikePositions.forEach((spike) => {
