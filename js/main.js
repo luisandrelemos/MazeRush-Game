@@ -401,16 +401,28 @@ document.addEventListener("keyup", (e) => {
   keysPressed[e.key.toLowerCase()] = false;
 });
 
-/* ─── Rato para rotação da câmara (follow) ─────────────────────────────── */
-let isDragging = false,
-  previousMousePosition = { x: 0, y: 0 };
-let cameraRotationOffset = 0,
-  targetRotationOffset = 0;
+/* ─── Rato para rotação da câmara (follow) + Scroll-zoom ────────────────── */
+// Drag-to-rotate vars
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+let cameraRotationOffset = 0;
+let targetRotationOffset = 0;
+const rotationSensitivity = 0.005;
+
+// Scroll-zoom vars
+let zoomLevel = 1;
+let targetZoomLevel = 1;
+let zoomResetTimer = null;
+
+// Mouse listeners
 document.addEventListener("mousedown", (e) => {
   isDragging = true;
   previousMousePosition.x = e.clientX;
 });
 document.addEventListener("mouseup", () => {
+  isDragging = false;
+});
+document.addEventListener("mouseleave", () => {
   isDragging = false;
 });
 document.addEventListener("mousemove", (e) => {
@@ -419,12 +431,8 @@ document.addEventListener("mousemove", (e) => {
   targetRotationOffset += dx * 0.002;
   previousMousePosition.x = e.clientX;
 });
-document.addEventListener("mouseleave", () => {
-  isDragging = false;
-});
 
 /* ─────────────────────────────  Pause menu  ──────────────────────────────── */
-
 const pauseMenu = document.getElementById("pause-menu");
 const resumeBtn = document.getElementById("resume-btn");
 const restartBtn = document.getElementById("restart-btn");
@@ -683,8 +691,7 @@ function animate() {
   // ───── Atualizar câmaras ─────
   if (cameraMode === 0) {
     if (!isDragging) targetRotationOffset *= 0.9;
-    cameraRotationOffset +=
-      (targetRotationOffset - cameraRotationOffset) * 0.08;
+    cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.1;
     const base = new THREE.Vector3(0, 8.5, 8.5);
     const off = base
       .clone()
