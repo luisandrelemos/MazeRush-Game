@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
 /* ─── Paleta ─── */
@@ -12,7 +13,7 @@
 body {
   margin: 0;
   overflow: hidden;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', sans-serif;
   background: linear-gradient(120deg, var(--verde-escuro), var(--verde-médio));
   background-size: 200% 200%;
   animation: gradientAnim 12s ease infinite;
@@ -28,12 +29,13 @@ body {
 /* -------------- Menu Principal --------------- */
 .mazerush-menu {
   height: 100vh;
-  padding: 6vh 3vw 3vh; /* menos padding no topo */
+  padding: 6vh 3vw 3vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* alinha ao topo */
+  justify-content: flex-start;
   text-align: center;
+  font-family: 'Orbitron', sans-serif;
 }
 
 .mazerush-title {
@@ -107,6 +109,7 @@ body {
   animation: gradientAnim 12s ease infinite;
   padding: 3vh 4vw;
   color: var(--quase-branco);
+  font-family: 'Orbitron', sans-serif;
 }
 
 .section-title {
@@ -114,6 +117,27 @@ body {
   margin-bottom: 2vh;
   text-align: center;
   color: var(--quase-branco);
+}
+
+.section-heading {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto 30px;
+}
+
+.section-heading h2 {
+  font-size: 2rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: var(--quase-branco);
+  margin-bottom: 10px;
+}
+
+.section-line {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(to right, var(--quase-branco), transparent);
+  border-radius: 2px;
 }
 
 .level-card {
@@ -305,10 +329,18 @@ body {
   cursor: default;
 }
 
-.profile-img {
-  width: 42px;
-  margin-right: 14px;
-  z-index: 1;
+.profile-slot.active::before {
+  content: attr(data-profile);
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--quase-branco);
+  opacity: 0.85;
+  font-family: 'Orbitron', sans-serif;
+  pointer-events: none;
 }
 
 .profile-buttons {
@@ -419,7 +451,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   width: 220px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', sans-serif;
   transition: all 0.3s ease;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
@@ -476,7 +508,7 @@ body {
 #speedometer {
   position: fixed;
   bottom: 18px; right: 28px;
-  font: 700 2.8rem 'Montserrat', sans-serif;
+  font: 700 2.8rem 'Orbitron', sans-serif;
   color: #fff;
   text-shadow: 0 0 6px rgb(0 0 0 / .7);
   pointer-events: none;
@@ -579,7 +611,7 @@ body.minimap-expanded #game-container {
   transform: translate(-50%, -50%) scale(1);
   font-size: 6rem;
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', sans-serif;
   font-weight: 800;
   z-index: 100;
   opacity: 0;
@@ -617,7 +649,7 @@ body.minimap-expanded #game-container {
   animation: fadeBounce 0.8s ease forwards;
   box-shadow: 0 15px 40px rgba(0,0,0,0.6);
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', sans-serif;
 }
 .modal-content h2 {
   font-size: 2.2rem;
