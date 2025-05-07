@@ -6,6 +6,7 @@ import { unlockLevel } from "./unlockSystem.js";
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
+let lastFrameTime = performance.now();
 
 /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
 const countdownEl = document.createElement("div");
@@ -653,7 +654,7 @@ async function initLevel(idx) {
   // 5) fog + iniciar loop e preview
   scene.fog = new THREE.Fog(data.fog.color, data.fog.near, data.fog.far);
   if (!animationStarted) {
-    animate();
+    requestAnimationFrame(animate);
     animationStarted = true;
   }
   startMapPreviewSequence();
@@ -698,160 +699,158 @@ nextBtn.onclick = async () => {
 initLevel(currentLevelIndex);
 
 /* ─────────────────────────────  Loop  ────────────────────────────────────── */
-function animate() {
+function animate(now) {
   requestAnimationFrame(animate);
+
+  // deltaTime em segundos
+  const deltaTime = (now - lastFrameTime) / 1000;
+  lastFrameTime = now;
+
   if (isPaused || !levelData) return;
 
-  // ───── Atualiza o timer se estiver rodando ─────
+  // ───── Timer ─────
   if (isTimerRunning) {
     const elapsed = (performance.now() - levelStartTime) / 1000;
     timerEl.textContent = `${elapsed.toFixed(2)}s`;
   }
 
+  // ───── Parâmetros de física ─────
+  const d = car.userData;
+  d.acceleration = 13;   // mais rápido: 12 m/s²
+  d.maxSpeed     = 17;   // mantém top speed em 15 m/s
+  const naturalDecel = 15;  // m/s²
+
   const { tileSize, offsetX, offsetZ, map } = levelData;
-  const mapW = map[0].length,
-    mapH = map.length;
+  const mapW = map[0].length, mapH = map.length;
 
-  const data = car.userData;
-  const frontAxle = data.frontAxle;
-  const steerSpeed = 0.025,
-    maxSteer = Math.PI / 6;
-  const accel = keysPressed["w"] || keysPressed["arrowup"];
-  const brake = keysPressed["s"] || keysPressed["arrowdown"];
-  const left = keysPressed["a"] || keysPressed["arrowleft"];
-  const right = keysPressed["d"] || keysPressed["arrowright"];
+  // Teclas
+  const accelKey = keysPressed.w || keysPressed.arrowup;
+  const brakeKey = keysPressed.s || keysPressed.arrowdown;
+  const leftKey  = keysPressed.a || keysPressed.arrowleft;
+  const rightKey = keysPressed.d || keysPressed.arrowright;
 
-  // ───── BLOQUEIO de movimento ─────
+  // Luzes de travão e ré
+  (d.brakeLights   || []).forEach(l => l.visible = brakeKey  && d.velocity > 0);
+  (d.reverseLights || []).forEach(l => l.visible = d.velocity < 0);
+
+  // ───── Atualiza velocidade ─────
   if (!controlsLocked) {
-    if (accel) {
-      data.velocity = Math.min(
-        data.velocity + data.acceleration,
-        data.maxSpeed
-      );
-    } else if (brake) {
-      data.velocity = Math.max(
-        data.velocity - data.acceleration * 1.2,
-        -data.maxSpeed * 0.5
-      );
+    if (accelKey) {
+      d.velocity = Math.min(d.velocity + d.acceleration * deltaTime, d.maxSpeed);
+    } else if (brakeKey) {
+      d.velocity = Math.max(d.velocity - d.acceleration * 3 * deltaTime, -d.maxSpeed * 0.5);
     } else {
-      data.velocity *= data.friction;
-      if (Math.abs(data.velocity) < 0.001) data.velocity = 0;
-    }
-
-    const isMoving = data.velocity !== 0;
-    if (!isMoving) {
-      if (left)
-        frontAxle.rotation.y = Math.min(
-          frontAxle.rotation.y + steerSpeed,
-          maxSteer
-        );
-      if (right)
-        frontAxle.rotation.y = Math.max(
-          frontAxle.rotation.y - steerSpeed,
-          -maxSteer
-        );
-      if (!left && !right) frontAxle.rotation.y *= 0.85;
-    } else {
-      if (left)
-        frontAxle.rotation.y = Math.min(
-          frontAxle.rotation.y + steerSpeed,
-          maxSteer
-        );
-      if (right)
-        frontAxle.rotation.y = Math.max(
-          frontAxle.rotation.y - steerSpeed,
-          -maxSteer
-        );
-      if (!left && !right) frontAxle.rotation.y *= 0.9;
-      car.rotation.y += frontAxle.rotation.y * 0.04 * Math.sign(data.velocity);
-    }
-
-    // Mover e colidir
-    if (data.velocity !== 0) {
-      const dir = new THREE.Vector3(0, 0, -1)
-        .applyEuler(car.rotation)
-        .multiplyScalar(data.velocity);
-      car.position.x += dir.x;
-      checkCollisionAndReact(car, wallMeshes);
-      car.position.z += dir.z;
-      checkCollisionAndReact(car, wallMeshes);
-
-      const wheelSpeed = data.velocity * 10;
-      data.rotatingWheels.forEach((w) => (w.rotation.x += wheelSpeed));
+      if (d.velocity > 0) d.velocity = Math.max(d.velocity - naturalDecel * deltaTime, 0);
+      else                d.velocity = Math.min(d.velocity + naturalDecel * deltaTime, 0);
     }
   } else {
-    // Durante o lock: garantir velocidade 0
-    data.velocity = 0;
+    d.velocity = 0;
   }
 
-  // ───── Atualizar câmaras ─────
+  // ───── Direcção e rotação ─────
+  const axle       = d.frontAxle;
+  const steerMax   = Math.PI / 5;  // ±30°
+  const steerLerp  = 12;           // resposta ao volante bem rápida
+  const turnRate   = 4;            // rad/s mais agressivo
+
+  // ângulo alvo das rodas
+  let targetSteer = 0;
+  if (leftKey)  targetSteer =  steerMax;
+  if (rightKey) targetSteer = -steerMax;
+
+  // suaviza direção das rodas (mas mais rápido)
+  axle.rotation.y = THREE.MathUtils.lerp(axle.rotation.y, targetSteer, steerLerp * deltaTime);
+
+  // só gira o carro se estiver a mover
+  const moving = Math.abs(d.velocity) > 0.01;
+  if (moving) {
+    const dirFactor = d.velocity >= 0 ? 1 : -1;
+    car.rotation.y += axle.rotation.y * turnRate * deltaTime * dirFactor;
+  }
+
+  // ───── Move + colisões ─────
+  if (moving) {
+    const dist = d.velocity * deltaTime;
+    const dir = new THREE.Vector3(0, 0, -1)
+      .applyEuler(car.rotation)
+      .multiplyScalar(dist);
+    car.position.add(dir);
+    checkCollisionAndReact(car, wallMeshes);
+
+    // animação das rodas
+    const wheelDir = d.velocity >= 0 ? 1 : -1;
+    (d.rotatingWheels || []).forEach(w => {
+      w.rotation.x += wheelDir * 10 * deltaTime;
+    });
+  }
+
+  // ───── Atualiza câmaras ─────
   if (cameraMode === 0) {
     if (!isDragging) targetRotationOffset *= 0.9;
     cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.1;
     const base = new THREE.Vector3(0, 8.5, 8.5);
-    const off = base
-      .clone()
+    const off  = base.clone()
       .applyEuler(new THREE.Euler(0, cameraRotationOffset, 0))
       .applyEuler(car.rotation);
     cameraPerspective.position.lerp(car.position.clone().add(off), 0.08);
     cameraPerspective.lookAt(car.position);
+
   } else if (cameraMode === 1) {
     const aspect = innerWidth / innerHeight;
-    orthoSizeTopView =
-      aspect > 1 ? 10 * zoomTopView : (10 * zoomTopView) / aspect;
-    cameraOrtho.left = -orthoSizeTopView * aspect;
-    cameraOrtho.right = orthoSizeTopView * aspect;
-    cameraOrtho.top = orthoSizeTopView;
+    orthoSizeTopView = aspect > 1
+      ? 10 * zoomTopView
+      : (10 * zoomTopView) / aspect;
+    cameraOrtho.left   = -orthoSizeTopView * aspect;
+    cameraOrtho.right  =  orthoSizeTopView * aspect;
+    cameraOrtho.top    =  orthoSizeTopView;
     cameraOrtho.bottom = -orthoSizeTopView;
     cameraOrtho.updateProjectionMatrix();
-
     cameraOrtho.position.set(car.position.x, 60, car.position.z + 20);
     cameraOrtho.lookAt(car.position);
+
   } else {
-    // follow camera
     if (!isDragging) targetRotationOffset *= 0.9;
     cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.1;
     const base = new THREE.Vector3(0, 1.5, 4);
-    const off = base
-      .clone()
+    const off  = base.clone()
       .applyEuler(new THREE.Euler(0, cameraRotationOffset, 0))
       .applyEuler(car.rotation);
     cameraFollow.position.lerp(car.position.clone().add(off), 0.08);
     cameraFollow.lookAt(car.position);
   }
 
-  // ───── Aplicar Zoom Suave ─────
+  // ───── Zoom suave ─────
   zoomLevel += (targetZoomLevel - zoomLevel) * 0.1;
   activeCamera.zoom = zoomLevel;
   activeCamera.updateProjectionMatrix();
 
   // ───── Velocímetro ─────
-  const kmh = Math.abs(data.velocity) * 1000;
+  const kmh = Math.abs(d.velocity) * 3.6;
   speedEl.textContent = `${kmh.toFixed(0)} km/h`;
 
   // ───── Faróis ─────
-  const leftOff = new THREE.Vector3(-0.2, 0.2, -0.6).applyEuler(car.rotation);
-  const rightOff = new THREE.Vector3(0.2, 0.2, -0.6).applyEuler(car.rotation);
-  const dirOff = new THREE.Vector3(0, 0, -2).applyEuler(car.rotation);
-  headlightLeft.position.copy(car.position.clone().add(leftOff));
-  headlightRight.position.copy(car.position.clone().add(rightOff));
-  targetLeft.position.copy(headlightLeft.position.clone().add(dirOff));
-  targetRight.position.copy(headlightRight.position.clone().add(dirOff));
+  const L = new THREE.Vector3(-0.2, 0.2, -0.6).applyEuler(car.rotation);
+  const R = new THREE.Vector3( 0.2, 0.2, -0.6).applyEuler(car.rotation);
+  const D = new THREE.Vector3(0, 0, -2).applyEuler(car.rotation);
+  headlightLeft.position.copy(car.position.clone().add(L));
+  headlightRight.position.copy(car.position.clone().add(R));
+  targetLeft.position.copy(headlightLeft.position.clone().add(D));
+  targetRight.position.copy(headlightRight.position.clone().add(D));
 
   // ───── Minimap ─────
   const cx = Math.floor((car.position.x - offsetX) / tileSize + 0.5);
   const cz = Math.floor((car.position.z - offsetZ) / tileSize + 0.5);
   for (let dz = -1; dz <= 1; dz++) {
     for (let dx = -1; dx <= 1; dx++) {
-      const nx = cx + dx,
-        nz = cz + dz;
-      if (nx >= 0 && nx < mapW && nz >= 0 && nz < mapH)
+      const nx = cx + dx, nz = cz + dz;
+      if (nx >= 0 && nx < mapW && nz >= 0 && nz < mapH) {
         visitedCells[nz][nx] = true;
+      }
     }
   }
   drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
 
-  // ───── Render ─────
+  // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);
   checkLevelComplete();
 }
