@@ -394,11 +394,13 @@ function checkCollisionAndReact(car, walls) {
 const keysPressed = {};
 document.addEventListener("keydown", (e) => {
   if (isPaused || modal.classList.contains("show") || isInPreview) return;
-  keysPressed[e.key.toLowerCase()] = true;
-  if (e.key === "q") rotateCar180(car, "left");
-  if (e.key === "e") rotateCar180(car, "right");
+  const key = e.key.toLowerCase();
+  keysPressed[key] = true;
+  if (key === "q") rotateCar180(car, "left");
+  if (key === "e") rotateCar180(car, "right");
   if (e.code === "Space") jumpCar(car);
 });
+
 
 document.addEventListener("keyup", (e) => {
   if (isPaused) return;
