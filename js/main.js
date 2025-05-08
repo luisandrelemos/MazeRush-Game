@@ -662,6 +662,7 @@ async function initLevel(idx) {
   }
   startMapPreviewSequence();
 }
+export { initLevel };
 
 /* ─────────────────────  Handler do botão “Próximo Nível” ───────────────────── */
 nextBtn.onclick = async () => {
@@ -697,9 +698,6 @@ nextBtn.onclick = async () => {
 
   nextBtn.blur();
 };
-
-/* ───────────────────────────  Lança o primeiro nível ────────────────────── */
-initLevel(currentLevelIndex);
 
 /* ─────────────────────────────  Loop  ────────────────────────────────────── */
 function animate(now) {
