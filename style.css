@@ -709,16 +709,18 @@ body.minimap-expanded #game-container {
 }
 
 #next-level-btn {
+  margin-top: 20px;
+  padding: 14px 40px;
+  border: none;
   background: linear-gradient(90deg, #FFA500, #FFD700);
   color: #1e1e2f;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: bold;
-  padding: 16px 32px;
-  border: none;
-  border-radius: 14px;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 0 20px #ff9900aa;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 15px #EA7300aa;
+  transition: all 0.3s ease;
+  font-family: 'Orbitron', sans-serif;
 }
 
 #next-level-btn:hover {
