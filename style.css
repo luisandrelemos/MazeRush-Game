@@ -99,6 +99,43 @@ body {
 }
 
 /* ------------------ Seleção de Níveis ------------------------- */
+/* ─── Submenu de Níveis em fullscreen ─── */
+#levels-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(120deg, var(--verde-escuro), var(--verde-médio));
+  background-size: 200% 200%;
+  animation: gradientAnim 12s ease infinite;
+  overflow: auto;         /* permite scroll se o conteúdo for maior que a viewport */
+  z-index: 100;           /* fica acima de tudo */
+  padding: 3vh 4vw;       /* mesmo padding que tinhas em levels.html */
+  box-sizing: border-box;
+}
+
+/* Mantém o header de níveis na largura original e centralizado */
+#levels-page .levels-header {
+  margin: 0 auto 4vh;  /* 0 topo, auto nas laterais, 4vh em baixo */
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Faz o container de categorias (Campanha + grid) ficar também centralizado */
+#levels-page .categories {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.hidden {
+  display: none !important;
+}
+
 .levels-body {
   min-height: 100vh;
   display: flex;
@@ -248,43 +285,55 @@ body {
 }
 
 
-/* ---------------------- Submenu de Perfil --------------------- */
+/* ---------------------- Submenu de Perfil e Definições --------------------- */
+#profile-list,
+#profile-popup,
+#settings-menu {
+  position: absolute;
+  bottom: 8vh;      
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+}
+
+#profile-popup {
+  bottom: 15vh;
+}
+
+/* ─── Painel Comum ────────────────────────────────────────────────────────── */
 .profile-panel {
+  width: 25vw;
+  padding: 2.4vh 2.4vw;
   background: rgba(255, 255, 255, 0.05);
   border: 0.2vw solid var(--azul-claro);
   border-radius: 1.6vw;
-  padding: 2.4vh 2.4vw;
-  width: 25vw;
   box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.5);
   text-align: left;
-  position: relative;
-  margin-top: 8vh;
 }
 
+/* ─── Título ───────────────────────────────────────────────────────────────── */
 .profile-heading {
-  font-size: 1.6rem;
-  text-align: center;
   font-family: 'Orbitron', sans-serif;
-  margin-bottom: 12px;
-  margin-top: -10px;
+  font-size: 1.6rem;
   color: var(--quase-branco);
+  text-align: center;
+  margin: -10px 0 12px;
 }
 
+/* ─── Slots de Perfil ──────────────────────────────────────────────────────── */
 .profile-slot {
-  background: var(--verde-médio);
-  border-radius: 12px;
-  padding: 5px 16px;
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  color: #fff;
-  font-weight: bold;
-  font-size: 1.1rem;
+  padding: 5px 16px;
   min-height: 56px;
+  background: var(--verde-médio);
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  font: bold 1.1rem 'Orbitron', sans-serif;
+  color: #fff;
   margin-bottom: 16px;
   cursor: pointer;
-  position: relative;
   transition: background 0.3s ease, transform 0.3s ease;
 }
 
@@ -295,11 +344,31 @@ body {
   pointer-events: none;
 }
 
+.profile-slot.active::before {
+  content: attr(data-profile);
+  position: absolute;
+  left: 16px; top: 50%;
+  transform: translateY(-50%);
+  font: 800 3rem 'Orbitron', sans-serif;
+  color: var(--quase-branco);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .profile-slot.active:hover {
-  transform: scale(1.02);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
   background: var(--azul-claro);
   color: var(--verde-escuro);
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.profile-slot.inactive {
+  display: flex;
+  justify-content: center;
+  font-style: italic;
+  opacity: 0.3;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: default;
 }
 
 .profile-slot.inactive::after {
@@ -312,40 +381,18 @@ body {
   margin-right: 4px;
 }
 
-.profile-slot.inactive:hover::after {
-  opacity: 1;
-}
-
 .profile-slot.inactive:hover {
   opacity: 0.5;
   background: rgba(255, 255, 255, 0.08);
 }
 
-.profile-slot.inactive {
-  opacity: 0.3;
-  background: rgba(255, 255, 255, 0.05);
-  justify-content: center;
-  font-style: italic;
-  cursor: default;
+.profile-slot.inactive:hover::after {
+  opacity: 1;
 }
 
-.profile-slot.active::before {
-  content: attr(data-profile);
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--quase-branco);
-  opacity: 0.85;
-  font-family: 'Orbitron', sans-serif;
-  pointer-events: none;
-}
-
+/* ─── Botões ───────────────────────────────────────────────────────────────── */
 .profile-buttons {
   display: flex;
-  justify-content: space-between;
   gap: 12px;
   margin-top: 16px;
 }
@@ -353,14 +400,13 @@ body {
 .profile-buttons button {
   flex: 1;
   padding: 10px;
+  font: bold 1rem 'Orbitron', sans-serif;
   background: var(--verde-médio);
   color: #fff;
-  font-weight: bold;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
-  font-family: 'Orbitron', sans-serif;
 }
 
 .profile-buttons button:hover {
@@ -368,24 +414,83 @@ body {
   color: var(--verde-escuro);
 }
 
+/* ─── Campo de Texto ──────────────────────────────────────────────────────── */
 #nickname {
+  display: block;
   width: 100%;
   max-width: 240px;
+  margin: 0 auto 20px;
   padding: 12px;
-  font-size: 1.1rem;
-  font-family: 'Orbitron', sans-serif;
+  font: 1.1rem 'Orbitron', sans-serif;
+  text-align: center;
   background: var(--verde-escuro);
   color: #fff;
-  border-radius: 8px;
   border: none;
-  text-align: center;
+  border-radius: 8px;
 }
 
+/* ─── Itens de Definições ─────────────────────────────────────────────────── */
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: 1.1rem 'Orbitron', sans-serif;
+  background: var(--verde-médio);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin: 16px 0 10px;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Toggle personalizado */
+.toggle-label {
+  position: relative;
+  width: 46px; height: 24px;
+}
+
+.toggle-label input {
+  opacity: 0; width: 0; height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #ccc;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: 0.4s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-label input:checked + .toggle-slider {
+  background: var(--azul-claro);
+}
+
+.toggle-label input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+}
+
+/* Slider de volume */
+#settings-menu input[type="range"] {
+  width: 100%;
+  margin-bottom: 16px;
+  accent-color: var(--azul-claro);
+}
+
+/* ─── Utilitário ─────────────────────────────────────────────────────────── */
 .hidden {
-  display: none;
+  display: none !important;
 }
-/* ----------------------------------------------------- */
-
 
 /* ─── Submenu Pausa ─── */
 #pause-overlay {
@@ -393,10 +498,10 @@ body {
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   backdrop-filter: blur(6px);
-  background: rgba(0, 0, 0, 0.4); /* camada escura suave */
-  pointer-events: all;      
+  background: rgba(0,0,0,0.4);
   display: none;
-  z-index: 50;
+  z-index: 9999;
+  pointer-events: all;
 }
 
 /* Mostrar quando ativo */
@@ -406,10 +511,10 @@ body {
 
 /* Menu de pausa centrado */
 #pause-menu {
-  position: absolute;
+  position: fixed;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255,255,255,0.06);
   backdrop-filter: blur(12px);
   padding: 40px 60px;
   border-radius: 18px;
@@ -417,9 +522,8 @@ body {
   display: none;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 100;
-  color: var(--quase-branco);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  pointer-events: all;
 }
 
 /* Mostrar quando ativo */
@@ -577,6 +681,8 @@ body {
 
 /* faz o #game-container preparar suavemente o filter */
 #game-container {
+  position: relative;
+  z-index: 0;
   transition: filter 0.4s cubic-bezier(0.4,0,0.2,1);
 }
 

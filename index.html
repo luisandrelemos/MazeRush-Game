@@ -7,128 +7,249 @@
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 </head>
-<body class="mazerush-menu">
-  <h1 class="mazerush-title">MazeRush</h1>
+<body>
 
-  <!-- Menu Inicial -->
-  <div class="mazerush-grid" id="main-menu">
-    <a href="levels.html" class="mazerush-card mazerush-play">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      <span>Jogar</span>
-    </a>
-    <a href="#" class="mazerush-card" onclick="openProfileMenu()">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
-      <span>Perfil</span>
-    </a>
-    <a href="#" class="mazerush-card">
-      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.07-.61.07-.94s-.03-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .11-.64l-1.91-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.62-.94L14 2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5l-.38 2.56c-.6.23-1.15.54-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22l-1.91 3.32a.5.5 0 0 0 .11.64l2.03 1.58c-.04.3-.07.61-.07.94s.03.64.07.94L2.86 14.52a.5.5 0 0 0-.11.64l1.91 3.32c.14.24.44.34.7.22l2.39-.96c.47.4 1.02.72 1.62.94l.38 2.56a.5.5 0 0 0 .5.5h3c.25 0 .46-.18.5-.42l.38-2.56c.6-.23 1.15-.54 1.62-.94l2.39.96c.26.1.56 0 .7-.22l1.91-3.32a.5.5 0 0 0-.11-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"/></svg>
-      <span>Definições</span>
-    </a>
-    <a href="#" class="mazerush-card">
-      <svg viewBox="0 0 24 24"><path d="M4 17h16v2H4v-2zm0-5h16v2H4v-2zm0-5h16v2H4V7z"/></svg>
-      <span>Personalizar</span>
-    </a>
+  <!-- === CONTAINER DO MENU PRINCIPAL === -->
+  <div id="main-page" class="mazerush-menu">
+    <h1 class="mazerush-title">MazeRush</h1>
+
+    <!-- Menu Inicial -->
+    <div class="mazerush-grid" id="main-menu">
+      <a href="#" class="mazerush-card mazerush-play" onclick="openLevels()">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>Jogar</span>
+      </a>
+      <a href="#" class="mazerush-card" onclick="openProfileMenu()">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+        <span>Perfil</span>
+      </a>
+      <a href="#" class="mazerush-card" onclick="openSettingsMenu()">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.07-.61.07-.94s-.03-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .11-.64l-1.91-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.62-.94L14 2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5l-.38 2.56c-.6.23-1.15.54-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22l-1.91 3.32a.5.5 0 0 0 .11.64l2.03 1.58c-.04.3-.07.61-.07.94s.03.64.07.94L2.86 14.52a.5.5 0 0 0-.11.64l1.91 3.32c.14.24.44.34.7.22l2.39-.96c.47.4 1.02.72 1.62.94l.38 2.56a.5.5 0 0 0 .5.5h3c.25 0 .46-.18.5-.42l.38-2.56c.6-.23 1.15-.54 1.62-.94l2.39.96c.26.1.56 0 .7-.22l1.91-3.32a.5.5 0 0 0-.11-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"/></svg>
+        <span>Definições</span>
+      </a>
+      <a href="#" class="mazerush-card">
+        <svg viewBox="0 0 24 24"><path d="M4 17h16v2H4v-2zm0-5h16v2H4v-2zm0-5h16v2H4V7z"/></svg>
+        <span>Personalizar</span>
+      </a>
+    </div>
+
+    <div class="mazerush-footer">MazeRush — v0.1 | Criado com 💛</div>
   </div>
 
-  <!-- Submenu Perfis -->
+  <!-- === SUBMENU: PERFIS === -->
   <div id="profile-list" class="profile-panel hidden">
     <h2 class="profile-heading">Perfis</h2>
-
     <div class="profile-slot active" onclick="openEditPopup()" data-profile="1">
       <span id="profile-name-slot">Jogador</span>
     </div>      
-
     <div class="profile-slot inactive">Vazio</div>
     <div class="profile-slot inactive">Vazio</div>
-
     <div class="profile-buttons">
       <button onclick="closeProfileMenu()">← Voltar</button>
     </div>
   </div>
 
-  <!-- Popup de edição -->
+  <!-- === POPUP EDIÇÃO PERFIL === -->
   <div id="profile-popup" class="profile-panel hidden">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2 class="profile-heading" style="margin-bottom: 0;">Alcunha</h2>
-      <button id="delete-profile" onclick="deleteProfile()" style="
-        background: none;
-        border: none;
-        color: var(--quase-branco);
-        font-size: 1.4rem;
-        line-height: 1;
-        cursor: pointer;
-        padding: 0;
-      " title="Eliminar Perfil">🗑️</button>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 class="profile-heading" style="margin-bottom:0">Alcunha</h2>
+      <button id="delete-profile" onclick="deleteProfile()" title="Eliminar Perfil"
+        style="background:none;border:none;color:var(--quase-branco);font-size:1.4rem;cursor:pointer">🗑️</button>
     </div>
-
-    <div style="display: flex; justify-content: center; margin: 12px 0;">
-      <input type="text" id="nickname" maxlength="12" value="Jogador" />
+    <div style="display:flex;justify-content:center;margin:12px 0">
+      <input type="text" id="nickname" maxlength="12" value="Jogador"/>
     </div>
-
-    <p style="font-size: 0.9rem; margin: 10px 0 20px; color: var(--quase-branco); opacity: 0.8;">
+    <p style="font-size:0.9rem;margin:10px 0 20px;color:var(--quase-branco);opacity:0.8">
       Escolha uma alcunha para ser exibida na tabela de classificação. A sua alcunha pode ser alterada a qualquer momento.
     </p>
-
-    <div class="profile-buttons" style="justify-content: center;">
-      <button id="confirm-profile" style="max-width: 160px;" onclick="confirmEdit()">Ok</button>
+    <div class="profile-buttons" style="justify-content:center">
+      <button id="confirm-profile" style="max-width:160px" onclick="confirmEdit()">Ok</button>
     </div>
   </div>
 
-  <div class="mazerush-footer">MazeRush — v0.1 | Criado com 💛</div>
+  <!-- === SUBMENU: DEFINIÇÕES === -->
+  <div id="settings-menu" class="profile-panel hidden">
+    <h2 class="profile-heading">Definições</h2>
+    <div class="setting-item">
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-sound"/><span class="toggle-slider"></span>
+      </label><span>Som</span>
+    </div>
+    <input type="range" id="volume-sound" min="0" max="100"/>
+    <div class="setting-item">
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-music"/><span class="toggle-slider"></span>
+      </label><span>Música</span>
+    </div>
+    <input type="range" id="volume-music" min="0" max="100"/>
+    <div class="profile-buttons" style="justify-content:center">
+      <button onclick="closeSettingsMenu()">← Voltar</button>
+    </div>
+  </div>
 
+  <!-- === SUBMENU: NÍVEIS (embutido) === -->
+  <div id="levels-page" class="hidden">
+    <header class="levels-header">
+      <button onclick="closeLevels()" class="back-button">←</button>
+      <h1 class="levels-title">MazeRush <span style="opacity:0.6">— Níveis</span></h1>
+      <button id="reset-btn" class="reset-button">⟳ Reiniciar</button>
+    </header>
+    <main class="categories">
+      <div class="section-heading">
+        <h2>Campanha</h2>
+        <div class="section-line"></div>
+      </div>
+      <div id="levels-container" class="levels-grid"></div>
+    </main>
+  </div>
+
+  <!-- === SCRIPTS === -->
+  <script src="js/audio.js"></script>
+
+  <!-- script principal -->
   <script>
-    const nickname = document.getElementById('nickname');
-    const popup = document.getElementById('profile-popup');
-    const profileList = document.getElementById('profile-list');
-    const mainMenu = document.getElementById('main-menu');
-    const footer = document.querySelector('.mazerush-footer');
-    const nameSlot = document.getElementById('profile-name-slot');
+    // referências aos containers
+    const mainPage     = document.getElementById('main-page');
+    const mainMenu     = document.getElementById('main-menu');
+    const footer       = document.querySelector('.mazerush-footer');
+    const profileList  = document.getElementById('profile-list');
+    const profilePopup = document.getElementById('profile-popup');
+    const settingsMenu = document.getElementById('settings-menu');
+    const levelsPage   = document.getElementById('levels-page');
+    const nameSlot     = document.getElementById('profile-name-slot');
+    const nickname     = document.getElementById('nickname');
 
+    // ─── Perfil ─────────────────────────────────────────
     function openProfileMenu() {
       mainMenu.style.display = 'none';
-      footer.style.display = 'none';
+      footer.style.display   = 'none';
       profileList.classList.remove('hidden');
     }
-
     function closeProfileMenu() {
       profileList.classList.add('hidden');
       mainMenu.style.display = 'grid';
-      footer.style.display = 'block';
+      footer.style.display   = 'block';
     }
-
     function openEditPopup() {
       profileList.classList.add('hidden');
-      popup.classList.remove('hidden');
+      profilePopup.classList.remove('hidden');
       nickname.value = localStorage.getItem('playerName') || 'Jogador';
     }
-
     function confirmEdit() {
-      const name = nickname.value.trim();
-      if (name) {
-        localStorage.setItem('playerName', name);
-        nameSlot.textContent = name;
+      const val = nickname.value.trim();
+      if (val) {
+        localStorage.setItem('playerName', val);
+        nameSlot.textContent = val;
       }
-      popup.classList.add('hidden');
+      profilePopup.classList.add('hidden');
+      profileList.classList.remove('hidden');
+    }
+    function deleteProfile() {
+      if (confirm('Eliminar o perfil atual?')) {
+        localStorage.removeItem('playerName');
+        nameSlot.textContent = 'Jogador';
+      }
+      profilePopup.classList.add('hidden');
       profileList.classList.remove('hidden');
     }
 
-    function deleteProfile() {
-      if (confirm("Eliminar o perfil atual?")) {
-        localStorage.removeItem('playerName');
-        nameSlot.textContent = 'Jogador';
-        nickname.value = '';
-        popup.classList.add('hidden');
-        profileList.classList.remove('hidden');
-      }
+    // ─── Definições ─────────────────────────────────────
+    const toggleSound = document.getElementById('toggle-sound');
+    const toggleMusic = document.getElementById('toggle-music');
+    const volSound    = document.getElementById('volume-sound');
+    const volMusic    = document.getElementById('volume-music');
+    const updateSetting = (k, v) => {
+      localStorage.setItem(k, v);
+      if (typeof window.updateAudioSettings === 'function')
+        window.updateAudioSettings();
+    };
+    toggleSound.addEventListener('change', ()=> updateSetting('soundEnabled', toggleSound.checked));
+    toggleMusic.addEventListener('change', ()=> updateSetting('musicEnabled', toggleMusic.checked));
+    volSound .addEventListener('input',  ()=> updateSetting('soundVolume',   volSound.value));
+    volMusic .addEventListener('input',  ()=> updateSetting('musicVolume',   volMusic.value));
+
+    function openSettingsMenu() {
+      mainMenu.style.display = 'none';
+      footer.style.display   = 'none';
+      settingsMenu.classList.remove('hidden');
+      toggleSound.checked = localStorage.getItem('soundEnabled') !== 'false';
+      toggleMusic.checked = localStorage.getItem('musicEnabled') !== 'false';
+      volSound.value      = localStorage.getItem('soundVolume')  || 70;
+      volMusic.value      = localStorage.getItem('musicVolume')  || 60;
+    }
+    function closeSettingsMenu() {
+      localStorage.setItem('soundEnabled', toggleSound.checked);
+      localStorage.setItem('musicEnabled', toggleMusic.checked);
+      localStorage.setItem('soundVolume',   volSound.value);
+      localStorage.setItem('musicVolume',   volMusic.value);
+      settingsMenu.classList.add('hidden');
+      mainMenu.style.display = 'grid';
+      footer.style.display   = 'block';
     }
 
+    // ─── Níveis ─────────────────────────────────────────
+    function openLevels() {
+      mainPage.style.display = 'none';
+      levelsPage.classList.remove('hidden');
+    }
+    function closeLevels() {
+      levelsPage.classList.add('hidden');
+      mainPage.style.display = 'flex';
+    }
+
+    // ─── Carrega nome armazenado ───────────────────────
     window.onload = () => {
-      const saved = localStorage.getItem('playerName');
-      if (saved) {
-        nameSlot.textContent = saved;
-        nickname.value = saved;
-      }
+      const s = localStorage.getItem('playerName');
+      if (s) nameSlot.textContent = s;
     };
+  </script>
+
+  <!-- script de levels.html (permanece igual) -->
+  <script type="module">
+    import { isLevelUnlocked, resetProgress } from "./js/unlockSystem.js";
+
+    const levels = [
+      { name: "Nível 1", id: "level-1" },
+      { name: "Nível 2", id: "level-2" },
+      { name: "Nível 3", id: "level-3" },
+      { name: "Nível 4", id: "level-4" },
+      { name: "Nível 5", id: "level-5" },
+      { name: "Nível 6", id: "level-6" },
+    ];
+    const container = document.getElementById("levels-container");
+
+    levels.forEach((lvl) => {
+      const card = document.createElement("div");
+      card.className = "level-card";
+      card.setAttribute("data-level", lvl.name.split(" ")[1]);
+
+      const span = document.createElement("span");
+      span.textContent = lvl.name;
+      card.appendChild(span);
+
+      const btn = document.createElement("button");
+      if (isLevelUnlocked(lvl.id)) {
+        btn.textContent = "▶ Jogar";
+        btn.className   = "play-button";
+        btn.onclick     = () => {
+          localStorage.setItem("selectedLevel", lvl.id);
+          window.location.href = "game.html";
+        };
+      } else {
+        btn.textContent = "🔒 Bloqueado";
+        btn.className   = "locked-button";
+        btn.disabled    = true;
+      }
+      card.appendChild(btn);
+      container.appendChild(card);
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      if (confirm("Desejas reiniciar o progresso?")) {
+        resetProgress();
+        location.reload();
+      }
+    });
   </script>
 </body>
 </html>
