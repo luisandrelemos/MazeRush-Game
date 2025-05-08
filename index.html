@@ -12,8 +12,6 @@
   <!-- === CONTAINER DO MENU PRINCIPAL === -->
   <div id="main-page" class="mazerush-menu">
     <h1 class="mazerush-title">MazeRush</h1>
-
-    <!-- Menu Inicial -->
     <div class="mazerush-grid" id="main-menu">
       <a href="#" class="mazerush-card mazerush-play" onclick="openLevels()">
         <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -32,7 +30,6 @@
         <span>Personalizar</span>
       </a>
     </div>
-
     <div class="mazerush-footer">MazeRush — v0.1 | Criado com 💛</div>
   </div>
 
@@ -41,7 +38,7 @@
     <h2 class="profile-heading">Perfis</h2>
     <div class="profile-slot active" onclick="openEditPopup()" data-profile="1">
       <span id="profile-name-slot">Jogador</span>
-    </div>      
+    </div>
     <div class="profile-slot inactive">Vazio</div>
     <div class="profile-slot inactive">Vazio</div>
     <div class="profile-buttons">
@@ -71,15 +68,13 @@
   <div id="settings-menu" class="profile-panel hidden">
     <h2 class="profile-heading">Definições</h2>
     <div class="setting-item">
-      <label class="toggle-label">
-        <input type="checkbox" id="toggle-sound"/><span class="toggle-slider"></span>
-      </label><span>Som</span>
+      <label class="toggle-label"><input type="checkbox" id="toggle-sound"/><span class="toggle-slider"></span></label>
+      <span>Som</span>
     </div>
     <input type="range" id="volume-sound" min="0" max="100"/>
     <div class="setting-item">
-      <label class="toggle-label">
-        <input type="checkbox" id="toggle-music"/><span class="toggle-slider"></span>
-      </label><span>Música</span>
+      <label class="toggle-label"><input type="checkbox" id="toggle-music"/><span class="toggle-slider"></span></label>
+      <span>Música</span>
     </div>
     <input type="range" id="volume-music" min="0" max="100"/>
     <div class="profile-buttons" style="justify-content:center">
@@ -87,7 +82,7 @@
     </div>
   </div>
 
-  <!-- === SUBMENU: NÍVEIS (embutido) === -->
+  <!-- === SUBMENU: NÍVEIS === -->
   <div id="levels-page" class="hidden">
     <header class="levels-header">
       <button onclick="closeLevels()" class="back-button">←</button>
@@ -103,12 +98,66 @@
     </main>
   </div>
 
+  <!-- === CONTEÚDO DO JOGO === -->
+  <div id="game-page" class="hidden">
+    <div id="pause-overlay"></div>
+
+    <!-- Botão para alternar câmaras -->
+    <button id="camera-toggle-btn" class="cam-btn" title="Mudar câmara">
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path fill="currentColor"
+              d="M12 5a5 5 0 100 10 5 5 0 000-10zm0-3c1.1 0 2 .9 2 2h4c1.1 0 2 .9 2 2v10a2
+                 2 0 01-2 2H6a2 2 0 01-2-2V6c0-1.1.9-2 2-2h4a2 2 0 012-2z"/>
+      </svg>
+    </button>
+
+    <!-- Controles de luz -->
+    <div id="light-controls">
+      <label><input type="checkbox" id="toggleAmbient" checked> Luz Ambiente</label>
+      <label><input type="checkbox" id="toggleDirectional" checked> Luz Direcional</label>
+      <label><input type="checkbox" id="togglePoint" checked> Luz Pontual</label>
+    </div>
+
+    <!-- Canvas do Jogo -->
+    <div id="game-container"></div>
+    <div id="preview-text">Decora o labirinto!</div>
+
+    <!-- Modal de Fim de Nível -->
+    <div id="level-complete-modal">
+      <div class="modal-content">
+        <h2>Nível Concluído!</h2>
+        <p class="time-display"></p>
+        <div class="button-group">
+          <button id="settings-btn">Definições</button>
+          <button id="menu-btn">Regressar ao Menu</button>
+          <button id="retry-btn">Tentar Novamente</button>
+        </div>
+        <button id="next-level-btn">Próximo Nível</button>
+      </div>
+    </div>
+
+    <!-- Submenu Pausa -->
+    <div id="pause-menu">
+      <h2>Menu de Pausa</h2>
+      <button class="pause-button" id="resume-btn">▶ Continuar</button>
+      <button class="pause-button" id="restart-btn">↻ Reiniciar</button>
+      <button class="pause-button" id="exit-btn">⏴ Voltar ao Menu</button>
+    </div>
+
+    <!-- Minimap -->
+    <div id="minimap-container">
+      <canvas id="minimap" width="220" height="220"></canvas>
+    </div>
+
+    <!-- Velocímetro -->
+    <div id="speedometer">0&nbsp;km/h</div>
+  </div>
+
   <!-- === SCRIPTS === -->
   <script src="js/audio.js"></script>
 
-  <!-- script principal -->
+  <!-- lógico dos menus, perfil, defs e níveis -->
   <script>
-    // referências aos containers
     const mainPage     = document.getElementById('main-page');
     const mainMenu     = document.getElementById('main-menu');
     const footer       = document.querySelector('.mazerush-footer');
@@ -116,6 +165,7 @@
     const profilePopup = document.getElementById('profile-popup');
     const settingsMenu = document.getElementById('settings-menu');
     const levelsPage   = document.getElementById('levels-page');
+    const gamePage     = document.getElementById('game-page');
     const nameSlot     = document.getElementById('profile-name-slot');
     const nickname     = document.getElementById('nickname');
 
@@ -158,22 +208,21 @@
     const toggleMusic = document.getElementById('toggle-music');
     const volSound    = document.getElementById('volume-sound');
     const volMusic    = document.getElementById('volume-music');
-    const updateSetting = (k, v) => {
-      localStorage.setItem(k, v);
-      if (typeof window.updateAudioSettings === 'function')
+    const updateSetting = (k,v) => {
+      localStorage.setItem(k,v);
+      if (typeof window.updateAudioSettings==='function')
         window.updateAudioSettings();
     };
     toggleSound.addEventListener('change', ()=> updateSetting('soundEnabled', toggleSound.checked));
     toggleMusic.addEventListener('change', ()=> updateSetting('musicEnabled', toggleMusic.checked));
     volSound .addEventListener('input',  ()=> updateSetting('soundVolume',   volSound.value));
     volMusic .addEventListener('input',  ()=> updateSetting('musicVolume',   volMusic.value));
-
     function openSettingsMenu() {
       mainMenu.style.display = 'none';
       footer.style.display   = 'none';
       settingsMenu.classList.remove('hidden');
-      toggleSound.checked = localStorage.getItem('soundEnabled') !== 'false';
-      toggleMusic.checked = localStorage.getItem('musicEnabled') !== 'false';
+      toggleSound.checked = localStorage.getItem('soundEnabled')!=='false';
+      toggleMusic.checked = localStorage.getItem('musicEnabled')!=='false';
       volSound.value      = localStorage.getItem('soundVolume')  || 70;
       volMusic.value      = localStorage.getItem('musicVolume')  || 60;
     }
@@ -218,28 +267,41 @@
     ];
     const container = document.getElementById("levels-container");
 
-    levels.forEach((lvl) => {
+    levels.forEach((lvl, idx) => {
       const card = document.createElement("div");
       card.className = "level-card";
       card.setAttribute("data-level", lvl.name.split(" ")[1]);
 
       const span = document.createElement("span");
       span.textContent = lvl.name;
-      card.appendChild(span);
 
       const btn = document.createElement("button");
       if (isLevelUnlocked(lvl.id)) {
         btn.textContent = "▶ Jogar";
         btn.className   = "play-button";
-        btn.onclick     = () => {
+        btn.onclick = () => {
+          // 1) Guarda o nível selecionado
           localStorage.setItem("selectedLevel", lvl.id);
-          window.location.href = "game.html";
+
+          // 2) Esconde o menu e mostra a página do jogo
+          closeLevels();
+          mainPage.classList.add("hidden");
+          gamePage.classList.remove("hidden");
+
+          // 3) Carrega dinamicamente o módulo main.js e inicia o nível
+          import('./js/main.js').then(mod => {
+            mod.initLevel(idx + 1);
+          }).catch(err => {
+            console.error("Não consegui carregar o jogo:", err);
+          });
         };
       } else {
         btn.textContent = "🔒 Bloqueado";
         btn.className   = "locked-button";
         btn.disabled    = true;
       }
+
+      card.appendChild(span);
       card.appendChild(btn);
       container.appendChild(card);
     });
