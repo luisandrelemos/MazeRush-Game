@@ -601,6 +601,7 @@ document.addEventListener("keydown", (e) => {
     isPaused = !isPaused;
     pauseMenu.classList.toggle("active", isPaused);
     pauseOverlay.classList.toggle("active", isPaused);
+    updateMuteIcons();
 
     // desfocar e bloquear light-controls e speedometer
     uiBlocks.forEach((el) => {

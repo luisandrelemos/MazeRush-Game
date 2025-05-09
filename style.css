@@ -279,9 +279,29 @@ body {
   transition: color 0.3s ease;
 }
 
+/* Estilo unificado para back e reset no menu de níveis */
+.back-button,
+.reset-button {
+  /* mesmo degradê dos pause-buttons */
+  background: linear-gradient(135deg, var(--verde-médio), var(--azul-claro));
+  color: var(--verde-escuro);
+  border: none;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* Hover idêntico também */
 .back-button:hover,
 .reset-button:hover {
-  color: var(--azul-claro);
+  background: var(--verde-médio);
+  color: white;
+  transform: translateY(-2px);
 }
 
 
@@ -565,6 +585,22 @@ body {
   color: white;
   transform: translateY(-2px);
 }
+
+#pause-menu .mute-controls {
+  width: 220px;          
+  margin: 16px auto 0;   
+  display: flex;      
+  gap: 0.5rem;            
+}
+
+#pause-menu .mute-btn {
+  flex: 1;              
+  padding: 6px 0;        
+  font-size: 1rem;       
+  max-width: none;       
+}
+
+/* ------------------------------------------------------------------------ */
 
 /* ─── Botão de câmara ─── */
 .cam-btn {
