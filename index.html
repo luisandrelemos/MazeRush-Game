@@ -12,6 +12,13 @@
   <!-- === CONTAINER DO MENU PRINCIPAL === -->
   <div id="main-page" class="mazerush-menu">
     <h1 class="mazerush-title">MazeRush</h1>
+    <!-- Aqui mostramos o nome do perfil activo -->
+    <div class="current-profile">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path d="M12 12c2.7 0 5-2.3 ..."/>
+        </svg>
+        <span id="profile-name-main">Jogador</span>
+    </div>
     <div class="mazerush-grid" id="main-menu">
       <a href="#" class="mazerush-card mazerush-play" onclick="openLevels()">
         <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -33,14 +40,10 @@
     <div class="mazerush-footer">MazeRush — v0.1 | Criado com 💛</div>
   </div>
 
-  <!-- === SUBMENU: PERFIS === -->
+  <!-- === SUBMENU PERFIS === -->
   <div id="profile-list" class="profile-panel hidden">
     <h2 class="profile-heading">Perfis</h2>
-    <div class="profile-slot active" onclick="openEditPopup()" data-profile="1">
-      <span id="profile-name-slot">Jogador</span>
-    </div>
-    <div class="profile-slot inactive">Vazio</div>
-    <div class="profile-slot inactive">Vazio</div>
+    <div id="profiles-container"></div>
     <div class="profile-buttons">
       <button onclick="closeProfileMenu()">← Voltar</button>
     </div>
@@ -160,199 +163,247 @@
   </div>
 
   <!-- === SCRIPTS === -->
-  <script src="js/audio.js"></script>
+<script type="module">
+  import { updateAudioSettings } from './js/audio.js';
+  import {
+    getAllProfiles,
+    getCurrentProfile,
+    getActiveProfileId,
+    setActiveProfileId,
+    updateProfile,
+    saveAllProfiles
+  } from './js/profileSystem.js';
+  import {
+    unlockLevel,
+    isLevelUnlocked,
+    resetProgress
+  } from './js/unlockSystem.js';
 
-  <!-- lógico dos menus, perfil, defs e níveis -->
-  <script>
-    const mainPage     = document.getElementById('main-page');
-    const mainMenu     = document.getElementById('main-menu');
-    const footer       = document.querySelector('.mazerush-footer');
-    const profileList  = document.getElementById('profile-list');
-    const profilePopup = document.getElementById('profile-popup');
-    const settingsMenu = document.getElementById('settings-menu');
-    const levelsPage   = document.getElementById('levels-page');
-    const gamePage     = document.getElementById('game-page');
-    const nameSlot     = document.getElementById('profile-name-slot');
-    const nickname     = document.getElementById('nickname');
+  // — Elementos globais —
+  const currentProfileEl = document.querySelector('.current-profile');
+  const mainPage         = document.getElementById('main-page');
+  const mainMenu         = document.getElementById('main-menu');
+  const footer           = document.querySelector('.mazerush-footer');
+  const profileList      = document.getElementById('profile-list');
+  const profilesCt       = document.getElementById('profiles-container');
+  const profilePopup     = document.getElementById('profile-popup');
+  const nicknameIn       = document.getElementById('nickname');
+  const confirmBtn       = document.getElementById('confirm-profile');
+  const deleteBtn        = document.getElementById('delete-profile');
+  const nameMain         = document.getElementById('profile-name-main');
+  const settingsMenu     = document.getElementById('settings-menu');
+  const toggleSound      = document.getElementById('toggle-sound');
+  const toggleMusic      = document.getElementById('toggle-music');
+  const volSound         = document.getElementById('volume-sound');
+  const volMusic         = document.getElementById('volume-music');
+  const muteSoundBtn     = document.getElementById('mute-sound-btn');
+  const muteMusicBtn     = document.getElementById('mute-music-btn');
+  const levelsPage       = document.getElementById('levels-page');
+  const levelsCt         = document.getElementById('levels-container');
+  const resetBtn         = document.getElementById('reset-btn');
+  const gamePage         = document.getElementById('game-page');
+  const pauseMenu        = document.getElementById('pause-menu');
+  const resumeBtn        = document.getElementById('resume-btn');
+  const restartBtn       = document.getElementById('restart-btn');
 
-    // ─── Perfil ─────────────────────────────────────────
-    function openProfileMenu() {
-      mainMenu.style.display = 'none';
-      footer.style.display   = 'none';
-      profileList.classList.remove('hidden');
-    }
-    function closeProfileMenu() {
-      profileList.classList.add('hidden');
-      mainMenu.style.display = 'grid';
-      footer.style.display   = 'block';
-    }
-    function openEditPopup() {
-      profileList.classList.add('hidden');
-      profilePopup.classList.remove('hidden');
-      nickname.value = localStorage.getItem('playerName') || 'Jogador';
-    }
-    function confirmEdit() {
-      const val = nickname.value.trim();
-      if (val) {
-        localStorage.setItem('playerName', val);
-        nameSlot.textContent = val;
-      }
-      profilePopup.classList.add('hidden');
-      profileList.classList.remove('hidden');
-    }
-    function deleteProfile() {
-      if (confirm('Eliminar o perfil atual?')) {
-        localStorage.removeItem('playerName');
-        nameSlot.textContent = 'Jogador';
-      }
-      profilePopup.classList.add('hidden');
-      profileList.classList.remove('hidden');
-    }
+  // — Helpers para mostrar/esconder menu + perfil ativo —
+  function hideCommon() {
+    mainMenu.style.display         = 'none';
+    footer.style.display           = 'none';
+    currentProfileEl.style.display = 'none';
+  }
+  function showCommon() {
+    mainMenu.style.display         = 'grid';
+    footer.style.display           = 'block';
+    currentProfileEl.style.display = 'flex';
+  }
 
-    // ─── Definições ─────────────────────────────────────
-    const toggleSound = document.getElementById('toggle-sound');
-    const toggleMusic = document.getElementById('toggle-music');
-    const volSound    = document.getElementById('volume-sound');
-    const volMusic    = document.getElementById('volume-music');
-    const muteSoundBtn = document.getElementById('mute-sound-btn');
-    const muteMusicBtn = document.getElementById('mute-music-btn');
-    const updateSetting = (k,v) => {
-      localStorage.setItem(k,v);
-      if (typeof window.updateAudioSettings==='function')
-        window.updateAudioSettings();
-    };
-    toggleSound.addEventListener('change', ()=> updateSetting('soundEnabled', toggleSound.checked));
-    toggleMusic.addEventListener('change', ()=> updateSetting('musicEnabled', toggleMusic.checked));
-    volSound .addEventListener('input',  ()=> updateSetting('soundVolume',   volSound.value));
-    volMusic .addEventListener('input',  ()=> updateSetting('musicVolume',   volMusic.value));
-    function openSettingsMenu() {
-      mainMenu.style.display = 'none';
-      footer.style.display   = 'none';
-      settingsMenu.classList.remove('hidden');
-      toggleSound.checked = localStorage.getItem('soundEnabled')!=='false';
-      toggleMusic.checked = localStorage.getItem('musicEnabled')!=='false';
-      volSound.value      = localStorage.getItem('soundVolume')  || 70;
-      volMusic.value      = localStorage.getItem('musicVolume')  || 60;
-    }
-    function closeSettingsMenu() {
-      localStorage.setItem('soundEnabled', toggleSound.checked);
-      localStorage.setItem('musicEnabled', toggleMusic.checked);
-      localStorage.setItem('soundVolume',   volSound.value);
-      localStorage.setItem('musicVolume',   volMusic.value);
-      settingsMenu.classList.add('hidden');
-      mainMenu.style.display = 'grid';
-      footer.style.display   = 'block';
-    }
+  // — ABRIR/FECHAR PERFIS —
+  window.openProfileMenu = () => {
+    buildProfilesList();
+    hideCommon();
+    profileList.classList.remove('hidden');
+  };
+  window.closeProfileMenu = () => {
+    profileList.classList.add('hidden');
+    showCommon();
+  };
 
-    // função auxiliar para atualizar ícone
-    function updateMuteIcons() {
-      const soundOn = localStorage.getItem('soundEnabled') !== 'false';
-      const musicOn = localStorage.getItem('musicEnabled') !== 'false';
-      document.getElementById('mute-sound-btn').textContent = soundOn ? '🔊' : '🔇';
-      document.getElementById('mute-music-btn').textContent = musicOn ? '🎵' : '🚫🎵';
-    }
-
-    // clicks nos ícones
-    muteSoundBtn.addEventListener('click', () => {
-      const novo = !(localStorage.getItem('soundEnabled')!=='false');
-      updateSetting('soundEnabled', novo);
-      updateMuteIcons();
+  function buildProfilesList() {
+    profilesCt.innerHTML = '';
+    getAllProfiles().forEach(p => {
+      const slot = document.createElement('div');
+      slot.className       = 'profile-slot ' + (p.id === getActiveProfileId() ? 'active' : 'inactive');
+      slot.style.textAlign = 'center';
+      slot.textContent     = p.name || 'Vazio';
+      slot.onclick = () => {
+        if (!p.name) {
+          setActiveProfileId(p.id);
+          openEditPopup();
+        } else if (p.id === getActiveProfileId()) {
+          hideCommon();
+          profileList.classList.add('blurred');
+          openEditPopup();
+        } else {
+          setActiveProfileId(p.id);
+          buildProfilesList();
+          loadActiveProfileUI();
+          updateAudioSettings();
+        }
+      };
+      profilesCt.append(slot);
     });
-    muteMusicBtn.addEventListener('click', () => {
-      const novo = !(localStorage.getItem('musicEnabled')!=='false');
-      updateSetting('musicEnabled', novo);
-      updateMuteIcons();
+  }
+
+  // — POPUP EDIÇÃO —
+  function openEditPopup() {
+    const cur = getCurrentProfile();
+    nicknameIn.value = cur.name || '';
+    profilePopup.classList.remove('hidden');
+    profileList.classList.add('blurred');
+  }
+  function closeEditPopup() {
+    profilePopup.classList.add('hidden');
+    profileList.classList.remove('blurred');
+  }
+  window.openEditPopup = openEditPopup;
+
+  confirmBtn.onclick = () => {
+    const cur = getCurrentProfile();
+    cur.name = nicknameIn.value.trim() || cur.name;
+    if (!cur.unlockedLevels || cur.unlockedLevels.length === 0) {
+      cur.unlockedLevels = ['level-1'];
+    }
+    // inicializa áudio se estiver em falta
+    if (cur.soundEnabled === undefined) cur.soundEnabled = true;
+    if (cur.musicEnabled === undefined) cur.musicEnabled = true;
+    if (cur.soundVolume  === undefined) cur.soundVolume  = 70;
+    if (cur.musicVolume  === undefined) cur.musicVolume  = 60;
+
+    updateProfile(cur);
+    buildProfilesList();
+    loadActiveProfileUI();
+    closeEditPopup();
+    updateAudioSettings();
+  };
+
+  window.deleteProfile = () => {
+    const cur = getCurrentProfile();
+    if (!confirm('Eliminar este perfil?')) return;
+    const all = getAllProfiles().filter(p => p.id !== cur.id);
+    all.push({
+      id: cur.id,
+      name: '',
+      unlockedLevels: [],
+      soundEnabled: true,
+      musicEnabled: true,
+      soundVolume: 70,
+      musicVolume: 60
     });
+    saveAllProfiles(all);
+    setActiveProfileId(all[0].id);
+    buildProfilesList();
+    loadActiveProfileUI();
+    closeEditPopup();
+    updateAudioSettings();
+  };
+  deleteBtn.onclick = window.deleteProfile;
 
-
-    // ao abrir o menu de pausa, refresca os ícones
-    document.getElementById('restart-btn').addEventListener('click', updateMuteIcons);
-    document.getElementById('resume-btn').addEventListener('click', updateMuteIcons);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && pauseMenu.classList.contains('active')) {
-        updateMuteIcons();
-      }
-    });
-
-    // e logo depois de definir tudo, configura ícones iniciais
+  // — DEFINIÇÕES (Som / Música) —
+  const updateSetting = (key, value) => {
+    const cur = getCurrentProfile();
+    cur[key] = value;
+    updateProfile(cur);
+    updateAudioSettings();
     updateMuteIcons();
+  };
+  toggleSound.onchange = () => updateSetting('soundEnabled', toggleSound.checked);
+  toggleMusic.onchange = () => updateSetting('musicEnabled', toggleMusic.checked);
+  volSound.oninput    = () => updateSetting('soundVolume', +volSound.value);
+  volMusic.oninput    = () => updateSetting('musicVolume', +volMusic.value);
 
-    // ─── Níveis ─────────────────────────────────────────
-    function openLevels() {
-      mainPage.style.display = 'none';
-      levelsPage.classList.remove('hidden');
-    }
-    function closeLevels() {
-      levelsPage.classList.add('hidden');
-      mainPage.style.display = 'flex';
-    }
+  window.openSettingsMenu = () => {
+    const cur = getCurrentProfile();
+    hideCommon();
+    settingsMenu.classList.remove('hidden');
+    toggleSound.checked = cur.soundEnabled;
+    toggleMusic.checked = cur.musicEnabled;
+    volSound.value      = cur.soundVolume;
+    volMusic.value      = cur.musicVolume;
+    updateMuteIcons();
+  };
+  window.closeSettingsMenu = () => {
+    settingsMenu.classList.add('hidden');
+    showCommon();
+  };
 
-    // ─── Carrega nome armazenado ───────────────────────
-    window.onload = () => {
-      const s = localStorage.getItem('playerName');
-      if (s) nameSlot.textContent = s;
-    };
-  </script>
+  function updateMuteIcons() {
+    const cur = getCurrentProfile();
+    muteSoundBtn.textContent = cur.soundEnabled ? '🔊' : '🔇';
+    muteMusicBtn.textContent = cur.musicEnabled ? '🎵' : '🚫🎵';
+  }
+  muteSoundBtn.onclick = () => updateSetting('soundEnabled', !getCurrentProfile().soundEnabled);
+  muteMusicBtn.onclick = () => updateSetting('musicEnabled', !getCurrentProfile().musicEnabled);
 
-  <!-- script de levels.html (permanece igual) -->
-  <script type="module">
-    import { isLevelUnlocked, resetProgress } from "./js/unlockSystem.js";
+  // — NÍVEIS —
+  window.openLevels = () => {
+    loadActiveProfileUI();
+    hideCommon();
+    levelsPage.classList.remove('hidden');
+  };
+  window.closeLevels = () => {
+    levelsPage.classList.add('hidden');
+    showCommon();
+  };
+  resetBtn.onclick = () => {
+    if (!confirm('Reiniciar progresso deste perfil?')) return;
+    const cur = getCurrentProfile();
+    cur.unlockedLevels = ['level-1'];
+    updateProfile(cur);
+    loadActiveProfileUI();
+  };
 
-    const levels = [
-      { name: "Nível 1", id: "level-1" },
-      { name: "Nível 2", id: "level-2" },
-      { name: "Nível 3", id: "level-3" },
-      { name: "Nível 4", id: "level-4" },
-      { name: "Nível 5", id: "level-5" },
-      { name: "Nível 6", id: "level-6" },
-    ];
-    const container = document.getElementById("levels-container");
+  function loadActiveProfileUI() {
+    const cur = getCurrentProfile();
+    nameMain.textContent = cur.name ? `Olá, ${cur.name}!` : 'Olá, Perfil!';
+    levelsCt.innerHTML = '';
+    ['Nível 1','Nível 2','Nível 3','Nível 4','Nível 5','Nível 6']
+      .forEach((label, idx) => {
+        const id = `level-${idx+1}`;
+        const card = document.createElement('div');
+        card.className = 'level-card';
+        card.setAttribute('data-level', String(idx+1));
+        const span = document.createElement('span');
+        span.textContent = label;
+        const btn = document.createElement('button');
 
-    levels.forEach((lvl, idx) => {
-      const card = document.createElement("div");
-      card.className = "level-card";
-      card.setAttribute("data-level", lvl.name.split(" ")[1]);
+        if (cur.unlockedLevels.includes(id)) {
+          btn.className = 'play-button';
+          btn.textContent = '▶ Jogar';
+          btn.onclick = () => {
+            localStorage.setItem('selectedLevel', id);
+            closeLevels();
+            mainPage.classList.add('hidden');
+            gamePage.classList.remove('hidden');
+            import('./js/main.js').then(m => m.initLevel(idx+1));
+          };
+        } else {
+          btn.className = 'locked-button';
+          btn.textContent = '🔒 Bloqueado';
+          btn.disabled = true;
+        }
 
-      const span = document.createElement("span");
-      span.textContent = lvl.name;
+        card.append(span, btn);
+        levelsCt.append(card);
+      });
+  }
 
-      const btn = document.createElement("button");
-      if (isLevelUnlocked(lvl.id)) {
-        btn.textContent = "▶ Jogar";
-        btn.className   = "play-button";
-        btn.onclick = () => {
-          // 1) Guarda o nível selecionado
-          localStorage.setItem("selectedLevel", lvl.id);
+  // — Inicialização —
+  window.onload = () => {
+    loadActiveProfileUI();
+    updateAudioSettings();
+  };
+</script>
 
-          // 2) Esconde o menu e mostra a página do jogo
-          closeLevels();
-          mainPage.classList.add("hidden");
-          gamePage.classList.remove("hidden");
-
-          // 3) Carrega dinamicamente o módulo main.js e inicia o nível
-          import('./js/main.js').then(mod => {
-            mod.initLevel(idx + 1);
-          }).catch(err => {
-            console.error("Não consegui carregar o jogo:", err);
-          });
-        };
-      } else {
-        btn.textContent = "🔒 Bloqueado";
-        btn.className   = "locked-button";
-        btn.disabled    = true;
-      }
-
-      card.appendChild(span);
-      card.appendChild(btn);
-      container.appendChild(card);
-    });
-
-    document.getElementById("reset-btn").addEventListener("click", () => {
-      if (confirm("Desejas reiniciar o progresso?")) {
-        resetProgress();
-        location.reload();
-      }
-    });
-  </script>
 </body>
 </html>

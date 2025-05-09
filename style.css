@@ -320,6 +320,23 @@ body {
   bottom: 15vh;
 }
 
+/* Quando adicionar .blurred, aplicamos blur e impedimos clicks atrás */
+.profile-panel.blurred {
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* Faz o popup ficar sempre no topo e centralizado */
+#profile-popup {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10010;               /* acima de tudo */
+  background: rgba(0,0,0,0.8);  /* ajusta ao teu design */
+  padding: 24px;
+  border-radius: 12px;
+}
+
 /* ─── Painel Comum ────────────────────────────────────────────────────────── */
 .profile-panel {
   width: 25vw;
