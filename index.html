@@ -248,6 +248,7 @@
           setActiveProfileId(p.id);
           buildProfilesList();
           loadActiveProfileUI();
+          updateAudioSettings();
         }
       };
       profilesCt.append(slot);
@@ -283,6 +284,7 @@
     buildProfilesList();
     loadActiveProfileUI();
     closeEditPopup();
+    updateAudioSettings();
   };
 
   window.deleteProfile = () => {
@@ -303,6 +305,7 @@
     buildProfilesList();
     loadActiveProfileUI();
     closeEditPopup();
+    updateAudioSettings();
   };
   deleteBtn.onclick = window.deleteProfile;
 
