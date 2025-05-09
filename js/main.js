@@ -48,14 +48,21 @@ const menuBtn = document.getElementById("menu-btn");
 const settingsBtn = document.getElementById("settings-btn");
 
 // ─────────────────────────  Retry ─────────────────────────
-retryBtn.onclick = () => {
+retryBtn.onclick = async () => {
+  // 1) fecha o modal
   modal.classList.remove("show");
+  retryBtn.blur();
+
+  // 2) restaura a UI
   uiBlocks.forEach((el) => {
     el.style.filter = "none";
     el.style.pointerEvents = "auto";
   });
-  retryBtn.blur(); // ← remove o foco
-  location.reload();
+
+  // 3) reinicia o próprio nível
+  timerEl.textContent = "0.00s";
+  isTimerRunning = false;
+  await initLevel(currentLevelIndex);
 };
 
 // ─────────────────────────  Menu ─────────────────────────
@@ -560,7 +567,23 @@ document.addEventListener("click", (e) => {
 // … dentro do toggle-pause (Escape) e no resumeBtn.onclick, depois de mudar isPaused:
 pauseOverlay.classList.toggle("active", isPaused);
 
-restartBtn.onclick = () => location.reload();
+restartBtn.onclick = async () => {
+  // fecha o menu de pausa
+  isPaused = false;
+  pauseMenu.classList.remove("active");
+  pauseOverlay.classList.remove("active");
+
+  // restaura a UI
+  uiBlocks.forEach((el) => {
+    el.style.filter = "none";
+    el.style.pointerEvents = "auto";
+  });
+
+  // reinicia o nível
+  timerEl.textContent = "0.00s";
+  isTimerRunning = false;
+  await initLevel(currentLevelIndex);
+};
 exitBtn.onclick = () => (window.location.href = "index.html");
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !modal.classList.contains("show") && !isInPreview) {
@@ -578,6 +601,7 @@ document.addEventListener("keydown", (e) => {
     isPaused = !isPaused;
     pauseMenu.classList.toggle("active", isPaused);
     pauseOverlay.classList.toggle("active", isPaused);
+    updateMuteIcons();
 
     // desfocar e bloquear light-controls e speedometer
     uiBlocks.forEach((el) => {

@@ -85,9 +85,9 @@
   <!-- === SUBMENU: NÍVEIS === -->
   <div id="levels-page" class="hidden">
     <header class="levels-header">
-      <button onclick="closeLevels()" class="back-button">←</button>
+      <button onclick="closeLevels()" class="back-button">Voltar</button>
       <h1 class="levels-title">MazeRush <span style="opacity:0.6">— Níveis</span></h1>
-      <button id="reset-btn" class="reset-button">⟳ Reiniciar</button>
+      <button id="reset-btn" class="reset-button">Reiniciar</button>
     </header>
     <main class="categories">
       <div class="section-heading">
@@ -137,12 +137,18 @@
     </div>
 
     <!-- Submenu Pausa -->
-    <div id="pause-menu">
-      <h2>Menu de Pausa</h2>
-      <button class="pause-button" id="resume-btn">▶ Continuar</button>
-      <button class="pause-button" id="restart-btn">↻ Reiniciar</button>
-      <button class="pause-button" id="exit-btn">⏴ Voltar ao Menu</button>
+  <div id="pause-menu">
+    <h2>Menu de Pausa</h2>
+    <button class="pause-button" id="resume-btn">▶ Continuar</button>
+    <button class="pause-button" id="restart-btn">↻ Reiniciar</button>
+    <button class="pause-button" id="exit-btn">⏴ Voltar ao Menu</button>
+
+    <!-- NOVO: controles de mudo -->
+    <div class="mute-controls">
+      <button id="mute-sound-btn" class="pause-button mute-btn" title="Som">🔊</button>
+      <button id="mute-music-btn" class="pause-button mute-btn" title="Música">🎵</button>
     </div>
+  </div>
 
     <!-- Minimap -->
     <div id="minimap-container">
@@ -208,6 +214,8 @@
     const toggleMusic = document.getElementById('toggle-music');
     const volSound    = document.getElementById('volume-sound');
     const volMusic    = document.getElementById('volume-music');
+    const muteSoundBtn = document.getElementById('mute-sound-btn');
+    const muteMusicBtn = document.getElementById('mute-music-btn');
     const updateSetting = (k,v) => {
       localStorage.setItem(k,v);
       if (typeof window.updateAudioSettings==='function')
@@ -235,6 +243,39 @@
       mainMenu.style.display = 'grid';
       footer.style.display   = 'block';
     }
+
+    // função auxiliar para atualizar ícone
+    function updateMuteIcons() {
+      const soundOn = localStorage.getItem('soundEnabled') !== 'false';
+      const musicOn = localStorage.getItem('musicEnabled') !== 'false';
+      document.getElementById('mute-sound-btn').textContent = soundOn ? '🔊' : '🔇';
+      document.getElementById('mute-music-btn').textContent = musicOn ? '🎵' : '🚫🎵';
+    }
+
+    // clicks nos ícones
+    muteSoundBtn.addEventListener('click', () => {
+      const novo = !(localStorage.getItem('soundEnabled')!=='false');
+      updateSetting('soundEnabled', novo);
+      updateMuteIcons();
+    });
+    muteMusicBtn.addEventListener('click', () => {
+      const novo = !(localStorage.getItem('musicEnabled')!=='false');
+      updateSetting('musicEnabled', novo);
+      updateMuteIcons();
+    });
+
+
+    // ao abrir o menu de pausa, refresca os ícones
+    document.getElementById('restart-btn').addEventListener('click', updateMuteIcons);
+    document.getElementById('resume-btn').addEventListener('click', updateMuteIcons);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && pauseMenu.classList.contains('active')) {
+        updateMuteIcons();
+      }
+    });
+
+    // e logo depois de definir tudo, configura ícones iniciais
+    updateMuteIcons();
 
     // ─── Níveis ─────────────────────────────────────────
     function openLevels() {
