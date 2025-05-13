@@ -1,5 +1,7 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 
+export const animatedObjects=[];
+
 export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
@@ -174,6 +176,41 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
     return ring; // <-- ADICIONADO: Devolve o anel criado!
   }
+  // paralelepipedo animado nivel 6
+  function loadCustomObjects(objects, tileSize, offsetX, offsetZ, scene) {
+    if (!objects) return;
+
+    objects.forEach((obj) => {
+      const { type, position, dimensions, color } = obj;
+
+      if (type === "paralelepipedo") {
+        const geometry = new THREE.BoxGeometry(
+          dimensions.width * tileSize,
+          dimensions.height,
+          dimensions.depth * tileSize
+        );
+
+        const material = new THREE.MeshStandardMaterial({
+          color: color || 0x888888,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+
+        mesh.position.set(
+          position.x * tileSize + offsetX,
+          dimensions.height / 2,
+          position.z * tileSize + offsetZ
+        );
+
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData.levelObject = true;
+
+        scene.add(mesh);
+        // Guardar para animação
+        animatedObjects.push(mesh);
+      }
+    });
+  }
 
   const startPos = new THREE.Vector3(
     lvl.start.x * lvl.tileSize + offsetX,
@@ -187,6 +224,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
   );
   mkPortal(lvl.portalStart, startPos);
   lvl.endPortal = mkPortal(lvl.portalEnd, endPos); // Agora `lvl.endPortal` guarda o portal final!
+  // 7. Objetos personalizados (ex: paralelepípedo)
+  loadCustomObjects(lvl.objects, lvl.tileSize, offsetX, offsetZ, scene);
+
+  
+
   /* 7. Devolver info ao main.js */
   return {
     offsetX,
