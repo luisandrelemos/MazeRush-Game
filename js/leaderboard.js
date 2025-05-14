@@ -1,6 +1,6 @@
 // js/leaderboard.js
-import { db } from "./firebase.js"; 
-import { getCurrentProfile  } from "./profileSystem.js";
+import { db } from "./firebase.js";
+import { getCurrentProfile, getCurrentUserId } from "./profileSystem.js";
 import {
   collection,
   doc,
@@ -19,23 +19,24 @@ import {
  */
 export async function submitScore(levelId, timeSec) {
   const profile = getCurrentProfile();
-  const scoreRef = doc(db, "levels", levelId, "leaderboard", profile.id);
+  const userId  = getCurrentUserId();
+  const scoreRef = doc(db, "levels", levelId, "leaderboard", userId);
   const snap     = await getDoc(scoreRef);
 
   if (!snap.exists() || timeSec < snap.data().time) {
     await setDoc(scoreRef, {
-      name: profile.name,
-      time: timeSec,
+      name:    profile.name,
+      time:    timeSec,
       updated: Date.now()
     });
   }
 }
 
 /**
- * Busca o topN (p. ex. 10) de tempos ascendentes
+ * Busca o topN (p. ex. 5) de tempos ascendentes
  * da sub-coleção levels/{levelId}/leaderboard
  */
-export async function fetchLeaderboard(levelId, topN = 10) {
+export async function fetchLeaderboard(levelId, topN = 5) {
   const q    = query(
     collection(db, "levels", levelId, "leaderboard"),
     orderBy("time", "asc"),
