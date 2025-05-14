@@ -1,496 +1,612 @@
 <!DOCTYPE html>
 <html lang="pt">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MazeRush</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-</head>
-<body>
-  
-  <!-- === CONTAINER DO MENU PRINCIPAL === -->
-  <div id="main-page" class="mazerush-menu">
-    <h1 class="mazerush-title">MazeRush</h1>
-    <!-- Aqui mostramos o nome do perfil activo -->
-    <div class="current-profile">
-      <span id="profile-name-main">Jogador</span>
-    </div>
-    <div class="mazerush-grid" id="main-menu">
-      <a href="#" class="mazerush-card mazerush-play" onclick="openLevels()">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span>Jogar</span>
-      </a>
-      <a href="#" class="mazerush-card" onclick="openProfileMenu()">
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
-        <span>Perfil</span>
-      </a>
-      <a href="#" class="mazerush-card" onclick="openSettingsMenu()">
-        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.07-.61.07-.94s-.03-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .11-.64l-1.91-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.62-.94L14 2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5l-.38 2.56c-.6.23-1.15.54-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22l-1.91 3.32a.5.5 0 0 0 .11.64l2.03 1.58c-.04.3-.07.61-.07.94s.03.64.07.94L2.86 14.52a.5.5 0 0 0-.11.64l1.91 3.32c.14.24.44.34.7.22l2.39-.96c.47.4 1.02.72 1.62.94l.38 2.56a.5.5 0 0 0 .5.5h3c.25 0 .46-.18.5-.42l.38-2.56c.6-.23 1.15-.54 1.62-.94l2.39.96c.26.1.56 0 .7-.22l1.91-3.32a.5.5 0 0 0-.11-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"/></svg>
-        <span>Definições</span>
-      </a>
-      <a href="#" class="mazerush-card">
-        <svg viewBox="0 0 24 24"><path d="M4 17h16v2H4v-2zm0-5h16v2H4v-2zm0-5h16v2H4V7z"/></svg>
-        <span>Personalizar</span>
-      </a>
-    </div>
-    <div class="mazerush-footer">MazeRush — v0.1 | Criado com 💛</div>
-  </div>
-
-  <!-- === SUBMENU PERFIS === -->
-  <div id="profile-list" class="profile-panel hidden">
-    <h2 class="profile-heading">Perfis</h2>
-    <div id="profiles-container"></div>
-    <div class="profile-buttons" style="justify-content: space-between; margin-bottom:1rem;">
-      <button id="btn-import-progress">Importar progresso</button>
-      <button onclick="closeProfileMenu()">← Voltar</button>
-    </div>
-  </div>
-
-  <!-- === POPUP EXPORT TOKEN === -->
-  <div id="token-export" class="profile-panel hidden">
-    <h2 class="profile-heading">Token de Exportação</h2>
-    <textarea id="export-token-text" readonly
-      style="width:100%;height:6em;background:var(--verde-escuro);
-             color:var(--quase-branco);border:none;border-radius:8px;
-             padding:8px;font-family:monospace;"></textarea>
-    <div class="profile-buttons">
-      <button onclick="closeTokenExport()">← Voltar</button>
-      <button onclick="copyExportToken()">Copiar</button>
-    </div>
-  </div>
-
-  <!-- === POPUP IMPORT TOKEN === -->
-  <div id="token-import" class="profile-panel hidden">
-    <h2 class="profile-heading">Importar via Token</h2>
-    <textarea id="import-token-text" placeholder="Cole aqui o token…"
-      style="width:100%;height:6em;background:var(--verde-escuro);
-             color:var(--quase-branco);border:none;border-radius:8px;
-             padding:8px;font-family:monospace;"></textarea>
-    <div class="profile-buttons">
-      <button onclick="closeTokenImport()">← Voltar</button>
-      <button onclick="confirmImportToken()">Importar</button>
-    </div>
-  </div>
-
-  <!-- === POPUP EDIÇÃO PERFIL === -->
-  <div id="profile-popup" class="profile-panel hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h2 class="profile-heading" style="margin-bottom:0">Nome</h2>
-      <button id="delete-profile" onclick="deleteProfile()" title="Eliminar Perfil"
-        style="background:none;border:none;color:var(--quase-branco);
-              font-size:1.4rem;cursor:pointer">🗑️</button>
-    </div>
-    <div style="display:flex;justify-content:center;margin:12px 0">
-      <input type="text" id="nickname" maxlength="12" value="Jogador"/>
-    </div>
-    <p style="font-size:0.9rem;margin:10px 0 20px;color:var(--quase-branco);opacity:0.8">
-      Escolha um nome para a tabela de classificação.
-    </p>
-
-    <!-- Botões juntos dentro da mesma div -->
-    <div class="profile-buttons" style="justify-content:center; gap:1rem;">
-      <button id="btn-export">Exportar progresso</button>
-      <button id="confirm-profile" onclick="confirmEdit()">Ok</button>
-    </div>
-  </div>
-
-  <!-- === SUBMENU: DEFINIÇÕES === -->
-  <div id="settings-menu" class="profile-panel hidden">
-    <h2 class="profile-heading">Definições</h2>
-    <div class="setting-item">
-      <label class="toggle-label"><input type="checkbox" id="toggle-sound"/><span class="toggle-slider"></span></label>
-      <span>Som</span>
-    </div>
-    <input type="range" id="volume-sound" min="0" max="100"/>
-    <div class="setting-item">
-      <label class="toggle-label"><input type="checkbox" id="toggle-music"/><span class="toggle-slider"></span></label>
-      <span>Música</span>
-    </div>
-    <input type="range" id="volume-music" min="0" max="100"/>
-    <div class="profile-buttons" style="justify-content:center">
-      <button onclick="closeSettingsMenu()">← Voltar</button>
-    </div>
-  </div>
-
-  <!-- === SUBMENU: NÍVEIS === -->
-  <div id="levels-page" class="hidden">
-    <header class="levels-header">
-      <button onclick="closeLevels()" class="back-button">Voltar</button>
-      <h1 class="levels-title">MazeRush <span style="opacity:0.6">— Níveis</span></h1>
-      <button id="reset-btn" class="reset-button">Reiniciar</button>
-    </header>
-    <main class="categories">
-      <div class="section-heading">
-        <h2>Campanha</h2>
-        <div class="section-line"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MazeRush</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- === CONTAINER DO MENU PRINCIPAL === -->
+    <div id="main-page" class="mazerush-menu">
+      <h1 class="mazerush-title">MazeRush</h1>
+      <!-- Aqui mostramos o nome do perfil activo -->
+      <div class="current-profile">
+        <span id="profile-name-main">Jogador</span>
       </div>
-      <div id="levels-container" class="levels-grid"></div>
-    </main>
-  </div>
-
-  <!-- === CONTEÚDO DO JOGO === -->
-  <div id="game-page" class="hidden">
-    <div id="pause-overlay"></div>
-
-    <!-- Botão para alternar câmaras -->
-    <button id="camera-toggle-btn" class="cam-btn" title="Mudar câmara">
-      <svg viewBox="0 0 24 24" width="20" height="20">
-        <path fill="currentColor"
-              d="M12 5a5 5 0 100 10 5 5 0 000-10zm0-3c1.1 0 2 .9 2 2h4c1.1 0 2 .9 2 2v10a2
-                 2 0 01-2 2H6a2 2 0 01-2-2V6c0-1.1.9-2 2-2h4a2 2 0 012-2z"/>
-      </svg>
-    </button>
-
-    <!-- Controles de luz -->
-    <div id="light-controls">
-      <label><input type="checkbox" id="toggleAmbient" checked> Luz Ambiente</label>
-      <label><input type="checkbox" id="toggleDirectional" checked> Luz Direcional</label>
-      <label><input type="checkbox" id="togglePoint" checked> Luz Pontual</label>
+      <div class="mazerush-grid" id="main-menu">
+        <a href="#" class="mazerush-card mazerush-play" onclick="openLevels()">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+          <span>Jogar</span>
+        </a>
+        <a href="#" class="mazerush-card" onclick="openProfileMenu()">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"
+            />
+          </svg>
+          <span>Perfil</span>
+        </a>
+        <a href="#" class="mazerush-card" onclick="openSettingsMenu()">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19.14 12.94c.04-.3.07-.61.07-.94s-.03-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .11-.64l-1.91-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.62-.94L14 2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5l-.38 2.56c-.6.23-1.15.54-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22l-1.91 3.32a.5.5 0 0 0 .11.64l2.03 1.58c-.04.3-.07.61-.07.94s.03.64.07.94L2.86 14.52a.5.5 0 0 0-.11.64l1.91 3.32c.14.24.44.34.7.22l2.39-.96c.47.4 1.02.72 1.62.94l.38 2.56a.5.5 0 0 0 .5.5h3c.25 0 .46-.18.5-.42l.38-2.56c.6-.23 1.15-.54 1.62-.94l2.39.96c.26.1.56 0 .7-.22l1.91-3.32a.5.5 0 0 0-.11-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"
+            />
+          </svg>
+          <span>Definições</span>
+        </a>
+        <a href="#" class="mazerush-card">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 17h16v2H4v-2zm0-5h16v2H4v-2zm0-5h16v2H4V7z" />
+          </svg>
+          <span>Personalizar</span>
+        </a>
+      </div>
+      <div class="mazerush-footer">MazeRush — v0.1 | Criado com 💛</div>
     </div>
 
-    <!-- Canvas do Jogo -->
-    <div id="game-container"></div>
-    <div id="preview-text">Decora o labirinto!</div>
+    <!-- === SUBMENU PERFIS === -->
+    <div id="profile-list" class="profile-panel hidden">
+      <h2 class="profile-heading">Perfis</h2>
+      <div id="profiles-container"></div>
+      <div
+        class="profile-buttons"
+        style="justify-content: space-between; margin-bottom: 1rem"
+      >
+        <button id="btn-import-progress">Importar progresso</button>
+        <button onclick="closeProfileMenu()">← Voltar</button>
+      </div>
+    </div>
 
-    <!-- Modal de Fim de Nível -->
-    <div id="level-complete-modal">
-      <div class="modal-content">
-        <div class="leaderboard-panel">
-          <h3>Top 5 deste nível</h3>
-          <table id="leaderboard-table">
-            <thead>
-              <tr><th>#</th><th>Jogador</th><th>Tempo</th></tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="3">Carregando…</td></tr>
-            </tbody>
-          </table>
+    <!-- === POPUP EXPORT TOKEN === -->
+    <div id="token-export" class="profile-panel hidden">
+      <h2 class="profile-heading">Token de Exportação</h2>
+      <textarea
+        id="export-token-text"
+        readonly
+        style="
+          width: 100%;
+          height: 6em;
+          background: var(--verde-escuro);
+          color: var(--quase-branco);
+          border: none;
+          border-radius: 8px;
+          padding: 8px;
+          font-family: monospace;
+        "
+      ></textarea>
+      <div class="profile-buttons">
+        <button onclick="closeTokenExport()">← Voltar</button>
+        <button onclick="copyExportToken()">Copiar</button>
+      </div>
+    </div>
+
+    <!-- === POPUP IMPORT TOKEN === -->
+    <div id="token-import" class="profile-panel hidden">
+      <h2 class="profile-heading">Importar via Token</h2>
+      <textarea
+        id="import-token-text"
+        placeholder="Cole aqui o token…"
+        style="
+          width: 100%;
+          height: 6em;
+          background: var(--verde-escuro);
+          color: var(--quase-branco);
+          border: none;
+          border-radius: 8px;
+          padding: 8px;
+          font-family: monospace;
+        "
+      ></textarea>
+      <div class="profile-buttons">
+        <button onclick="closeTokenImport()">← Voltar</button>
+        <button onclick="confirmImportToken()">Importar</button>
+      </div>
+    </div>
+
+    <!-- === POPUP EDIÇÃO PERFIL === -->
+    <div id="profile-popup" class="profile-panel hidden">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <h2 class="profile-heading" style="margin-bottom: 0">Nome</h2>
+        <button
+          id="delete-profile"
+          onclick="deleteProfile()"
+          title="Eliminar Perfil"
+          style="
+            background: none;
+            border: none;
+            color: var(--quase-branco);
+            font-size: 1.4rem;
+            cursor: pointer;
+          "
+        >
+          🗑️
+        </button>
+      </div>
+      <div style="display: flex; justify-content: center; margin: 12px 0">
+        <input type="text" id="nickname" maxlength="12" value="Jogador" />
+      </div>
+      <p
+        style="
+          font-size: 0.9rem;
+          margin: 10px 0 20px;
+          color: var(--quase-branco);
+          opacity: 0.8;
+        "
+      >
+        Escolha um nome para a tabela de classificação.
+      </p>
+
+      <!-- Botões juntos dentro da mesma div -->
+      <div class="profile-buttons" style="justify-content: center; gap: 1rem">
+        <button id="btn-export">Exportar progresso</button>
+        <button id="confirm-profile" onclick="confirmEdit()">Ok</button>
+      </div>
+    </div>
+
+    <!-- === SUBMENU: DEFINIÇÕES === -->
+    <div id="settings-menu" class="profile-panel hidden">
+      <h2 class="profile-heading">Definições</h2>
+      <div class="setting-item">
+        <label class="toggle-label"
+          ><input type="checkbox" id="toggle-sound" /><span
+            class="toggle-slider"
+          ></span
+        ></label>
+        <span>Som</span>
+      </div>
+      <input type="range" id="volume-sound" min="0" max="100" />
+      <div class="setting-item">
+        <label class="toggle-label"
+          ><input type="checkbox" id="toggle-music" /><span
+            class="toggle-slider"
+          ></span
+        ></label>
+        <span>Música</span>
+      </div>
+      <input type="range" id="volume-music" min="0" max="100" />
+      <div class="profile-buttons" style="justify-content: center">
+        <button onclick="closeSettingsMenu()">← Voltar</button>
+      </div>
+    </div>
+
+    <!-- === SUBMENU: NÍVEIS === -->
+    <div id="levels-page" class="hidden">
+      <header class="levels-header">
+        <button onclick="closeLevels()" class="back-button">Voltar</button>
+        <h1 class="levels-title">
+          MazeRush <span style="opacity: 0.6">— Níveis</span>
+        </h1>
+        <button id="reset-btn" class="reset-button">Reiniciar</button>
+      </header>
+      <main class="categories">
+        <div class="section-heading">
+          <h2>Campanha</h2>
+          <div class="section-line"></div>
         </div>
-        <div class="modal-body">
-          <h2>Nível Concluído!</h2>
-          <p class="time-display"></p>
-          <div class="button-group">
-            <button id="menu-btn">Regressar ao Menu</button>
-            <button id="retry-btn">Tentar Novamente</button>
+        <div id="levels-container" class="levels-grid"></div>
+      </main>
+    </div>
+
+    <!-- === CONTEÚDO DO JOGO === -->
+    <div id="game-page" class="hidden">
+      <div id="pause-overlay"></div>
+
+      <!-- Botão para alternar câmaras -->
+      <button id="camera-toggle-btn" class="cam-btn" title="Mudar câmara">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path
+            fill="currentColor"
+            d="M12 5a5 5 0 100 10 5 5 0 000-10zm0-3c1.1 0 2 .9 2 2h4c1.1 0 2 .9 2 2v10a2
+                 2 0 01-2 2H6a2 2 0 01-2-2V6c0-1.1.9-2 2-2h4a2 2 0 012-2z"
+          />
+        </svg>
+      </button>
+
+      <!-- Controles de luz -->
+      <div id="light-controls">
+        <label
+          ><input type="checkbox" id="toggleAmbient" checked /> Luz
+          Ambiente</label
+        >
+        <label
+          ><input type="checkbox" id="toggleDirectional" checked /> Luz
+          Direcional</label
+        >
+        <label
+          ><input type="checkbox" id="togglePoint" checked /> Luz Pontual</label
+        >
+      </div>
+
+      <!-- Canvas do Jogo -->
+      <div id="game-container"></div>
+      <div id="preview-text">Decora o labirinto!</div>
+
+      <!-- Modal de Fim de Nível -->
+      <div id="level-complete-modal">
+        <div class="modal-content">
+          <div class="leaderboard-panel">
+            <h3>Top 5 deste nível</h3>
+            <table id="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Jogador</th>
+                  <th>Tempo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="3">Carregando…</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <button id="next-level-btn">Próximo Nível</button>
+          <div class="modal-body">
+            <h2>Nível Concluído!</h2>
+            <p class="time-display"></p>
+            <div class="button-group">
+              <button id="menu-btn">Regressar ao Menu</button>
+              <button id="retry-btn">Tentar Novamente</button>
+            </div>
+            <button id="next-level-btn">Próximo Nível</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Submenu Pausa -->
-    <div id="pause-menu">
-      <h2>Menu de Pausa</h2>
-      <button class="pause-button" id="resume-btn">▶ Continuar</button>
-      <button class="pause-button" id="restart-btn">↻ Reiniciar</button>
-      <button class="pause-button" id="exit-btn">⏴ Voltar ao Menu</button>
-      <div class="mute-controls">
-        <button id="mute-sound-btn" class="pause-button mute-btn" title="Som">🔊</button>
-        <button id="mute-music-btn" class="pause-button mute-btn" title="Música">🎵</button>
+      <!-- Submenu Pausa -->
+      <div id="pause-menu">
+        <h2>Menu de Pausa</h2>
+        <button class="pause-button" id="resume-btn">▶ Continuar</button>
+        <button class="pause-button" id="restart-btn">↻ Reiniciar</button>
+        <button class="pause-button" id="exit-btn">⏴ Voltar ao Menu</button>
+        <div class="mute-controls">
+          <button id="mute-sound-btn" class="pause-button mute-btn" title="Som">
+            🔊
+          </button>
+          <button
+            id="mute-music-btn"
+            class="pause-button mute-btn"
+            title="Música"
+          >
+            🎵
+          </button>
+        </div>
       </div>
+
+      <!-- Minimap -->
+      <div id="minimap-container">
+        <canvas id="minimap" width="220" height="220"></canvas>
+      </div>
+
+      <!-- Velocímetro -->
+      <div id="speedometer">0&nbsp;km/h</div>
     </div>
 
-    <!-- Minimap -->
-    <div id="minimap-container">
-      <canvas id="minimap" width="220" height="220"></canvas>
+    <!-- Contador de moedas -->
+    <div id="coin-counter">
+      <img src="./assets/textures/coin.png" alt="Moeda" />
+      <span id="coin-count">0</span>
     </div>
 
-    <!-- Velocímetro -->
-    <div id="speedometer">0&nbsp;km/h</div>
-  </div>
+    <!-- === SCRIPTS === -->
+    <script type="module">
+      import { updateAudioSettings } from "./js/audio.js";
+      import {
+        getAllProfiles,
+        getCurrentProfile,
+        getActiveProfileId,
+        setActiveProfileId,
+        updateProfile,
+        saveAllProfiles,
+      } from "./js/profileSystem.js";
+      import {
+        unlockLevel,
+        isLevelUnlocked,
+        resetProgress,
+      } from "./js/unlockSystem.js";
+      import {
+        exportProgress,
+        importProgressToken,
+      } from "./js/dataTransfer.js";
 
-  <!-- === SCRIPTS === -->
-  <script type="module">
-    import { updateAudioSettings } from './js/audio.js';
-    import {
-      getAllProfiles,
-      getCurrentProfile,
-      getActiveProfileId,
-      setActiveProfileId,
-      updateProfile,
-      saveAllProfiles
-    } from './js/profileSystem.js';
-    import { unlockLevel, isLevelUnlocked, resetProgress } from './js/unlockSystem.js';
-    import { exportProgress, importProgressToken } from './js/dataTransfer.js';
+      // — Elementos globais —
+      const currentProfileEl = document.querySelector(".current-profile");
+      const mainMenu = document.getElementById("main-menu");
+      const footer = document.querySelector(".mazerush-footer");
+      const profileList = document.getElementById("profile-list");
+      const profilesCt = document.getElementById("profiles-container");
+      const profilePopup = document.getElementById("profile-popup");
+      const nicknameIn = document.getElementById("nickname");
+      const confirmBtn = document.getElementById("confirm-profile");
+      const deleteBtn = document.getElementById("delete-profile");
+      const nameMain = document.getElementById("profile-name-main");
+      const settingsMenu = document.getElementById("settings-menu");
+      const toggleSound = document.getElementById("toggle-sound");
+      const toggleMusic = document.getElementById("toggle-music");
+      const volSound = document.getElementById("volume-sound");
+      const volMusic = document.getElementById("volume-music");
+      const muteSoundBtn = document.getElementById("mute-sound-btn");
+      const muteMusicBtn = document.getElementById("mute-music-btn");
+      const levelsPage = document.getElementById("levels-page");
+      const levelsCt = document.getElementById("levels-container");
+      const resetBtn = document.getElementById("reset-btn");
+      const mainPage = document.getElementById("main-page");
+      const gamePage = document.getElementById("game-page");
+      const pauseMenu = document.getElementById("pause-menu");
+      const resumeBtn = document.getElementById("resume-btn");
+      const restartBtn = document.getElementById("restart-btn");
 
-    // — Elementos globais —
-    const currentProfileEl = document.querySelector('.current-profile');
-    const mainMenu         = document.getElementById('main-menu');
-    const footer           = document.querySelector('.mazerush-footer');
-    const profileList      = document.getElementById('profile-list');
-    const profilesCt       = document.getElementById('profiles-container');
-    const profilePopup     = document.getElementById('profile-popup');
-    const nicknameIn       = document.getElementById('nickname');
-    const confirmBtn       = document.getElementById('confirm-profile');
-    const deleteBtn        = document.getElementById('delete-profile');
-    const nameMain         = document.getElementById('profile-name-main');
-    const settingsMenu     = document.getElementById('settings-menu');
-    const toggleSound      = document.getElementById('toggle-sound');
-    const toggleMusic      = document.getElementById('toggle-music');
-    const volSound         = document.getElementById('volume-sound');
-    const volMusic         = document.getElementById('volume-music');
-    const muteSoundBtn     = document.getElementById('mute-sound-btn');
-    const muteMusicBtn     = document.getElementById('mute-music-btn');
-    const levelsPage       = document.getElementById('levels-page');
-    const levelsCt         = document.getElementById('levels-container');
-    const resetBtn         = document.getElementById('reset-btn');
-    const mainPage         = document.getElementById('main-page');
-    const gamePage         = document.getElementById('game-page');
-    const pauseMenu        = document.getElementById('pause-menu');
-    const resumeBtn        = document.getElementById('resume-btn');
-    const restartBtn       = document.getElementById('restart-btn');
+      // — Painéis de token —
+      const tokenExportPanel = document.getElementById("token-export");
+      const exportTextarea = document.getElementById("export-token-text");
+      const tokenImportPanel = document.getElementById("token-import");
+      const importTextarea = document.getElementById("import-token-text");
 
-    // — Painéis de token —
-    const tokenExportPanel = document.getElementById('token-export');
-    const exportTextarea   = document.getElementById('export-token-text');
-    const tokenImportPanel = document.getElementById('token-import');
-    const importTextarea   = document.getElementById('import-token-text');
+      // — Botões de export/import —
+      const btnExport = document.getElementById("btn-export");
+      const btnImportMenu = document.getElementById("btn-import-progress");
 
-    // — Botões de export/import —
-    const btnExport       = document.getElementById('btn-export');
-    const btnImportMenu   = document.getElementById('btn-import-progress');
+      // — Helpers de UI —
+      function hideCommon() {
+        mainMenu.style.display = "none";
+        footer.style.display = "none";
+        currentProfileEl.style.display = "none";
+      }
+      function showCommon() {
+        mainMenu.style.display = "grid";
+        footer.style.display = "block";
+        currentProfileEl.style.display = "flex";
+      }
 
-    // — Helpers de UI —
-    function hideCommon() {
-      mainMenu.style.display         = 'none';
-      footer.style.display           = 'none';
-      currentProfileEl.style.display = 'none';
-    }
-    function showCommon() {
-      mainMenu.style.display         = 'grid';
-      footer.style.display           = 'block';
-      currentProfileEl.style.display = 'flex';
-    }
+      // — Exportar —
+      window.openTokenExport = () => {
+        // escondemos perfil-list e editor
+        profileList.classList.add("hidden");
+        profilePopup.classList.add("hidden");
+        hideCommon();
+        exportTextarea.value = exportProgress();
+        tokenExportPanel.classList.remove("hidden");
+      };
+      window.closeTokenExport = () => {
+        tokenExportPanel.classList.add("hidden");
+        // mostra de novo o submenu de perfis
+        profileList.classList.remove("hidden");
+        // remove o blur caso estivesse aplicado
+        profileList.classList.remove("blurred");
+      };
 
-    // — Exportar —
-    window.openTokenExport = () => {
-      // escondemos perfil-list e editor
-      profileList.classList.add('hidden');
-      profilePopup.classList.add('hidden');
-      hideCommon();
-      exportTextarea.value = exportProgress();
-      tokenExportPanel.classList.remove('hidden');
-    };
-    window.closeTokenExport = () => {
-      tokenExportPanel.classList.add('hidden');
-      // mostra de novo o submenu de perfis
-      profileList.classList.remove('hidden');
-      // remove o blur caso estivesse aplicado
-      profileList.classList.remove('blurred');
-    };
+      // — Importar —
+      window.openTokenImport = () => {
+        profileList.classList.add("hidden");
+        hideCommon();
+        importTextarea.value = "";
+        tokenImportPanel.classList.remove("hidden");
+      };
+      window.closeTokenImport = () => {
+        tokenImportPanel.classList.add("hidden");
+        profileList.classList.remove("hidden");
+        profileList.classList.remove("blurred");
+      };
 
-    // — Importar —
-    window.openTokenImport = () => {
-      profileList.classList.add('hidden');
-      hideCommon();
-      importTextarea.value = '';
-      tokenImportPanel.classList.remove('hidden');
-    };
-    window.closeTokenImport = () => {
-      tokenImportPanel.classList.add('hidden');
-      profileList.classList.remove('hidden');
-      profileList.classList.remove('blurred');
-    };
+      // — Copiar para clipboard —
+      window.copyExportToken = () => {
+        exportTextarea.select();
+        document.execCommand("copy");
+        alert("Token copiado!");
+      };
 
-    // — Copiar para clipboard —
-    window.copyExportToken = () => {
-      exportTextarea.select();
-      document.execCommand('copy');
-      alert('Token copiado!');
-    };
+      // — Confirmar token de importação —
+      window.confirmImportToken = () => {
+        const token = importTextarea.value.trim();
+        if (!token) return alert("Cole o token primeiro.");
+        const res = importProgressToken(token);
+        if (res.success) {
+          buildProfilesList();
+          loadActiveProfileUI();
+          closeTokenImport();
+          return alert("Importado com sucesso!");
+        }
+        if (res.needsConfirm && confirm("Substituir perfil ativo?")) {
+          importProgressToken(token, true);
+          buildProfilesList();
+          loadActiveProfileUI();
+          closeTokenImport();
+          return alert("Perfil substituído!");
+        }
+        alert("Erro: " + res.message);
+      };
 
-    // — Confirmar token de importação —
-    window.confirmImportToken = () => {
-      const token = importTextarea.value.trim();
-      if (!token) return alert('Cole o token primeiro.');
-      const res = importProgressToken(token);
-      if (res.success) {
+      // — Ligações de botões —
+      btnExport?.addEventListener("click", openTokenExport);
+      btnImportMenu?.addEventListener("click", openTokenImport);
+
+      // — Menu de perfis —
+      window.openProfileMenu = () => {
+        buildProfilesList();
+        hideCommon();
+        profileList.classList.remove("hidden");
+      };
+      window.closeProfileMenu = () => {
+        profileList.classList.add("hidden");
+        showCommon();
+      };
+
+      // — Lista de perfis —
+      function buildProfilesList() {
+        profilesCt.innerHTML = "";
+        getAllProfiles().forEach((p) => {
+          const slot = document.createElement("div");
+          slot.className =
+            "profile-slot " +
+            (p.id === getActiveProfileId() ? "active" : "inactive");
+          slot.textContent = p.name || "Vazio";
+          slot.onclick = () => {
+            if (!p.name) {
+              setActiveProfileId(p.id);
+              openEditPopup();
+            } else if (p.id === getActiveProfileId()) {
+              hideCommon();
+              profileList.classList.add("blurred");
+              openEditPopup();
+            } else {
+              setActiveProfileId(p.id);
+              buildProfilesList();
+              loadActiveProfileUI();
+              updateAudioSettings();
+            }
+          };
+          profilesCt.append(slot);
+        });
+      }
+
+      // — Popup editar perfil —
+      function openEditPopup() {
+        const cur = getCurrentProfile();
+        nicknameIn.value = cur.name || "";
+        profilePopup.classList.remove("hidden");
+        profileList.classList.add("blurred");
+      }
+      function closeEditPopup() {
+        profilePopup.classList.add("hidden");
+        profileList.classList.remove("blurred");
+      }
+      window.openEditPopup = openEditPopup;
+
+      confirmBtn.onclick = () => {
+        const cur = getCurrentProfile();
+        cur.name = nicknameIn.value.trim() || cur.name;
+        if (!cur.unlockedLevels || !cur.unlockedLevels.length)
+          cur.unlockedLevels = ["level-1"];
+        if (cur.soundEnabled === undefined) cur.soundEnabled = true;
+        if (cur.musicEnabled === undefined) cur.musicEnabled = true;
+        if (cur.soundVolume === undefined) cur.soundVolume = 70;
+        if (cur.musicVolume === undefined) cur.musicVolume = 60;
+        updateProfile(cur);
         buildProfilesList();
         loadActiveProfileUI();
-        closeTokenImport();
-        return alert('Importado com sucesso!');
-      }
-      if (res.needsConfirm && confirm('Substituir perfil ativo?')) {
-        importProgressToken(token, true);
+        closeEditPopup();
+        updateAudioSettings();
+      };
+
+      window.deleteProfile = () => {
+        const cur = getCurrentProfile();
+        if (!confirm("Eliminar este perfil?")) return;
+        const all = getAllProfiles().filter((p) => p.id !== cur.id);
+        all.push({ ...cur, name: "", unlockedLevels: [] });
+        saveAllProfiles(all);
+        setActiveProfileId(all[0].id);
         buildProfilesList();
         loadActiveProfileUI();
-        closeTokenImport();
-        return alert('Perfil substituído!');
-      }
-      alert('Erro: ' + res.message);
-    };
+        closeEditPopup();
+        updateAudioSettings();
+      };
 
-    // — Ligações de botões —
-    btnExport?.addEventListener('click', openTokenExport);
-    btnImportMenu?.addEventListener('click', openTokenImport);
+      // — Definições de som/música —
+      const updateSetting = (key, value) => {
+        const cur = getCurrentProfile();
+        cur[key] = value;
+        updateProfile(cur);
+        updateAudioSettings();
+        muteSoundBtn.textContent = cur.soundEnabled ? "🔊" : "🔇";
+        muteMusicBtn.textContent = cur.musicEnabled ? "🎵" : "🚫🎵";
+      };
+      toggleSound.onchange = () =>
+        updateSetting("soundEnabled", toggleSound.checked);
+      toggleMusic.onchange = () =>
+        updateSetting("musicEnabled", toggleMusic.checked);
+      volSound.oninput = () => updateSetting("soundVolume", +volSound.value);
+      volMusic.oninput = () => updateSetting("musicVolume", +volMusic.value);
 
-    // — Menu de perfis —
-    window.openProfileMenu = () => {
-      buildProfilesList();
-      hideCommon();
-      profileList.classList.remove('hidden');
-    };
-    window.closeProfileMenu = () => {
-      profileList.classList.add('hidden');
-      showCommon();
-    };
+      window.openSettingsMenu = () => {
+        const cur = getCurrentProfile();
+        hideCommon();
+        settingsMenu.classList.remove("hidden");
+        toggleSound.checked = cur.soundEnabled;
+        toggleMusic.checked = cur.musicEnabled;
+        volSound.value = cur.soundVolume;
+        volMusic.value = cur.musicVolume;
+      };
+      window.closeSettingsMenu = () => {
+        settingsMenu.classList.add("hidden");
+        showCommon();
+      };
 
-    // — Lista de perfis —
-    function buildProfilesList() {
-      profilesCt.innerHTML = '';
-      getAllProfiles().forEach(p => {
-        const slot = document.createElement('div');
-        slot.className   = 'profile-slot ' + (p.id === getActiveProfileId() ? 'active' : 'inactive');
-        slot.textContent = p.name || 'Vazio';
-        slot.onclick = () => {
-          if (!p.name) {
-            setActiveProfileId(p.id);
-            openEditPopup();
-          } else if (p.id === getActiveProfileId()) {
-            hideCommon();
-            profileList.classList.add('blurred');
-            openEditPopup();
-          } else {
-            setActiveProfileId(p.id);
-            buildProfilesList();
-            loadActiveProfileUI();
-            updateAudioSettings();
-          }
-        };
-        profilesCt.append(slot);
-      });
-    }
+      // — Níveis —
+      window.openLevels = () => {
+        loadActiveProfileUI();
+        hideCommon();
+        levelsPage.classList.remove("hidden");
+      };
+      window.closeLevels = () => {
+        levelsPage.classList.add("hidden");
+        showCommon();
+      };
+      resetBtn.onclick = () => {
+        if (!confirm("Reiniciar progresso deste perfil?")) return;
+        const cur = getCurrentProfile();
+        cur.unlockedLevels = ["level-1"];
+        updateProfile(cur);
+        loadActiveProfileUI();
+      };
 
-    // — Popup editar perfil —
-    function openEditPopup() {
-      const cur = getCurrentProfile();
-      nicknameIn.value = cur.name || '';
-      profilePopup.classList.remove('hidden');
-      profileList.classList.add('blurred');
-    }
-    function closeEditPopup() {
-      profilePopup.classList.add('hidden');
-      profileList.classList.remove('blurred');
-    }
-    window.openEditPopup = openEditPopup;
-
-    confirmBtn.onclick = () => {
-      const cur = getCurrentProfile();
-      cur.name = nicknameIn.value.trim() || cur.name;
-      if (!cur.unlockedLevels || !cur.unlockedLevels.length) cur.unlockedLevels = ['level-1'];
-      if (cur.soundEnabled  === undefined) cur.soundEnabled  = true;
-      if (cur.musicEnabled  === undefined) cur.musicEnabled  = true;
-      if (cur.soundVolume   === undefined) cur.soundVolume   = 70;
-      if (cur.musicVolume   === undefined) cur.musicVolume   = 60;
-      updateProfile(cur);
-      buildProfilesList();
-      loadActiveProfileUI();
-      closeEditPopup();
-      updateAudioSettings();
-    };
-
-    window.deleteProfile = () => {
-      const cur = getCurrentProfile();
-      if (!confirm('Eliminar este perfil?')) return;
-      const all = getAllProfiles().filter(p => p.id !== cur.id);
-      all.push({ ...cur, name: '', unlockedLevels: [] });
-      saveAllProfiles(all);
-      setActiveProfileId(all[0].id);
-      buildProfilesList();
-      loadActiveProfileUI();
-      closeEditPopup();
-      updateAudioSettings();
-    };
-
-    // — Definições de som/música —
-    const updateSetting = (key, value) => {
-      const cur = getCurrentProfile();
-      cur[key] = value;
-      updateProfile(cur);
-      updateAudioSettings();
-      muteSoundBtn.textContent = cur.soundEnabled ? '🔊' : '🔇';
-      muteMusicBtn.textContent = cur.musicEnabled ? '🎵' : '🚫🎵';
-    };
-    toggleSound.onchange = () => updateSetting('soundEnabled', toggleSound.checked);
-    toggleMusic.onchange = () => updateSetting('musicEnabled', toggleMusic.checked);
-    volSound.oninput    = () => updateSetting('soundVolume', +volSound.value);
-    volMusic.oninput    = () => updateSetting('musicVolume', +volMusic.value);
-
-    window.openSettingsMenu = () => {
-      const cur = getCurrentProfile();
-      hideCommon();
-      settingsMenu.classList.remove('hidden');
-      toggleSound.checked = cur.soundEnabled;
-      toggleMusic.checked = cur.musicEnabled;
-      volSound.value      = cur.soundVolume;
-      volMusic.value      = cur.musicVolume;
-    };
-    window.closeSettingsMenu = () => {
-      settingsMenu.classList.add('hidden');
-      showCommon();
-    };
-
-    // — Níveis —
-    window.openLevels = () => {
-      loadActiveProfileUI();
-      hideCommon();
-      levelsPage.classList.remove('hidden');
-    };
-    window.closeLevels = () => {
-      levelsPage.classList.add('hidden');
-      showCommon();
-    };
-    resetBtn.onclick = () => {
-      if (!confirm('Reiniciar progresso deste perfil?')) return;
-      const cur = getCurrentProfile();
-      cur.unlockedLevels = ['level-1'];
-      updateProfile(cur);
-      loadActiveProfileUI();
-    };
-
-    function loadActiveProfileUI() {
-      const cur = getCurrentProfile();
-      nameMain.textContent = cur.name ? `Olá, ${cur.name}!` : 'Olá, Perfil!';
-      levelsCt.innerHTML = '';
-      ['Nível 1','Nível 2','Nível 3','Nível 4','Nível 5','Nível 6']
-        .forEach((lbl, i) => {
-          const id = `level-${i+1}`;
-          const card = document.createElement('div');
-          card.className = 'level-card';
-          const span = document.createElement('span');
+      function loadActiveProfileUI() {
+        const cur = getCurrentProfile();
+        nameMain.textContent = cur.name ? `Olá, ${cur.name}!` : "Olá, Perfil!";
+        levelsCt.innerHTML = "";
+        [
+          "Nível 1",
+          "Nível 2",
+          "Nível 3",
+          "Nível 4",
+          "Nível 5",
+          "Nível 6",
+        ].forEach((lbl, i) => {
+          const id = `level-${i + 1}`;
+          const card = document.createElement("div");
+          card.className = "level-card";
+          const span = document.createElement("span");
           span.textContent = lbl;
-          const btn = document.createElement('button');
+          const btn = document.createElement("button");
           if (cur.unlockedLevels.includes(id)) {
-            btn.className = 'play-button';
-            btn.textContent = '▶ Jogar';
+            btn.className = "play-button";
+            btn.textContent = "▶ Jogar";
             btn.onclick = () => {
-              localStorage.setItem('selectedLevel', id);
+              localStorage.setItem("selectedLevel", id);
               closeLevels();
               // esconder o menu principal
-              mainPage.classList.add('hidden');
+              mainPage.classList.add("hidden");
               // mostrar o container do jogo
-              gamePage.classList.remove('hidden');
-              import('./js/main.js').then(m => m.initLevel(i+1));
+              gamePage.classList.remove("hidden");
+              import("./js/main.js").then((m) => m.initLevel(i + 1));
             };
-          }
-          else {
-            btn.className = 'locked-button';
-            btn.textContent = '🔒 Bloqueado';
+          } else {
+            btn.className = "locked-button";
+            btn.textContent = "🔒 Bloqueado";
             btn.disabled = true;
           }
           card.append(span, btn);
           levelsCt.append(card);
         });
-    }
+      }
 
-    // — Início —
-    window.onload = () => {
-      buildProfilesList();
-      loadActiveProfileUI();
-      updateAudioSettings();
-    };
-  </script>
-  <script type="module" src="./js/main.js"></script>
-</body>
+      // — Início —
+      window.onload = () => {
+        buildProfilesList();
+        loadActiveProfileUI();
+        updateAudioSettings();
+      };
+    </script>
+    <script type="module" src="./js/main.js"></script>
+  </body>
 </html>

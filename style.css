@@ -1046,3 +1046,25 @@ body.minimap-expanded #game-container {
   animation: pulse 0.8s ease-in-out infinite;
   background-position: right center;
 }
+/*-----------moedas---------------*/
+/*contador de moedas*/
+#coin-counter {
+  position: absolute;
+  top: 70px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px 12px;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  z-index: 999;
+}
+
+#coin-counter img {
+  width: 24px;
+  height: 24px;
+}

@@ -1,5 +1,8 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 
+export const animatedObjects = [];
+export const coinMeshes = [];
+
 export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
@@ -109,6 +112,116 @@ export async function loadLevel(levelName, scene, textureLoader) {
     })
   );
 
+
+  // paralelepipedo animado nivel 6
+  function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
+    if (!objects) return;
+
+    objects.forEach((obj) => {
+      const { type, position, dimensions, color } = obj;
+
+      if (type === "paralelepipedo") {
+        const geometry = new THREE.BoxGeometry(
+          dimensions.width * tileSize,
+          dimensions.height,
+          dimensions.depth * tileSize
+        );
+
+        const material = new THREE.MeshStandardMaterial({
+          color: color || 0x888888,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+
+        mesh.position.set(
+          position.x * tileSize + offsetX,
+          dimensions.height / 2,
+          position.z * tileSize + offsetZ
+        );
+
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData.levelObject = true;
+
+        scene.add(mesh);
+        animatedObjects.push(mesh);
+      }
+
+      if (type === "moeda") {
+        const radius = 0.5;
+        const thickness = 0.15;
+
+        // Parte interior (dentro)
+        const innerGeometry = new THREE.CylinderGeometry(
+          radius * 0.9,
+          radius * 0.9,
+          thickness,
+          32
+        );
+        const innerMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffd700,
+
+
+        });
+        const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
+
+        // Borda exterior
+        const outerGeometry = new THREE.CylinderGeometry(
+          radius,
+          radius,
+          thickness * 1.1,
+          32
+        );
+        const outerMaterial = new THREE.MeshStandardMaterial({
+          color: 0xfff066,
+
+
+        });
+        const outerMesh = new THREE.Mesh(outerGeometry, outerMaterial);
+
+        // Agrupar os dois
+        const coinGroup = new THREE.Group();
+        coinGroup.add(outerMesh);
+        coinGroup.add(innerMesh);
+
+        // Rodar para deitar a moeda no chão (eixo X)
+        coinGroup.rotation.x = Math.PI / 2;
+
+        // Subir um pouco para não ficar enterrada
+        const yLift = 1;
+        coinGroup.position.set(
+          position.x * tileSize + offsetX,
+          yLift,
+          position.z * tileSize + offsetZ
+        );
+
+
+        // Criar brilho debaixo da moeda
+        const glowTex = textureLoader.load("../assets/textures/glow.png");
+        const glowMat = new THREE.SpriteMaterial({
+          map: glowTex,
+          color: 0xfff066,
+          transparent: true,
+          opacity: 0.6,
+          depthWrite: false,
+        });
+
+        const glowSprite = new THREE.Sprite(glowMat);
+        glowSprite.scale.set(2, 2, 1); 
+        glowSprite.position.set(0, -0.05, 0.8); 
+
+
+        coinGroup.add(glowSprite);
+
+
+        coinGroup.userData.glow = glowSprite;
+
+        scene.add(coinGroup);
+        coinMeshes.push(coinGroup);
+      }
+    });
+  }
+
+
   /* 5. Bordas exteriores */
   if (lvl.borderThickness && lvl.borderThickness > 0) {
     const bt = lvl.borderThickness;
@@ -187,6 +300,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   );
   mkPortal(lvl.portalStart, startPos);
   lvl.endPortal = mkPortal(lvl.portalEnd, endPos); // Agora `lvl.endPortal` guarda o portal final!
+  loadCustomObjects(lvl.objects, lvl.tileSize, offsetX, offsetZ, scene);
   /* 7. Devolver info ao main.js */
   return {
     offsetX,

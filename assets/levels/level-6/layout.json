@@ -51,6 +51,23 @@
     [1, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1, 1, 1, 2, 1, 0, 1, 0, 1, 0, 1, 1, 1],
     [1, 1, 0, 2, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-  ]
+  ],
+  "objects": [
+  { "type": "paralelepipedo", "position": { "x": 3,  "z": 2 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
+  { "type": "moeda", "position":{"x": 7, "z": 5}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 21, "z": 3}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 10, "z": 8}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 12, "z": 21}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 1, "z": 13}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 21, "z": 11}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 20, "z": 21}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 1, "z": 7}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 1, "z": 12}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 1, "z": 3}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 3, "z": 1}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 4, "z": 21}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 9, "z": 16}, "scale": 2 },
+  { "type": "moeda", "position":{"x": 21, "z": 9}, "scale": 2 }
+]
 
 }
