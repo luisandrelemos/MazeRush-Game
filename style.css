@@ -780,116 +780,153 @@ body.minimap-expanded #game-container {
 }
 
 /* ─── Modal de Fim de Nível ─── */
+/* Overlay */
 #level-complete-modal {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
   opacity: 0;
   pointer-events: none;
-  z-index: 999;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.3s ease;
+  z-index: 10000;
 }
-
 #level-complete-modal.show {
   opacity: 1;
   pointer-events: auto;
 }
 
+/* Container FLEX */
 .modal-content {
-  background: radial-gradient(circle at top left, #1e1e2f, #2b2b45 80%);
-  border-radius: 20px;
-  padding: 50px;
-  text-align: center;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-  font-family: 'Orbitron', sans-serif;
-  animation: fadeBounce 0.8s ease forwards;
-  max-width: 400px;
+  display: flex;
+  gap: 2rem;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  max-width: 800px;
   width: 90%;
+  padding: 2rem;
+  box-sizing: border-box;
+  text-align: left;
 }
 
-.modal-content h2 {
-  font-size: 2.4rem;
-  margin-bottom: 20px;
-  background: linear-gradient(90deg, #ff9500, #EA7300);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(0,0,0,0.4);
+/* ─── Coluna da Tabela ─── */
+.leaderboard-panel {
+  flex: 0 0 240px;
 }
-
-.modal-content .time-display {
-  font-size: 1.2rem;
+.leaderboard-panel h3 {
+  margin-bottom: 0.75rem;
   color: var(--quase-branco);
-  margin: 12px 0 24px;
+  font-size: 1.3rem;
+  text-align: center;
   font-weight: 600;
 }
 
-.modal-content .button-group {
+#leaderboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+#leaderboard-table th,
+#leaderboard-table td {
+  padding: 8px;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+#leaderboard-table th {
+  background: rgba(255,255,255,0.1);
+  font-weight: 600;
+}
+#leaderboard-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ─── Coluna de Conteúdo ─── */
+.modal-body {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 28px;
+  align-items: center;
 }
 
-.modal-content .button-group button {
+.modal-body h2 {
+  font-size: 2.6rem;
+  background: linear-gradient(135deg, #C4DAD2, #b7f0d3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.75rem;
+}
+
+.modal-body .time-display {
+  font-size: 1.3rem;
+  color: var(--quase-branco);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+/* ─── Botões ─── */
+.modal-body .button-group,
+#next-level-btn {
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-body .button-group button,
+#next-level-btn {
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.9rem 1.2rem;
   font-family: 'Orbitron', sans-serif;
-  padding: 14px 0;
   font-size: 1.1rem;
   font-weight: 700;
+  background: linear-gradient(135deg, #6A9C89, #C4DAD2);
+  color: #16423C;
   border: none;
   border-radius: 12px;
-  cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.modal-content .button-group button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
-}
-
-#settings-btn {
-  background: linear-gradient(90deg, #0066ff, #3399ff);
-  color: #fff;
-}
-
-#menu-btn {
-  background: linear-gradient(90deg, #2ecc71, #27ae60);
-  color: #fff;
-}
-
-#retry-btn {
-  background: linear-gradient(90deg, #e74c3c, #c0392b);
-  color: #fff;
-}
-
-#next-level-btn {
-  margin-top: 20px;
-  padding: 14px 40px;
-  border: none;
-  background: linear-gradient(90deg, #FFA500, #FFD700);
-  color: #1e1e2f;
-  font-size: 1.3rem;
-  font-weight: bold;
-  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 0 15px #EA7300aa;
-  transition: all 0.3s ease;
-  font-family: 'Orbitron', sans-serif;
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease,
+              background-position 0.2s ease;
+}
+
+/* Hover padrão */
+.modal-body .button-group button:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5),
+              inset 0 0 10px rgba(255,255,255,0.4);
+}
+
+/* ─── Animação pulse para “Próximo Nível” ─── */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3),
+                inset 0 0 8px rgba(255,255,255,0.2);
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px #C4DAD2,
+                inset 0 0 12px rgba(255,255,255,0.4);
+    transform: translateY(-4px) scale(1.06);
+  }
+  100% {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3),
+                inset 0 0 8px rgba(255,255,255,0.2);
+    transform: translateY(0) scale(1);
+  }
 }
 
 #next-level-btn:hover {
-  transform: scale(1.05);
-  background: linear-gradient(90deg, #ffb347, #ffe066);
-  box-shadow: 0 0 25px #ffd70099, 0 0 40px #ff990088;
-}
-
-@keyframes fadeBounce {
-  0%   { transform: translateY(50px) scale(0.9); opacity: 0; }
-  60%  { transform: translateY(-10px) scale(1.02); opacity: 1; }
-  100% { transform: translateY(0) scale(1); }
+  animation: pulse 0.8s ease-in-out infinite;
+  background-position: right center;
 }

@@ -3,6 +3,8 @@ import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 import { createCar } from "../assets/models/CarModel.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
+import { db } from './firebase.js';
+import { submitScore, fetchLeaderboard } from './leaderboard.js';
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -69,12 +71,6 @@ retryBtn.onclick = async () => {
 menuBtn.addEventListener("click", () => {
   window.location.href = "index.html";
   menuBtn.blur(); // ← remove o foco
-});
-
-// ─────────────────────────  Settings ─────────────────────────
-settingsBtn.addEventListener("click", () => {
-  alert("Abrir definições...");
-  settingsBtn.blur(); // ← remove o foco
 });
 
 /* ───────────────────────────  Controlo de níveis ───────────────────────── */
@@ -637,9 +633,11 @@ async function initLevel(idx) {
   currentLevelIndex = idx;
   const levelName = `level-${idx}`;
 
-  // 1) garantir que nenhum modal / tempo antigo fica no caminho
+    // 1) garantir que nenhum modal / tempo antigo fica no caminho
   modal.classList.remove("show");
-  modal.querySelector(".time-display")?.remove();
+  // não removemos mais o <p class="time-display">, apenas limpamos o texto
+  const timeEl = modal.querySelector(".time-display");
+  if (timeEl) timeEl.textContent = "";
   levelComplete = false;
   controlsLocked = true;
   isInPreview = true;
@@ -881,7 +879,7 @@ function animate(now) {
 }
 
 /* ───────────────────────────  checkLevelComplete ────────────────────── */
-function checkLevelComplete() {
+async function checkLevelComplete() {
   if (levelComplete || isInPreview || !levelData?.endPortal) return;
 
   const dist = car.position.distanceTo(levelData.endPortal.position);
@@ -890,28 +888,59 @@ function checkLevelComplete() {
     controlsLocked = true;
     isTimerRunning = false;
 
-    const nextLevel = `level-${currentLevelIndex + 1}`;
-    unlockLevel(nextLevel);
+    // Calcula tempo
+    const elapsedMs = performance.now() - levelStartTime;
+    const timeSec   = elapsedMs / 1000;
 
-    // actualiza o tempo
-    modal.querySelector(".time-display")?.remove();
-    const p = document.createElement("p");
-    p.className = "time-display";
-    p.textContent = `Tempo: ${(
-      (performance.now() - levelStartTime) /
-      1000
-    ).toFixed(2)}s`;
-    nextBtn.insertAdjacentElement("beforebegin", p);
+    // Desbloqueia próximo nível localmente
+    const nextLevelId = `level-${currentLevelIndex + 1}`;
+    unlockLevel(nextLevelId);
 
-    // mostra o modal
-    modal.classList.add("show");
+    // Mostra tempo no modal
+    modal.querySelector('.time-display').textContent = 
+      `Tempo: ${timeSec.toFixed(2)}s`;
 
-    // 👉 desfocar e bloquear UI extra
-    uiBlocks.forEach((el) => {
-      el.style.filter = "blur(6px)";
-      el.style.pointerEvents = "none";
+    // Submete à Firestore (só se for melhor)
+    const levelId = `level-${currentLevelIndex}`;
+    try {
+      await submitScore(levelId, timeSec);
+    } catch(err) {
+      console.warn('Não foi possível enviar score:', err);
+    }
+
+    // Puxa o Top 5 e preenche a lista
+    const tb = document.querySelector('#leaderboard-table tbody');
+    tb.innerHTML = '<tr><td colspan="3">Carregando…</td></tr>';
+    try {
+      const top5 = await fetchLeaderboard(levelId, 5);
+      const tb = document.querySelector('#leaderboard-table tbody');
+      tb.innerHTML = '';
+      if (top5.length === 0) {
+        tb.innerHTML = '<tr><td colspan="3">Nenhum score ainda</td></tr>';
+      } else {
+        top5.forEach((entry,i) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${i+1}</td>
+            <td>${entry.name}</td>
+            <td>${entry.time.toFixed(2)}s</td>
+          `;
+          tb.appendChild(row);
+        });
+      }
+    } catch(err) {
+      tb.innerHTML = '<tr><td colspan="3">Erro ao carregar leaderboard</td></tr>';
+      console.error(err);
+    }
+
+    // Mostra o modal
+    modal.classList.add('show');
+
+    // Bloqueia UI de fundo
+    uiBlocks.forEach(el => {
+      el.style.filter = 'blur(6px)';
+      el.style.pointerEvents = 'none';
     });
-
     // Opcional: impedir teclas/câmera enquanto o modal está aberto
     controlsLocked = true;
   }

@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  
 
   <!-- === CONTAINER DO MENU PRINCIPAL === -->
   <div id="main-page" class="mazerush-menu">
@@ -49,7 +50,7 @@
   <!-- === POPUP EDIÇÃO PERFIL === -->
   <div id="profile-popup" class="profile-panel hidden">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <h2 class="profile-heading" style="margin-bottom:0">Alcunha</h2>
+      <h2 class="profile-heading" style="margin-bottom:0">Nome</h2>
       <button id="delete-profile" onclick="deleteProfile()" title="Eliminar Perfil"
         style="background:none;border:none;color:var(--quase-branco);font-size:1.4rem;cursor:pointer">🗑️</button>
     </div>
@@ -57,8 +58,15 @@
       <input type="text" id="nickname" maxlength="12" value="Jogador"/>
     </div>
     <p style="font-size:0.9rem;margin:10px 0 20px;color:var(--quase-branco);opacity:0.8">
-      Escolha uma alcunha para ser exibida na tabela de classificação. A sua alcunha pode ser alterada a qualquer momento.
+       Escolha um nome para ser exibido na tabela de classificação. O seu nome pode ser alterado a qualquer momento.
     </p>
+
+    <!-- trigger visível ao utilizador -->
+    <button id="btn-export">Exportar progresso</button>
+    <button id="btn-import-trigger">Importar progresso</button>
+    <!-- input escondido que abre o file picker -->
+    <input type="file" id="file-import" style="display:none" />
+
     <div class="profile-buttons" style="justify-content:center">
       <button id="confirm-profile" style="max-width:160px" onclick="confirmEdit()">Ok</button>
     </div>
@@ -125,14 +133,32 @@
     <!-- Modal de Fim de Nível -->
     <div id="level-complete-modal">
       <div class="modal-content">
-        <h2>Nível Concluído!</h2>
-        <p class="time-display"></p>
-        <div class="button-group">
-          <button id="settings-btn">Definições</button>
-          <button id="menu-btn">Regressar ao Menu</button>
-          <button id="retry-btn">Tentar Novamente</button>
+        
+        <!-- tabela de leaderboard ao lado esquerdo -->
+        <div class="leaderboard-panel">
+          <h3>Top 5 deste nível</h3>
+          <table id="leaderboard-table">
+            <thead>
+              <tr><th>#</th><th>Jogador</th><th>Tempo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="3">Carregando…</td></tr>
+            </tbody>
+          </table>
         </div>
-        <button id="next-level-btn">Próximo Nível</button>
+
+        <!-- bloco principal à direita -->
+        <div class="modal-body">
+          <h2>Nível Concluído!</h2>
+          <p class="time-display"></p>
+
+          <div class="button-group">
+            <button id="menu-btn">Regressar ao Menu</button>
+            <button id="retry-btn">Tentar Novamente</button>
+          </div>
+          <button id="next-level-btn">Próximo Nível</button>
+        </div>
+
       </div>
     </div>
 
@@ -401,6 +427,8 @@
     updateAudioSettings();
   };
 </script>
+
+<script type="module" src="./js/main.js"></script>
 
 </body>
 </html>
