@@ -327,14 +327,88 @@ body {
 }
 
 /* Faz o popup ficar sempre no topo e centralizado */
+/* ─── Popup de Edição de Perfil ───────────────────────────────────────────── */
 #profile-popup {
   position: fixed;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10010;               /* acima de tudo */
-  background: rgba(0,0,0,0.8);  /* ajusta ao teu design */
-  padding: 24px;
+  width: 90%;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  padding: 1.5rem;
+  padding-bottom: 4.5rem;   /* espaço para os botões */
   border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  color: var(--quase-branco);
+  z-index: 10010;
+  overflow: visible;
+}
+
+/* Cabeçalho */
+#profile-popup .profile-heading {
+  font-size: 1.4rem;
+  color: var(--quase-branco);
+  margin: 0 0 1rem;
+}
+
+/* Input de apelido */
+#profile-popup #nickname {
+  width: 100%;
+  padding: 0.75rem;
+  font: 1rem 'Orbitron', sans-serif;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Texto de instrução */
+#profile-popup p {
+  font-size: 0.875rem;
+  opacity: 0.75;
+  margin: 0 0 1rem;
+}
+
+/* Container ABSOLUTO que agrupa os dois botões */
+#profile-popup .popup-actions {
+  position: absolute;
+  bottom: 1rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Botões dentro do popup */
+#profile-popup .popup-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-family: 'Orbitron', sans-serif;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  border-radius: 8px;
+  color: var(--quase-branco);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#profile-popup .popup-actions button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Destaque especial para Exportar */
+#profile-popup .popup-actions #btn-export {
+  background: var(--azul-claro);
+  color: var(--verde-escuro);
+}
+
+#profile-popup .popup-actions #btn-export:hover {
+  background: var(--verde-médio);
+  color: #fff;
 }
 
 /* ─── Painel Comum ────────────────────────────────────────────────────────── */
@@ -450,6 +524,48 @@ body {
   background: var(--azul-claro);
   color: var(--verde-escuro);
 }
+
+#token-export,
+#token-import {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  padding: 2rem;
+  
+  /* vidro fosco + sombra suave */
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-radius: 16px;
+  
+  /* animação de fade-in */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  z-index: 10010;
+}
+
+/* quando removerem .hidden no JS, basta também definir opacity/visibility */
+#token-export:not(.hidden),
+#token-import:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* opcional: animação de entrada ligeiramente mais “crescer” */
+#token-export:not(.hidden),
+#token-import:not(.hidden) {
+  transform: translate(-50%, -50%) scale(1.02);
+}
+#token-export:not(.hidden):hover,
+#token-import:not(.hidden):hover {
+  transform: translate(-50%, -50%) scale(1);
+}
+
 
 /* ─── Campo de Texto ──────────────────────────────────────────────────────── */
 #nickname {

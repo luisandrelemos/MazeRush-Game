@@ -1,15 +1,4 @@
 // js/profileSystem.js
-import { exportProgress, importProgress } from './dataTransfer.js';
-
-// ─────────── Wire-up do Export/Import ───────────
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-export')
-    .addEventListener('click', exportProgress);
-  document.getElementById('btn-import-trigger')
-    .addEventListener('click', () => document.getElementById('file-import').click());
-  document.getElementById('file-import')
-    .addEventListener('change', e => importProgress(e.target.files[0]));
-});
 
 // ─────────── Constantes de Storage ───────────
 const PROFILES_KEY = "mazeRushProfiles";
@@ -24,32 +13,28 @@ function generateUUID() {
     );
 }
 
-// ─────────── Garante que existe um array de perfis e atribui UUID a cada um ───────────
+// ─────────── Inicialização / garantia de dados ───────────
 function ensureData() {
   let all = JSON.parse(localStorage.getItem(PROFILES_KEY) || "null");
   if (!Array.isArray(all)) {
     all = [
-      { id: "profile-1", name: "Jogador", unlockedLevels: ["level-1"], soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60 },
-      { id: "profile-2", name: "",             unlockedLevels: [],         soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60 },
-      { id: "profile-3", name: "",             unlockedLevels: [],         soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60 },
+      { id: "profile-1", name: "Jogador", unlockedLevels: ["level-1"], soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60},
+      { id: "profile-2", name: "",             unlockedLevels: [],         soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60},
+      { id: "profile-3", name: "",             unlockedLevels: [],         soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60},
     ];
   }
-
-  // adiciona userId a cada perfil, se ainda não existir
   all = all.map(p => {
     if (!p.userId) p.userId = generateUUID();
     return p;
   });
-
   localStorage.setItem(PROFILES_KEY, JSON.stringify(all));
-  // define ativo se ainda não tiver
   if (!localStorage.getItem(ACTIVE_KEY)) {
     localStorage.setItem(ACTIVE_KEY, all[0].id);
   }
-
   return all;
 }
 
+// ─────────── API Pública ───────────
 export function getAllProfiles() {
   return ensureData();
 }
@@ -74,15 +59,12 @@ export function getCurrentProfile() {
   return all.find(p => p.id === id);
 }
 
-// expõe o userId único do perfil activo
 export function getCurrentUserId() {
   return getCurrentProfile().userId;
 }
 
 export function updateProfile(updated) {
-  // garante que o perfil actualizado tem um userId
   if (!updated.userId) updated.userId = generateUUID();
-
   const all = ensureData().map(p =>
     p.id === updated.id ? updated : p
   );
