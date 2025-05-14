@@ -1,6 +1,7 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 
-export const animatedObjects=[];
+export const animatedObjects = [];
+export const coinMeshes = [];
 
 export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
@@ -177,7 +178,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     return ring; // <-- ADICIONADO: Devolve o anel criado!
   }
   // paralelepipedo animado nivel 6
-  function loadCustomObjects(objects, tileSize, offsetX, offsetZ, scene) {
+  function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
     if (!objects) return;
 
     objects.forEach((obj) => {
@@ -206,8 +207,60 @@ export async function loadLevel(levelName, scene, textureLoader) {
         mesh.userData.levelObject = true;
 
         scene.add(mesh);
-        // Guardar para animação
         animatedObjects.push(mesh);
+      }
+
+      if (type === "moeda") {
+        const radius = 0.5;
+        const thickness = 0.15;
+
+        // Parte interior (corpo da moeda)
+        const innerGeometry = new THREE.CylinderGeometry(
+          radius * 0.9,
+          radius * 0.9,
+          thickness,
+          32
+        );
+        const innerMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffd700, // cor de ouro
+          metalness: 0.9,
+          roughness: 0.2,
+        });
+        const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
+
+        // Borda exterior (ligeiramente maior e mais grossa)
+        const outerGeometry = new THREE.CylinderGeometry(
+          radius,
+          radius,
+          thickness * 1.1,
+          32
+        );
+        const outerMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffc400, // amarelo mais claro para contraste
+          metalness: 1,
+          roughness: 0.1,
+        });
+        const outerMesh = new THREE.Mesh(outerGeometry, outerMaterial);
+
+        // Agrupar ambos
+        const coinGroup = new THREE.Group();
+        coinGroup.add(outerMesh);
+        coinGroup.add(innerMesh);
+
+        // ✅ Rodar para que fique deitada no chão (eixo X)
+        coinGroup.rotation.x = Math.PI / 2;
+
+        // ✅ Subir para não ficar enterrada (y = metade da largura da moeda)
+        coinGroup.position.set(
+          position.x * tileSize + offsetX,
+          radius + 0.01, // ✅ usar o raio para subir a moeda acima do chão
+          position.z * tileSize + offsetZ
+        );
+
+        coinGroup.userData.levelObject = true;
+
+        scene.add(coinGroup);
+        coinMeshes.push(coinGroup);
       }
     });
   }
@@ -226,8 +279,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
   lvl.endPortal = mkPortal(lvl.portalEnd, endPos); // Agora `lvl.endPortal` guarda o portal final!
   // 7. Objetos personalizados (ex: paralelepípedo)
   loadCustomObjects(lvl.objects, lvl.tileSize, offsetX, offsetZ, scene);
-
-  
 
   /* 7. Devolver info ao main.js */
   return {
