@@ -5,6 +5,8 @@ import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
 import { db } from './firebase.js';
 import { submitScore, fetchLeaderboard } from './leaderboard.js';
+import { coinMeshes } from "./LevelLoader.js";
+import { animatedObjects } from "./LevelLoader.js";
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -41,6 +43,7 @@ document.body.appendChild(timerEl);
 let levelStartTime = 0;
 let isTimerRunning = false;
 let pauseStartTime = 0;
+let coinCount = 0;
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById("level-complete-modal");
@@ -192,6 +195,22 @@ scene.add(directionalLight);
 const pointLight = new THREE.PointLight(0x445577, 0.4, 60, 2);
 pointLight.position.set(0, 10, 0);
 scene.add(pointLight);
+
+
+/* ────────────────────────────  Função para atualizar o contador de moedas ───────────── */
+function updateCoinCounter() {
+  const coinEl = document.getElementById("coin-count");
+  if (coinEl) coinEl.textContent = coinCount;
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "m") {
+    // Pressionar "m" adiciona 1 moeda
+    coinCount++;
+    updateCoinCounter();
+  }
+});
+
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
 const textureLoader = new THREE.TextureLoader();
@@ -392,6 +411,28 @@ function checkCollisionAndReact(car, walls) {
   return false;
 }
 
+/* ────────────────────────────  Colisão com a moeda  ─────────────────── */
+
+function checkCoinCollection(car, coins) {
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const coin = coins[i];
+    const distance = car.position.distanceTo(coin.position);
+    if (distance < 1.2) {
+      // Remover brilho se existir
+      if (coin.userData.glow) coin.remove(coin.userData.glow);
+
+      // Remover a moeda da cena
+      scene.remove(coin);
+      coins.splice(i, 1);
+
+      coinCount++;
+      updateCoinCounter();
+    }
+  }
+}
+
+
+
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
 const keysPressed = {};
@@ -493,6 +534,7 @@ const uiBlocks = [
   document.getElementById("speedometer"),
   document.getElementById("camera-toggle-btn"),
   document.getElementById("minimap-container"),
+  document.getElementById("coin-counter"),
 ];
 
 // ─── Toggle expand/recolher minimapa com resize do canvas ─────────────────
@@ -799,6 +841,7 @@ function animate(now) {
       .multiplyScalar(dist);
     car.position.add(dir);
     checkCollisionAndReact(car, wallMeshes);
+    checkCoinCollection(car, coinMeshes);
 
     // animação das rodas
     const wheelDir = d.velocity >= 0 ? 1 : -1;
@@ -806,6 +849,16 @@ function animate(now) {
       w.rotation.x += wheelDir * 10 * deltaTime;
     });
   }
+
+  // Roda todos os objetos animados (como o paralelepípedo)
+  animatedObjects.forEach((obj) => {
+    obj.rotation.y += 1.2 * deltaTime;
+  });
+
+  coinMeshes.forEach((coin) => {
+    coin.rotation.z += 2 * deltaTime; // velocidade de rotação
+  });
+
 
   // ───── Atualiza câmaras ─────
   if (cameraMode === 0) {
