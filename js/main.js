@@ -3,8 +3,9 @@ import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 import { createCar } from "../assets/models/CarModel.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
-import { db } from './firebase.js';
 import { submitScore, fetchLeaderboard } from './leaderboard.js';
+
+const gameContainer = document.getElementById("game-container");
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -14,7 +15,7 @@ let lastFrameTime = performance.now();
 const countdownEl = document.createElement("div");
 countdownEl.id = "countdown";
 countdownEl.textContent = "";
-document.body.appendChild(countdownEl);
+gameContainer.appendChild(countdownEl);
 
 /* ───────────────────────────  Timer de nível  ─────────────────────────── */
 const timerEl = document.createElement("div");
@@ -36,7 +37,7 @@ Object.assign(timerEl.style, {
   pointerEvents: "none",
   zIndex: "100",
 });
-document.body.appendChild(timerEl);
+gameContainer.appendChild(timerEl);
 
 let levelStartTime = 0;
 let isTimerRunning = false;
@@ -464,7 +465,7 @@ const pauseMenu = document.getElementById("pause-menu");
 const resumeBtn = document.getElementById("resume-btn");
 const restartBtn = document.getElementById("restart-btn");
 const exitBtn = document.getElementById("exit-btn");
-const gameContainer = document.getElementById("game-container");
+gameContainer.classList.remove("hidden");
 
 let isPaused = false;
 resumeBtn.onclick = () => {
