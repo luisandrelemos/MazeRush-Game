@@ -55,10 +55,8 @@
 
   "objects": [
   { "type": "paralelepipedo", "position": { "x": 3,  "z": 2 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
-  { "type": "paralelepipedo", "position": { "x": 6,  "z": 2 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 5,  "z": 3 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 2,  "z": 6 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
-  { "type": "paralelepipedo", "position": { "x": 3,  "z": 7 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 3,  "z": 9 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 3,  "z": 11 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 5,  "z": 14 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
@@ -80,12 +78,10 @@
   { "type": "paralelepipedo", "position": { "x": 8, "z": 14 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 9, "z": 16 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 11, "z": 17 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
-  { "type": "paralelepipedo", "position": { "x": 18, "z": 19 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 21, "z": 16 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 6, "z": 20 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 2, "z": 14 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 9, "z": 5 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "paralelepipedo", "position": { "x": 6, "z": 8 }, "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" }
-
 ]
 }
