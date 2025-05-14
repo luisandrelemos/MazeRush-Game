@@ -412,7 +412,11 @@ function checkCoinCollection(car, coins) {
   for (let i = coins.length - 1; i >= 0; i--) {
     const coin = coins[i];
     const distance = car.position.distanceTo(coin.position);
-    if (distance < 1) {
+    if (distance < 1.2) {
+      // Remover brilho se existir
+      if (coin.userData.glow) coin.remove(coin.userData.glow);
+
+      // Remover a moeda da cena
       scene.remove(coin);
       coins.splice(i, 1);
 
@@ -421,6 +425,7 @@ function checkCoinCollection(car, coins) {
     }
   }
 }
+
 
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
@@ -902,6 +907,10 @@ function animate(now) {
   // Roda todos os objetos animados (como o paralelepípedo)
   animatedObjects.forEach((obj) => {
     obj.rotation.y += 1.2 * deltaTime;
+  });
+
+  coinMeshes.forEach((coin) => {
+    coin.rotation.z += 2 * deltaTime; // velocidade de rotação
   });
 
   // ───── Render + fim de nível ─────

@@ -214,7 +214,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         const radius = 0.5;
         const thickness = 0.15;
 
-        // Parte interior (corpo da moeda)
+        // Parte interior (dentro)
         const innerGeometry = new THREE.CylinderGeometry(
           radius * 0.9,
           radius * 0.9,
@@ -222,13 +222,13 @@ export async function loadLevel(levelName, scene, textureLoader) {
           32
         );
         const innerMaterial = new THREE.MeshStandardMaterial({
-          color: 0xffd700, // cor de ouro
-          metalness: 0.9,
-          roughness: 0.2,
+          color: 0xffd700,
+          
+          
         });
         const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
 
-        // Borda exterior (ligeiramente maior e mais grossa)
+        // Borda exterior
         const outerGeometry = new THREE.CylinderGeometry(
           radius,
           radius,
@@ -236,28 +236,48 @@ export async function loadLevel(levelName, scene, textureLoader) {
           32
         );
         const outerMaterial = new THREE.MeshStandardMaterial({
-          color: 0xffc400, // amarelo mais claro para contraste
-          metalness: 1,
-          roughness: 0.1,
+          color: 0xfff066,
+         
+          
         });
         const outerMesh = new THREE.Mesh(outerGeometry, outerMaterial);
 
-        // Agrupar ambos
+        // Agrupar os dois
         const coinGroup = new THREE.Group();
         coinGroup.add(outerMesh);
         coinGroup.add(innerMesh);
 
-        // ✅ Rodar para que fique deitada no chão (eixo X)
+        // Rodar para deitar a moeda no chão (eixo X)
         coinGroup.rotation.x = Math.PI / 2;
 
-        // ✅ Subir para não ficar enterrada (y = metade da largura da moeda)
+        // Subir um pouco para não ficar enterrada
+        const yLift = 1;
         coinGroup.position.set(
           position.x * tileSize + offsetX,
-          radius + 0.01, // ✅ usar o raio para subir a moeda acima do chão
+          yLift,
           position.z * tileSize + offsetZ
         );
 
-        coinGroup.userData.levelObject = true;
+
+        // Criar brilho debaixo da moeda
+        const glowTex = textureLoader.load("../assets/textures/glow.png");
+        const glowMat = new THREE.SpriteMaterial({
+          map: glowTex,
+          color: 0xfff066,
+          transparent: true,
+          opacity: 0.6,
+          depthWrite: false,
+        });
+
+        const glowSprite = new THREE.Sprite(glowMat);
+        glowSprite.scale.set(2, 2, 1); 
+        glowSprite.position.set(0, -0.05, 0.8); 
+
+        
+        coinGroup.add(glowSprite);
+
+        
+        coinGroup.userData.glow = glowSprite;
 
         scene.add(coinGroup);
         coinMeshes.push(coinGroup);
