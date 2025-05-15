@@ -789,19 +789,19 @@ function animate(now) {
 
   // ───── Parâmetros de física ─────
   const d = car.userData;
-  if ( currentLevelIndex ===2){
-    d.acceleration = 2; // mais rápido: 12 m/s²
+  if (currentLevelIndex === 2) {
+    d.acceleration = 5; // mais rápido: 12 m/s²
     d.maxSpeed = 10; // mantém top speed em 15 m/s
-    d.friction = 0.1; 
-    d.steeringMultiplier = 0.3;  
-
-  }else{
+    d.friction = 1;
+    d.brakePower = 3;
+    d.steeringMultiplier = 0.3;
+  } else {
     d.acceleration = 13; // mais rápido: 12 m/s²
     d.maxSpeed = 15; // mantém top speed em 15 m/s
-    d.friction = 15; 
-    d.steeringMultiplier = 1; 
+    d.brakePower = 40;
+    d.friction = 15;
+    d.steeringMultiplier = 1;
   }
-  
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapW = map[0].length,
@@ -827,10 +827,11 @@ function animate(now) {
         d.maxSpeed
       );
     } else if (brakeKey) {
-      d.velocity = Math.max(
-        d.velocity - d.acceleration * 3 * deltaTime,
-        -d.maxSpeed * 0.5
-      );
+      if (d.velocity > 0) {
+        d.velocity = Math.max(d.velocity - d.brakePower * deltaTime, 0);
+      } else {
+        d.velocity = Math.min(d.velocity + d.brakePower * deltaTime, 0);
+      }
     } else {
       if (d.velocity > 0)
         d.velocity = Math.max(d.velocity - d.friction * deltaTime, 0);
@@ -862,8 +863,8 @@ function animate(now) {
   const moving = Math.abs(d.velocity) > 0.01;
   if (moving) {
     const dirFactor = d.velocity >= 0 ? 1 : -1;
-    car.rotation.y += axle.rotation.y * turnRate * deltaTime * dirFactor * d.steeringMultiplier;
-
+    car.rotation.y +=
+      axle.rotation.y * turnRate * deltaTime * dirFactor * d.steeringMultiplier;
   }
 
   // ───── Move + colisões ─────
