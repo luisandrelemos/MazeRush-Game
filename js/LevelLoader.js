@@ -272,46 +272,75 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   //construir um iglu nas ruas sem saida
   function createIglu(position, scene) {
-    // Corpo principal (esfera)
-    const domeGeometry = new THREE.SphereGeometry(
-      2.5,
-      32,
-      32,
-    );
+    // Corpo do iglu (esfera translúcida)
+    const domeGeometry = new THREE.SphereGeometry(2.5, 32, 32);
     const domeMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      roughness: 0.6,
-      metalness: 0.1,
+      emissive: 0xffcc88,
+      emissiveIntensity: 0.1,
     });
 
     const dome = new THREE.Mesh(domeGeometry, domeMaterial);
-    dome.position.set(position.x, 1, position.z);
+    dome.position.set(position.x, 0.4, position.z);
     dome.userData.levelObject = true;
     scene.add(dome);
 
-    // Entrada do iglu (cilindro aberto, tipo túnel)
-    const entranceGeometry = new THREE.CylinderGeometry(
+    // Entrada interior (túnel aberto onde o carro entra)
+    const innerGeometry = new THREE.CylinderGeometry(
       0.9,
       0.9,
-      3,
+      1.6,
       32,
       1,
       true
-    ); // openEnded = true
-    const entranceMaterial = new THREE.MeshStandardMaterial({
+    );
+    const innerMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      roughness: 0.6,
-      metalness: 0.1,
-      side: THREE.DoubleSide, // para vermos o interior também
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
+      emissive: 0xffcc88,
+      emissiveIntensity: 0.1,
     });
 
-    const entrance = new THREE.Mesh(entranceGeometry, entranceMaterial);
-    entrance.position.set(position.x, 0.3, position.z + 1.5);
-    entrance.rotation.x = Math.PI / 2;
-    entrance.rotation.z = 0; // Corrige rotação
+    const innerTunnel = new THREE.Mesh(innerGeometry, innerMaterial);
+    innerTunnel.rotation.x = Math.PI / 2;
+    innerTunnel.position.set(position.x, 0.1, position.z + 2.5);
+    innerTunnel.userData.levelObject = true;
+    scene.add(innerTunnel);
 
-    entrance.userData.levelObject = true;
-    scene.add(entrance);
+    // Entrada exterior (paredes grossas e fechadas)
+    const outerGeometry = new THREE.CylinderGeometry(
+      1.1,
+      1.1,
+      1.6,
+      32,
+      1,
+      false
+    ); // fechado
+    const outerMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.5,
+      emissive: 0xffcc88,
+      emissiveIntensity: 0.1,
+    });
+
+    const outerTunnel = new THREE.Mesh(outerGeometry, outerMaterial);
+    outerTunnel.rotation.x = Math.PI / 2;
+    outerTunnel.position.set(position.x, 0.1, position.z + 2.5);
+    outerTunnel.userData.levelObject = true;
+    scene.add(outerTunnel);
+
+    // Luz quente dentro do iglu
+    const igluLight = new THREE.PointLight(0xffcc88, 3.5, 6, 2);
+    igluLight.position.set(position.x, 1.3, position.z);
+    scene.add(igluLight);
+
+    // Luz suave dentro do túnel
+    const tunnelLight = new THREE.PointLight(0xffcc88, 1.2, 3, 2);
+    tunnelLight.position.set(position.x, 0.7, position.z + 2.2);
+    scene.add(tunnelLight);
   }
 
   /* 6. Novo design de portais (translúcido e plano) */
