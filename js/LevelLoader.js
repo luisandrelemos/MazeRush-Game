@@ -52,11 +52,13 @@ export async function loadLevel(levelName, scene, textureLoader) {
         map: wallTexture,
         metalness: 0.3,
         roughness: 0.6,
+        opacity: 0.9,
       })
     : new THREE.MeshStandardMaterial({
         color: lvl.colors?.wall ?? "#000000",
         roughness: 0.5,
         metalness: 0.4,
+        opacity: 0.9,
       });
 
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
@@ -228,6 +230,15 @@ export async function loadLevel(levelName, scene, textureLoader) {
         scene.add(coinGroup);
         coinMeshes.push(coinGroup);
       }
+
+      if (type === "iglu") {
+        const pos = new THREE.Vector3(
+          position.x * tileSize + offsetX,
+          0,
+          position.z * tileSize + offsetZ
+        );
+        createIglu(pos, scene);
+      }
     });
   }
 
@@ -257,6 +268,50 @@ export async function loadLevel(levelName, scene, textureLoader) {
     makeBorder(w, bt, (leftX + rightX) / 2, bottomZ);
     makeBorder(bt, h, leftX, (topZ + bottomZ) / 2);
     makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
+  }
+
+  //construir um iglu nas ruas sem saida
+  function createIglu(position, scene) {
+    // Corpo principal (esfera)
+    const domeGeometry = new THREE.SphereGeometry(
+      2.5,
+      32,
+      32,
+    );
+    const domeMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.6,
+      metalness: 0.1,
+    });
+
+    const dome = new THREE.Mesh(domeGeometry, domeMaterial);
+    dome.position.set(position.x, 1, position.z);
+    dome.userData.levelObject = true;
+    scene.add(dome);
+
+    // Entrada do iglu (cilindro aberto, tipo túnel)
+    const entranceGeometry = new THREE.CylinderGeometry(
+      0.9,
+      0.9,
+      3,
+      32,
+      1,
+      true
+    ); // openEnded = true
+    const entranceMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.6,
+      metalness: 0.1,
+      side: THREE.DoubleSide, // para vermos o interior também
+    });
+
+    const entrance = new THREE.Mesh(entranceGeometry, entranceMaterial);
+    entrance.position.set(position.x, 0.3, position.z + 1.5);
+    entrance.rotation.x = Math.PI / 2;
+    entrance.rotation.z = 0; // Corrige rotação
+
+    entrance.userData.levelObject = true;
+    scene.add(entrance);
   }
 
   /* 6. Novo design de portais (translúcido e plano) */

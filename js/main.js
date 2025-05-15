@@ -688,6 +688,11 @@ async function initLevel(idx) {
   );
   visitedCells = data.map.map((r) => r.map((_) => false));
 
+  // Adiciona neve apenas no nível 2
+  if (currentLevelIndex === 2) {
+    createSnow(scene);
+  }
+
   if (idx === 2) {
     // Ambiente gelado
     ambientLight.color.set(0xb0e0ff); // azul claro (tom frio)
@@ -770,6 +775,38 @@ nextBtn.onclick = async () => {
 
   nextBtn.blur();
 };
+//neve a cair
+let snowParticles;
+
+function createSnow(scene) {
+  const snowCount = 1500;
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
+
+  for (let i = 0; i < snowCount; i++) {
+    positions.push(
+      (Math.random() - 0.5) * 100, // x
+      Math.random() * 50 + 10, // y (altura inicial)
+      (Math.random() - 0.5) * 100 // z
+    );
+  }
+
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3)
+  );
+
+  const material = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.1,
+    transparent: true,
+    opacity: 0.8,
+  });
+
+  snowParticles = new THREE.Points(geometry, material);
+  snowParticles.userData.levelObject = true; // permite remoção em novos níveis
+  scene.add(snowParticles);
+}
 
 /* ─────────────────────────────  Loop  ────────────────────────────────────── */
 function animate(now) {
@@ -789,19 +826,19 @@ function animate(now) {
 
   // ───── Parâmetros de física ─────
   const d = car.userData;
-  if ( currentLevelIndex ===2){
-    d.acceleration = 2; // mais rápido: 12 m/s²
+  if (currentLevelIndex === 2) {
+    d.acceleration = 5; // mais rápido: 12 m/s²
     d.maxSpeed = 10; // mantém top speed em 15 m/s
-    d.friction = 0.1; 
-    d.steeringMultiplier = 0.3;  
-
-  }else{
+    d.friction = 1;
+    d.brakePower = 3;
+    d.steeringMultiplier = 0.3;
+  } else {
     d.acceleration = 13; // mais rápido: 12 m/s²
     d.maxSpeed = 15; // mantém top speed em 15 m/s
-    d.friction = 15; 
-    d.steeringMultiplier = 1; 
+    d.brakePower = 40;
+    d.friction = 15;
+    d.steeringMultiplier = 1;
   }
-  
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapW = map[0].length,
@@ -822,16 +859,24 @@ function animate(now) {
   // ───── Atualiza velocidade ─────
   if (!controlsLocked) {
     if (accelKey) {
+      // Acelerar para a frente
       d.velocity = Math.min(
         d.velocity + d.acceleration * deltaTime,
         d.maxSpeed
       );
     } else if (brakeKey) {
-      d.velocity = Math.max(
-        d.velocity - d.acceleration * 3 * deltaTime,
-        -d.maxSpeed * 0.5
-      );
+      if (d.velocity > 0) {
+        // Travar
+        d.velocity = Math.max(d.velocity - d.brakePower * deltaTime, 0);
+      } else {
+        // Marcha-atrás (acelerar para trás)
+        d.velocity = Math.max(
+          d.velocity - d.acceleration * deltaTime,
+          -d.maxSpeed * 0.5 // limite da velocidade para trás
+        );
+      }
     } else {
+      // Travagem natural (fricção)
       if (d.velocity > 0)
         d.velocity = Math.max(d.velocity - d.friction * deltaTime, 0);
       else d.velocity = Math.min(d.velocity + d.friction * deltaTime, 0);
@@ -862,8 +907,8 @@ function animate(now) {
   const moving = Math.abs(d.velocity) > 0.01;
   if (moving) {
     const dirFactor = d.velocity >= 0 ? 1 : -1;
-    car.rotation.y += axle.rotation.y * turnRate * deltaTime * dirFactor * d.steeringMultiplier;
-
+    car.rotation.y +=
+      axle.rotation.y * turnRate * deltaTime * dirFactor * d.steeringMultiplier;
   }
 
   // ───── Move + colisões ─────
@@ -957,6 +1002,18 @@ function animate(now) {
     }
   }
   drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
+
+  // Neve a cair (apenas se existir)
+  if (snowParticles) {
+    const pos = snowParticles.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      pos.array[i * 3 + 1] -= 0.1; // desce no eixo Y
+      if (pos.array[i * 3 + 1] < 0) {
+        pos.array[i * 3 + 1] = Math.random() * 50 + 10; // reposiciona no topo
+      }
+    }
+    pos.needsUpdate = true;
+  }
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);

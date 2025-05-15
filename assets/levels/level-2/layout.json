@@ -46,7 +46,15 @@
   ],
 
   "floor": {
-    "texture": "1.jpg"
+    "texture": "floor.jpg"
   },
-  "wallTexture": "2.jpg"
+  "wallTexture": "ice_blocks.jpg",
+
+  "objects": [
+  {
+    "type": "iglu",
+    "position": { "x": 1, "z": 7 }
+  }
+]
+
 }
