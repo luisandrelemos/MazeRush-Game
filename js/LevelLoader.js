@@ -270,6 +270,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
   }
 
+
   //construir um iglu nas ruas sem saida
   function createIglu(position, scene) {
     // Corpo do iglu (esfera translúcida)
