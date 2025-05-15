@@ -2,6 +2,8 @@ import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 
 export const animatedObjects = [];
 export const coinMeshes = [];
+export let igluTunnel = null;
+export let igluPosition = null;
 
 export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
@@ -25,6 +27,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
     floorTexture.repeat.set(mapW / 2, mapH / 2); // ajusta à dimensão do labirinto
   }
+
+  // textura do iglu
+  const igluTexture = textureLoader.load(
+    `../assets/levels/level-2/textureiglu.jpg`
+  );
+  igluTexture.wrapS = igluTexture.wrapT = THREE.RepeatWrapping;
 
   const floorMat = floorTexture
     ? new THREE.MeshStandardMaterial({
@@ -232,12 +240,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
       }
 
       if (type === "iglu") {
-        const pos = new THREE.Vector3(
+        igluPosition = new THREE.Vector3(
           position.x * tileSize + offsetX,
           0,
           position.z * tileSize + offsetZ
         );
-        createIglu(pos, scene);
+        igluTunnel = createIglu(igluPosition, scene, igluTexture);
       }
     });
   }
@@ -271,21 +279,23 @@ export async function loadLevel(levelName, scene, textureLoader) {
   }
 
   //construir um iglu nas ruas sem saida
-  function createIglu(position, scene) {
-    // Corpo do iglu (esfera translúcida)
+  function createIglu(position, scene, igluTexture) {
+    // Corpo do iglu (esfera)
     const domeGeometry = new THREE.SphereGeometry(2.5, 32, 32);
     const domeMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
+      map: igluTexture,
       emissive: 0xffcc88,
       emissiveIntensity: 0.1,
     });
-
     const dome = new THREE.Mesh(domeGeometry, domeMaterial);
     dome.position.set(position.x, 0.4, position.z);
     dome.userData.levelObject = true;
     scene.add(dome);
 
-    // Entrada interior (túnel aberto onde o carro entra)
+    // Grupo dos túneis
+    const tunnelGroup = new THREE.Group();
+
+    // Túnel interior (totalmente aberto)
     const innerGeometry = new THREE.CylinderGeometry(
       0.9,
       0.9,
@@ -293,54 +303,67 @@ export async function loadLevel(levelName, scene, textureLoader) {
       32,
       1,
       true
-    );
+    ); // openEnded: true
     const innerMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.5,
+      map: igluTexture,
       side: THREE.DoubleSide,
       emissive: 0xffcc88,
       emissiveIntensity: 0.1,
     });
-
     const innerTunnel = new THREE.Mesh(innerGeometry, innerMaterial);
     innerTunnel.rotation.x = Math.PI / 2;
-    innerTunnel.position.set(position.x, 0.1, position.z + 2.5);
-    innerTunnel.userData.levelObject = true;
-    scene.add(innerTunnel);
+    innerTunnel.position.set(0, 0.1, 2.5);
+    tunnelGroup.add(innerTunnel);
 
-    // Entrada exterior (paredes grossas e fechadas)
+    // Túnel exterior (também totalmente aberto)
     const outerGeometry = new THREE.CylinderGeometry(
       1.1,
       1.1,
       1.6,
       32,
       1,
-      false
-    ); // fechado
+      true
+    ); // openEnded: true
     const outerMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.5,
+      map: igluTexture,
       emissive: 0xffcc88,
       emissiveIntensity: 0.1,
     });
-
     const outerTunnel = new THREE.Mesh(outerGeometry, outerMaterial);
     outerTunnel.rotation.x = Math.PI / 2;
-    outerTunnel.position.set(position.x, 0.1, position.z + 2.5);
-    outerTunnel.userData.levelObject = true;
-    scene.add(outerTunnel);
+    outerTunnel.position.set(0, 0.1, 2.5);
+    tunnelGroup.add(outerTunnel);
 
-    // Luz quente dentro do iglu
+    // Posicionar o grupo
+    tunnelGroup.position.set(position.x, 0, position.z);
+    tunnelGroup.userData.levelObject = true;
+    scene.add(tunnelGroup);
+
+    // Criar parede grossa entre o cilindro exterior e interior (visual)
+    const wallGeometry = new THREE.RingGeometry(0.9, 1.1, 32); // raio interior = raio do túnel interior, exterior = do túnel exterior
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      map: igluTexture,
+      emissive: 0xffcc88,
+      emissiveIntensity: 0.1,
+      side: THREE.DoubleSide,
+    });
+
+    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+    wall.rotation.z = Math.PI / 2; // deitar no chão
+    wall
+    wall.position.set(0, 0.1, 3.3); // à frente dos túneis (ajusta se necessário)
+    tunnelGroup.add(wall);
+
+    // Luzes
     const igluLight = new THREE.PointLight(0xffcc88, 3.5, 6, 2);
     igluLight.position.set(position.x, 1.3, position.z);
     scene.add(igluLight);
 
-    // Luz suave dentro do túnel
     const tunnelLight = new THREE.PointLight(0xffcc88, 1.2, 3, 2);
     tunnelLight.position.set(position.x, 0.7, position.z + 2.2);
     scene.add(tunnelLight);
+
+    return tunnelGroup;
   }
 
   /* 6. Novo design de portais (translúcido e plano) */
@@ -405,4 +428,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
     endPos,
     endPortal: lvl.endPortal,
   };
+}
+
+export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
+  const dx = carPosition.x - igluPosition.x;
+  const dz = carPosition.z - igluPosition.z;
+  const angle = Math.atan2(dx, dz);
+
+  tunnelGroup.rotation.y = angle;
 }
