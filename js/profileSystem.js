@@ -18,15 +18,53 @@ function ensureData() {
   let all = JSON.parse(localStorage.getItem(PROFILES_KEY) || "null");
   if (!Array.isArray(all)) {
     all = [
-      { id: "profile-1", name: "Jogador", unlockedLevels: ["level-1"], soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60},
-      { id: "profile-2", name: "",             unlockedLevels: [],         soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60},
-      { id: "profile-3", name: "",             unlockedLevels: [],         soundEnabled: true, musicEnabled: true, soundVolume: 70, musicVolume: 60},
+      {
+        id: "profile-1",
+        userId: generateUUID(),
+        name: "Jogador",
+        unlockedLevels: ["level-1"],
+        soundEnabled: true,
+        musicEnabled: true,
+        soundVolume: 70,
+        musicVolume: 60,
+        coins: 0,
+        levelTimes: {}
+      },
+      {
+        id: "profile-2",
+        userId: generateUUID(),
+        name: "",
+        unlockedLevels: [],
+        soundEnabled: true,
+        musicEnabled: true,
+        soundVolume: 70,
+        musicVolume: 60,
+        coins: 0,
+        levelTimes: {}
+      },
+      {
+        id: "profile-3",
+        userId: generateUUID(),
+        name: "",
+        unlockedLevels: [],
+        soundEnabled: true,
+        musicEnabled: true,
+        soundVolume: 70,
+        musicVolume: 60,
+        coins: 0,
+        levelTimes: {}
+      }
     ];
   }
+
+  // Para perfis pré-existentes, inicializa campos novos se faltarem
   all = all.map(p => {
-    if (!p.userId) p.userId = generateUUID();
+    if (!p.userId)         p.userId     = generateUUID();
+    if (p.coins === undefined)    p.coins      = 0;
+    if (!p.levelTimes)     p.levelTimes = {};
     return p;
   });
+
   localStorage.setItem(PROFILES_KEY, JSON.stringify(all));
   if (!localStorage.getItem(ACTIVE_KEY)) {
     localStorage.setItem(ACTIVE_KEY, all[0].id);
