@@ -6,8 +6,11 @@ import { unlockLevel } from "./unlockSystem.js";
 import { submitScore, fetchLeaderboard } from "./leaderboard.js";
 import { coinMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
-import { updateAudioSettings, updateMuteIcons } from './audio.js';
-import { getCurrentProfile, updateProfile } from './profileSystem.js';
+import { updateAudioSettings, updateMuteIcons } from "./audio.js";
+import { getCurrentProfile, updateProfile } from "./profileSystem.js";
+import { igluTunnel, igluPosition } from "./LevelLoader.js";
+import { updateTunnelDirection } from './LevelLoader.js';
+
 
 const gameContainer = document.getElementById("game-container");
 
@@ -503,8 +506,8 @@ const pauseMenu = document.getElementById("pause-menu");
 const resumeBtn = document.getElementById("resume-btn");
 const restartBtn = document.getElementById("restart-btn");
 const exitBtn = document.getElementById("exit-btn");
-const muteSoundBtn = document.getElementById('mute-sound-btn');
-const muteMusicBtn = document.getElementById('mute-music-btn');
+const muteSoundBtn = document.getElementById("mute-sound-btn");
+const muteMusicBtn = document.getElementById("mute-music-btn");
 
 gameContainer.classList.remove("hidden");
 let isPaused = false;
@@ -518,14 +521,14 @@ resumeBtn.onclick = () => {
   isPaused = false;
   pauseMenu.classList.remove("active");
   pauseOverlay.classList.remove("active");
-  uiBlocks.forEach(el => {
+  uiBlocks.forEach((el) => {
     el.style.filter = "none";
     el.style.pointerEvents = "auto";
   });
 };
 
 // Handler do botão de som
-muteSoundBtn.addEventListener('click', () => {
+muteSoundBtn.addEventListener("click", () => {
   const cur = getCurrentProfile();
   cur.soundEnabled = !cur.soundEnabled;
   updateProfile(cur);
@@ -534,7 +537,7 @@ muteSoundBtn.addEventListener('click', () => {
 });
 
 // Handler do botão de música
-muteMusicBtn.addEventListener('click', () => {
+muteMusicBtn.addEventListener("click", () => {
   const cur = getCurrentProfile();
   cur.musicEnabled = !cur.musicEnabled;
   updateProfile(cur);
@@ -852,7 +855,7 @@ function animate(now) {
     d.maxSpeed = 10; // mantém top speed em 15 m/s
     d.friction = 1;
     d.brakePower = 3;
-    d.steeringMultiplier = 0.3;
+    d.steeringMultiplier = 0.4;
   } else {
     d.acceleration = 13; // mais rápido: 12 m/s²
     d.maxSpeed = 15; // mantém top speed em 15 m/s
@@ -1034,6 +1037,10 @@ function animate(now) {
       }
     }
     pos.needsUpdate = true;
+  }
+
+  if (igluTunnel && igluPosition && car) {
+    updateTunnelDirection(igluTunnel, igluPosition, car.position);
   }
 
   // ───── Render + fim de nível ─────
