@@ -46,7 +46,7 @@
   ],
 
   "floor": {
-    "texture": "1.jpg"
+    "texture": "floor.jpg"
   },
-  "wallTexture": "2.jpg"
+  "wallTexture": "ice_blocks.jpg"
 }

@@ -52,11 +52,13 @@ export async function loadLevel(levelName, scene, textureLoader) {
         map: wallTexture,
         metalness: 0.3,
         roughness: 0.6,
+        opacity: 0.9,
       })
     : new THREE.MeshStandardMaterial({
         color: lvl.colors?.wall ?? "#000000",
         roughness: 0.5,
         metalness: 0.4,
+        opacity: 0.9,
       });
 
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;

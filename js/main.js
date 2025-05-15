@@ -859,17 +859,24 @@ function animate(now) {
   // ───── Atualiza velocidade ─────
   if (!controlsLocked) {
     if (accelKey) {
+      // Acelerar para a frente
       d.velocity = Math.min(
         d.velocity + d.acceleration * deltaTime,
         d.maxSpeed
       );
     } else if (brakeKey) {
       if (d.velocity > 0) {
+        // Travar
         d.velocity = Math.max(d.velocity - d.brakePower * deltaTime, 0);
       } else {
-        d.velocity = Math.min(d.velocity + d.brakePower * deltaTime, 0);
+        // Marcha-atrás (acelerar para trás)
+        d.velocity = Math.max(
+          d.velocity - d.acceleration * deltaTime,
+          -d.maxSpeed * 0.5 // limite da velocidade para trás
+        );
       }
     } else {
+      // Travagem natural (fricção)
       if (d.velocity > 0)
         d.velocity = Math.max(d.velocity - d.friction * deltaTime, 0);
       else d.velocity = Math.min(d.velocity + d.friction * deltaTime, 0);
