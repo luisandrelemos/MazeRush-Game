@@ -385,10 +385,10 @@ body {
   transform: translate(-50%, -50%);
   width: 90%;
   max-width: 360px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--verde-escuro);
   backdrop-filter: blur(8px);
   padding: 1.5rem;
-  padding-bottom: 4.5rem;   /* espaço para os botões */
+  padding-bottom: 4.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   color: var(--quase-branco);
