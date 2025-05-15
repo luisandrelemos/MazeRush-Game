@@ -13,17 +13,26 @@ export async function loadLevel(levelName, scene, textureLoader) {
     .filter((o) => o.userData.levelObject)
     .forEach((o) => scene.remove(o));
 
-  /* 3. Chão */
-  const floorMat = lvl.floor?.texture
-    ? new THREE.MeshStandardMaterial({
-        map: textureLoader.load(
-          `../assets/levels/${levelName}/${lvl.floor.texture}`
-        ),
-      })
-    : new THREE.MeshStandardMaterial({ color: lvl.colors?.floor ?? "#888" });
-
   const mapW = lvl.map[0].length;
   const mapH = lvl.map.length;
+
+  //chao
+  let floorTexture;
+  if (lvl.floor?.texture) {
+    floorTexture = textureLoader.load(
+      `../assets/levels/${levelName}/${lvl.floor.texture}`
+    );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set(mapW / 2, mapH / 2); // ajusta à dimensão do labirinto
+  }
+
+  const floorMat = floorTexture
+    ? new THREE.MeshStandardMaterial({
+        map: floorTexture,
+        metalness: 0.2,
+        roughness: 0.8,
+      })
+    : new THREE.MeshStandardMaterial({ color: lvl.colors?.floor ?? "#888" });
 
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(mapW * lvl.tileSize, mapH * lvl.tileSize),
@@ -34,11 +43,21 @@ export async function loadLevel(levelName, scene, textureLoader) {
   scene.add(floor);
 
   /* 4. Paredes internas do labirinto */
-  const wallMat = new THREE.MeshStandardMaterial({
-    color: lvl.colors?.wall ?? "#0F223D",
-    roughness: 0.5,
-    metalness: 0.6,
-  });
+  const wallTexture = lvl.wallTexture
+    ? textureLoader.load(`../assets/levels/${levelName}/${lvl.wallTexture}`)
+    : null;
+
+  const wallMat = wallTexture
+    ? new THREE.MeshStandardMaterial({
+        map: wallTexture,
+        metalness: 0.3,
+        roughness: 0.6,
+      })
+    : new THREE.MeshStandardMaterial({
+        color: lvl.colors?.wall ?? "#000000",
+        roughness: 0.5,
+        metalness: 0.4,
+      });
 
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
@@ -79,7 +98,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
               height,
               lvl.tileSize * 0.2
             );
-            console.warn(`⚠️ Obstáculo (2) em (${x}, ${z}) sem direção clara.`);
           }
 
           const wall = new THREE.Mesh(geo, wallMat);
@@ -111,7 +129,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
       }
     })
   );
-
 
   // paralelepipedo animado nivel 6
   function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
@@ -159,8 +176,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         const innerMaterial = new THREE.MeshStandardMaterial({
           color: 0xffd700,
-
-
         });
         const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
 
@@ -173,8 +188,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         const outerMaterial = new THREE.MeshStandardMaterial({
           color: 0xfff066,
-
-
         });
         const outerMesh = new THREE.Mesh(outerGeometry, outerMaterial);
 
@@ -194,7 +207,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
           position.z * tileSize + offsetZ
         );
 
-
         // Criar brilho debaixo da moeda
         const glowTex = textureLoader.load("../assets/textures/glow.png");
         const glowMat = new THREE.SpriteMaterial({
@@ -206,12 +218,10 @@ export async function loadLevel(levelName, scene, textureLoader) {
         });
 
         const glowSprite = new THREE.Sprite(glowMat);
-        glowSprite.scale.set(2, 2, 1); 
-        glowSprite.position.set(0, -0.05, 0.8); 
-
+        glowSprite.scale.set(2, 2, 1);
+        glowSprite.position.set(0, -0.05, 0.8);
 
         coinGroup.add(glowSprite);
-
 
         coinGroup.userData.glow = glowSprite;
 
@@ -220,7 +230,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
       }
     });
   }
-
 
   /* 5. Bordas exteriores */
   if (lvl.borderThickness && lvl.borderThickness > 0) {

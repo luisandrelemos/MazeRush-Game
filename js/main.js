@@ -3,7 +3,7 @@ import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 import { createCar } from "../assets/models/CarModel.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
-import { submitScore, fetchLeaderboard } from './leaderboard.js';
+import { submitScore, fetchLeaderboard } from "./leaderboard.js";
 import { coinMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
 
@@ -197,7 +197,6 @@ const pointLight = new THREE.PointLight(0x445577, 0.4, 60, 2);
 pointLight.position.set(0, 10, 0);
 scene.add(pointLight);
 
-
 /* ────────────────────────────  Função para atualizar o contador de moedas ───────────── */
 function updateCoinCounter() {
   const coinEl = document.getElementById("coin-count");
@@ -211,7 +210,6 @@ window.addEventListener("keydown", (e) => {
     updateCoinCounter();
   }
 });
-
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
 const textureLoader = new THREE.TextureLoader();
@@ -432,8 +430,6 @@ function checkCoinCollection(car, coins) {
   }
 }
 
-
-
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
 const keysPressed = {};
@@ -445,7 +441,6 @@ document.addEventListener("keydown", (e) => {
   if (key === "e") rotateCar180(car, "right");
   if (e.code === "Space") jumpCar(car);
 });
-
 
 document.addEventListener("keyup", (e) => {
   if (isPaused) return;
@@ -676,7 +671,7 @@ async function initLevel(idx) {
   currentLevelIndex = idx;
   const levelName = `level-${idx}`;
 
-    // 1) garantir que nenhum modal / tempo antigo fica no caminho
+  // 1) garantir que nenhum modal / tempo antigo fica no caminho
   modal.classList.remove("show");
   // não removemos mais o <p class="time-display">, apenas limpamos o texto
   const timeEl = modal.querySelector(".time-display");
@@ -693,10 +688,22 @@ async function initLevel(idx) {
   );
   visitedCells = data.map.map((r) => r.map((_) => false));
 
+  if (idx === 2) {
+    // Ambiente gelado
+    ambientLight.color.set(0xb0e0ff); // azul claro (tom frio)
+    ambientLight.intensity = 0.3;
+
+    directionalLight.color.set(0xe0f8ff); // luz gélida
+    directionalLight.intensity = 0.8;
+
+    directionalLight.position.set(20, 50, 20); // (opcional: ângulo da luz)
+
+    // A fog azul clara já vem do layout.json do nível 2
+  }
 
   // 3) posicionar carro no início
   car.position.copy(data.startPos);
-  car.pos
+  car.pos;
   car.userData.velocity = 0;
 
   // 4) rotação automática inicial
@@ -782,56 +789,81 @@ function animate(now) {
 
   // ───── Parâmetros de física ─────
   const d = car.userData;
-  d.acceleration = 13;   // mais rápido: 12 m/s²
-  d.maxSpeed     = 15;   // mantém top speed em 15 m/s
-  const naturalDecel = 15;  // m/s²
+  if ( currentLevelIndex ===2){
+    d.acceleration = 2; // mais rápido: 12 m/s²
+    d.maxSpeed = 10; // mantém top speed em 15 m/s
+    d.friction = 0.1; 
+    d.steeringMultiplier = 0.3;  
+
+  }else{
+    d.acceleration = 13; // mais rápido: 12 m/s²
+    d.maxSpeed = 15; // mantém top speed em 15 m/s
+    d.friction = 15; 
+    d.steeringMultiplier = 1; 
+  }
+  
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
-  const mapW = map[0].length, mapH = map.length;
+  const mapW = map[0].length,
+    mapH = map.length;
 
   // Teclas
   const accelKey = keysPressed.w || keysPressed.arrowup;
   const brakeKey = keysPressed.s || keysPressed.arrowdown;
-  const leftKey  = keysPressed.a || keysPressed.arrowleft;
+  const leftKey = keysPressed.a || keysPressed.arrowleft;
   const rightKey = keysPressed.d || keysPressed.arrowright;
 
   // Luzes de travão e ré
-  (d.brakeLights   || []).forEach(l => l.visible = brakeKey  && d.velocity > 0);
-  (d.reverseLights || []).forEach(l => l.visible = d.velocity < 0);
+  (d.brakeLights || []).forEach(
+    (l) => (l.visible = brakeKey && d.velocity > 0)
+  );
+  (d.reverseLights || []).forEach((l) => (l.visible = d.velocity < 0));
 
   // ───── Atualiza velocidade ─────
   if (!controlsLocked) {
     if (accelKey) {
-      d.velocity = Math.min(d.velocity + d.acceleration * deltaTime, d.maxSpeed);
+      d.velocity = Math.min(
+        d.velocity + d.acceleration * deltaTime,
+        d.maxSpeed
+      );
     } else if (brakeKey) {
-      d.velocity = Math.max(d.velocity - d.acceleration * 3 * deltaTime, -d.maxSpeed * 0.5);
+      d.velocity = Math.max(
+        d.velocity - d.acceleration * 3 * deltaTime,
+        -d.maxSpeed * 0.5
+      );
     } else {
-      if (d.velocity > 0) d.velocity = Math.max(d.velocity - naturalDecel * deltaTime, 0);
-      else                d.velocity = Math.min(d.velocity + naturalDecel * deltaTime, 0);
+      if (d.velocity > 0)
+        d.velocity = Math.max(d.velocity - d.friction * deltaTime, 0);
+      else d.velocity = Math.min(d.velocity + d.friction * deltaTime, 0);
     }
   } else {
     d.velocity = 0;
   }
 
   // ───── Direcção e rotação ─────
-  const axle       = d.frontAxle;
-  const steerMax   = Math.PI / 5;  // ±30°
-  const steerLerp  = 12;           // resposta ao volante bem rápida
-  const turnRate   = 4;            // rad/s mais agressivo
+  const axle = d.frontAxle;
+  const steerMax = Math.PI / 5; // ±30°
+  const steerLerp = 12; // resposta ao volante bem rápida
+  const turnRate = 4; // rad/s mais agressivo
 
   // ângulo alvo das rodas
   let targetSteer = 0;
-  if (leftKey)  targetSteer =  steerMax;
+  if (leftKey) targetSteer = steerMax;
   if (rightKey) targetSteer = -steerMax;
 
   // suaviza direção das rodas (mas mais rápido)
-  axle.rotation.y = THREE.MathUtils.lerp(axle.rotation.y, targetSteer, steerLerp * deltaTime);
+  axle.rotation.y = THREE.MathUtils.lerp(
+    axle.rotation.y,
+    targetSteer,
+    steerLerp * deltaTime
+  );
 
   // só gira o carro se estiver a mover
   const moving = Math.abs(d.velocity) > 0.01;
   if (moving) {
     const dirFactor = d.velocity >= 0 ? 1 : -1;
-    car.rotation.y += axle.rotation.y * turnRate * deltaTime * dirFactor;
+    car.rotation.y += axle.rotation.y * turnRate * deltaTime * dirFactor * d.steeringMultiplier;
+
   }
 
   // ───── Move + colisões ─────
@@ -846,7 +878,7 @@ function animate(now) {
 
     // animação das rodas
     const wheelDir = d.velocity >= 0 ? 1 : -1;
-    (d.rotatingWheels || []).forEach(w => {
+    (d.rotatingWheels || []).forEach((w) => {
       w.rotation.x += wheelDir * 10 * deltaTime;
     });
   }
@@ -860,36 +892,34 @@ function animate(now) {
     coin.rotation.z += 2 * deltaTime; // velocidade de rotação
   });
 
-
   // ───── Atualiza câmaras ─────
   if (cameraMode === 0) {
     if (!isDragging) targetRotationOffset *= 0.9;
     cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.1;
     const base = new THREE.Vector3(0, 8.5, 8.5);
-    const off  = base.clone()
+    const off = base
+      .clone()
       .applyEuler(new THREE.Euler(0, cameraRotationOffset, 0))
       .applyEuler(car.rotation);
     cameraPerspective.position.lerp(car.position.clone().add(off), 0.08);
     cameraPerspective.lookAt(car.position);
-
   } else if (cameraMode === 1) {
     const aspect = innerWidth / innerHeight;
-    orthoSizeTopView = aspect > 1
-      ? 10 * zoomTopView
-      : (10 * zoomTopView) / aspect;
-    cameraOrtho.left   = -orthoSizeTopView * aspect;
-    cameraOrtho.right  =  orthoSizeTopView * aspect;
-    cameraOrtho.top    =  orthoSizeTopView;
+    orthoSizeTopView =
+      aspect > 1 ? 10 * zoomTopView : (10 * zoomTopView) / aspect;
+    cameraOrtho.left = -orthoSizeTopView * aspect;
+    cameraOrtho.right = orthoSizeTopView * aspect;
+    cameraOrtho.top = orthoSizeTopView;
     cameraOrtho.bottom = -orthoSizeTopView;
     cameraOrtho.updateProjectionMatrix();
     cameraOrtho.position.set(car.position.x, 60, car.position.z + 20);
     cameraOrtho.lookAt(car.position);
-
   } else {
     if (!isDragging) targetRotationOffset *= 0.9;
     cameraRotationOffset += (targetRotationOffset - cameraRotationOffset) * 0.1;
     const base = new THREE.Vector3(0, 1.5, 4);
-    const off  = base.clone()
+    const off = base
+      .clone()
       .applyEuler(new THREE.Euler(0, cameraRotationOffset, 0))
       .applyEuler(car.rotation);
     cameraFollow.position.lerp(car.position.clone().add(off), 0.08);
@@ -907,7 +937,7 @@ function animate(now) {
 
   // ───── Faróis ─────
   const L = new THREE.Vector3(-0.2, 0.2, -0.6).applyEuler(car.rotation);
-  const R = new THREE.Vector3( 0.2, 0.2, -0.6).applyEuler(car.rotation);
+  const R = new THREE.Vector3(0.2, 0.2, -0.6).applyEuler(car.rotation);
   const D = new THREE.Vector3(0, 0, -2).applyEuler(car.rotation);
   headlightLeft.position.copy(car.position.clone().add(L));
   headlightRight.position.copy(car.position.clone().add(R));
@@ -919,7 +949,8 @@ function animate(now) {
   const cz = Math.floor((car.position.z - offsetZ) / tileSize + 0.5);
   for (let dz = -1; dz <= 1; dz++) {
     for (let dx = -1; dx <= 1; dx++) {
-      const nx = cx + dx, nz = cz + dz;
+      const nx = cx + dx,
+        nz = cz + dz;
       if (nx >= 0 && nx < mapW && nz >= 0 && nz < mapH) {
         visitedCells[nz][nx] = true;
       }
@@ -944,56 +975,58 @@ async function checkLevelComplete() {
 
     // Calcula tempo
     const elapsedMs = performance.now() - levelStartTime;
-    const timeSec   = elapsedMs / 1000;
+    const timeSec = elapsedMs / 1000;
 
     // Desbloqueia próximo nível localmente
     const nextLevelId = `level-${currentLevelIndex + 1}`;
     unlockLevel(nextLevelId);
 
     // Mostra tempo no modal
-    modal.querySelector('.time-display').textContent = 
-      `Tempo: ${timeSec.toFixed(2)}s`;
+    modal.querySelector(
+      ".time-display"
+    ).textContent = `Tempo: ${timeSec.toFixed(2)}s`;
 
     // Submete à Firestore (só se for melhor)
     const levelId = `level-${currentLevelIndex}`;
     try {
       await submitScore(levelId, timeSec);
-    } catch(err) {
-      console.warn('Não foi possível enviar score:', err);
+    } catch (err) {
+      console.warn("Não foi possível enviar score:", err);
     }
 
     // Puxa o Top 5 e preenche a lista
-    const tb = document.querySelector('#leaderboard-table tbody');
+    const tb = document.querySelector("#leaderboard-table tbody");
     tb.innerHTML = '<tr><td colspan="3">Carregando…</td></tr>';
     try {
       const top5 = await fetchLeaderboard(levelId, 5);
-      const tb = document.querySelector('#leaderboard-table tbody');
-      tb.innerHTML = '';
+      const tb = document.querySelector("#leaderboard-table tbody");
+      tb.innerHTML = "";
       if (top5.length === 0) {
         tb.innerHTML = '<tr><td colspan="3">Nenhum score ainda</td></tr>';
       } else {
-        top5.forEach((entry,i) => {
-          const row = document.createElement('tr');
+        top5.forEach((entry, i) => {
+          const row = document.createElement("tr");
           row.innerHTML = `
-            <td>${i+1}</td>
+            <td>${i + 1}</td>
             <td>${entry.name}</td>
             <td>${entry.time.toFixed(2)}s</td>
           `;
           tb.appendChild(row);
         });
       }
-    } catch(err) {
-      tb.innerHTML = '<tr><td colspan="3">Erro ao carregar leaderboard</td></tr>';
+    } catch (err) {
+      tb.innerHTML =
+        '<tr><td colspan="3">Erro ao carregar leaderboard</td></tr>';
       console.error(err);
     }
 
     // Mostra o modal
-    modal.classList.add('show');
+    modal.classList.add("show");
 
     // Bloqueia UI de fundo
-    uiBlocks.forEach(el => {
-      el.style.filter = 'blur(6px)';
-      el.style.pointerEvents = 'none';
+    uiBlocks.forEach((el) => {
+      el.style.filter = "blur(6px)";
+      el.style.pointerEvents = "none";
     });
     // Opcional: impedir teclas/câmera enquanto o modal está aberto
     controlsLocked = true;
