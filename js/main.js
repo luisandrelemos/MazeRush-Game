@@ -1053,7 +1053,7 @@ async function checkLevelComplete() {
   if (levelComplete || isInPreview || !levelData?.endPortal) return;
 
   const dist = car.position.distanceTo(levelData.endPortal.position);
-  if (dist < 0.8) {
+  if (dist < 2.5) {
     levelComplete = true;
     controlsLocked = true;
     isTimerRunning = false;
