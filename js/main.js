@@ -3,7 +3,7 @@ import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 import { createCar } from "../assets/models/CarModel.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
-import { submitScore, fetchLeaderboard } from "./leaderboard.js";
+import { submitScore, fetchLeaderboard, saveCoins } from "./leaderboard.js";
 import { coinMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
 import { updateAudioSettings, updateMuteIcons } from "./audio.js";
@@ -417,7 +417,7 @@ function checkCollisionAndReact(car, walls) {
 
 /* ────────────────────────────  Colisão com a moeda  ─────────────────── */
 
-function checkCoinCollection(car, coins) {
+async function checkCoinCollection(car, coins) {
   for (let i = coins.length - 1; i >= 0; i--) {
     const coin = coins[i];
     const distance = car.position.distanceTo(coin.position);
@@ -431,6 +431,11 @@ function checkCoinCollection(car, coins) {
 
       coinCount++;
       updateCoinCounter();
+
+      const profile = getCurrentProfile();
+      profile.coins = (profile.coins || 0) + 1;
+      updateProfile(profile);
+      await saveCoins(profile.userId, profile.coins);
     }
   }
 }
@@ -692,6 +697,11 @@ window.addEventListener("resize", () => {
 
 /* ───────────────────────  Carregar nível e arrancar  ─────────────────────── */
 async function initLevel(idx) {
+  //carrega moedas do perfil ativo ───────────────────
+  const profile = getCurrentProfile();
+  coinCount = profile.coins || 0;
+  updateCoinCounter();
+
   currentLevelIndex = idx;
   const levelName = `level-${idx}`;
 
