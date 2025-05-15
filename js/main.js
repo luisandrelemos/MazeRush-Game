@@ -6,6 +6,8 @@ import { unlockLevel } from "./unlockSystem.js";
 import { submitScore, fetchLeaderboard } from "./leaderboard.js";
 import { coinMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
+import { updateAudioSettings, updateMuteIcons } from './audio.js';
+import { getCurrentProfile, updateProfile } from './profileSystem.js';
 
 const gameContainer = document.getElementById("game-container");
 
@@ -501,11 +503,13 @@ const pauseMenu = document.getElementById("pause-menu");
 const resumeBtn = document.getElementById("resume-btn");
 const restartBtn = document.getElementById("restart-btn");
 const exitBtn = document.getElementById("exit-btn");
-gameContainer.classList.remove("hidden");
+const muteSoundBtn = document.getElementById('mute-sound-btn');
+const muteMusicBtn = document.getElementById('mute-music-btn');
 
+gameContainer.classList.remove("hidden");
 let isPaused = false;
+
 resumeBtn.onclick = () => {
-  // retomar exatamente como se tivesse premido Escape
   if (isPaused) {
     const pausedDuration = performance.now() - pauseStartTime;
     levelStartTime += pausedDuration;
@@ -514,13 +518,29 @@ resumeBtn.onclick = () => {
   isPaused = false;
   pauseMenu.classList.remove("active");
   pauseOverlay.classList.remove("active");
-
-  // remover blur e desbloquear
-  uiBlocks.forEach((el) => {
+  uiBlocks.forEach(el => {
     el.style.filter = "none";
     el.style.pointerEvents = "auto";
   });
 };
+
+// Handler do botão de som
+muteSoundBtn.addEventListener('click', () => {
+  const cur = getCurrentProfile();
+  cur.soundEnabled = !cur.soundEnabled;
+  updateProfile(cur);
+  updateAudioSettings();
+  updateMuteIcons();
+});
+
+// Handler do botão de música
+muteMusicBtn.addEventListener('click', () => {
+  const cur = getCurrentProfile();
+  cur.musicEnabled = !cur.musicEnabled;
+  updateProfile(cur);
+  updateAudioSettings();
+  updateMuteIcons();
+});
 
 const pauseOverlay = document.getElementById("pause-overlay");
 
@@ -636,6 +656,7 @@ document.addEventListener("keydown", (e) => {
     pauseMenu.classList.toggle("active", isPaused);
     pauseOverlay.classList.toggle("active", isPaused);
     updateMuteIcons();
+    updateAudioSettings();
 
     // desfocar e bloquear light-controls e speedometer
     uiBlocks.forEach((el) => {

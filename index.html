@@ -198,6 +198,42 @@
       </main>
     </div>
 
+    <!-- === SUBMENU DE DETALHES DO NÍVEL (full-screen) === -->
+    <aside id="level-detail" class="hidden">
+      <div class="detail-content">
+        <button class="detail-close" onclick="closeLevelDetail()">×</button>
+        <div class="detail-body">
+          <!-- coluna 1: leaderboard -->
+          <section class="detail-leaderboard">
+            <h3>Tabela de Classificação</h3>
+            <div class="table-wrap">
+              <table id="detail-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Jogador</th>
+                    <th>Tempo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- povoado dinamicamente -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- coluna 2: preview + big “Melhor Pessoal” + botão -->
+          <aside class="detail-info">
+            <h2 id="detail-title">Nível X</h2>
+            <div id="detail-map"><!-- mini-mapa/canvas aqui --></div>
+            <div class="best-line">Melhor Pessoal: <span id="detail-best">–</span></div>
+            <button id="detail-play">▶ Jogar</button>
+          </aside>
+        </div>
+      </div>
+    </aside>
+
+
     <!-- === CONTEÚDO DO JOGO === -->
     <div id="game-page" class="hidden">
       <div id="pause-overlay"></div>
@@ -301,15 +337,12 @@
 
     <!-- === SCRIPTS === -->
     <script type="module">
-      import { updateAudioSettings } from "./js/audio.js";
-      import {
-        getAllProfiles,
-        getCurrentProfile,
-        getActiveProfileId,
-        setActiveProfileId,
-        updateProfile,
-        saveAllProfiles,
-      } from "./js/profileSystem.js";
+      import { db } from "./js/firebase.js";
+      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+      import { updateAudioSettings, updateMuteIcons  } from "./js/audio.js";
+      import { fetchLeaderboard } from "./js/leaderboard.js";
+      import { getCurrentUserId, getAllProfiles, getCurrentProfile, getActiveProfileId, setActiveProfileId, updateProfile,
+        saveAllProfiles,} from "./js/profileSystem.js";
       import {
         unlockLevel,
         isLevelUnlocked,
@@ -347,6 +380,13 @@
       const resumeBtn = document.getElementById("resume-btn");
       const restartBtn = document.getElementById("restart-btn");
 
+      // elementos do painel de detalhe
+      const detailPanel   = document.getElementById("level-detail");
+      const detailTitle   = document.getElementById("detail-title");
+      const detailBest    = document.getElementById("detail-best");
+      const detailTable   = document.getElementById("detail-table").querySelector("tbody");
+      const detailPlay    = document.getElementById("detail-play");
+
       // — Painéis de token —
       const tokenExportPanel = document.getElementById("token-export");
       const exportTextarea = document.getElementById("export-token-text");
@@ -356,6 +396,22 @@
       // — Botões de export/import —
       const btnExport = document.getElementById("btn-export");
       const btnImportMenu = document.getElementById("btn-import-progress");
+
+      const firestoreTimeout = (promise, ms = 3000) =>
+        Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), ms))
+        ]);
+
+      async function fetchLeaderboardSafe(levelId, n) {
+        try {
+          return await firestoreTimeout(fetchLeaderboard(levelId, n), 2500);
+        } catch {
+          console.warn('Leaderboard demorou demais – vou regressar logo');
+          return [];
+        }
+      }
+
 
       // — Helpers de UI —
       function hideCommon() {
@@ -560,45 +616,104 @@
         loadActiveProfileUI();
       };
 
+      /* === Carregar e renderizar os cards de nível === */
       function loadActiveProfileUI() {
         const cur = getCurrentProfile();
         nameMain.textContent = cur.name ? `Olá, ${cur.name}!` : "Olá, Perfil!";
+
         levelsCt.innerHTML = "";
-        [
-          "Nível 1",
-          "Nível 2",
-          "Nível 3",
-          "Nível 4",
-          "Nível 5",
-          "Nível 6",
-        ].forEach((lbl, i) => {
-          const id = `level-${i + 1}`;
+        const labels = [
+          "Nível 1","Nível 2","Nível 3",
+          "Nível 4","Nível 5","Nível 6"
+        ];
+        labels.forEach((lbl,i) => {
+          const n  = i+1;
+          const id = `level-${n}`;
           const card = document.createElement("div");
           card.className = "level-card";
+          card.setAttribute("data-level", n);
+
           const span = document.createElement("span");
           span.textContent = lbl;
-          const btn = document.createElement("button");
+          card.append(span);
+
           if (cur.unlockedLevels.includes(id)) {
-            btn.className = "play-button";
-            btn.textContent = "▶ Jogar";
-            btn.onclick = () => {
-              localStorage.setItem("selectedLevel", id);
-              closeLevels();
-              // esconder o menu principal
-              mainPage.classList.add("hidden");
-              // mostrar o container do jogo
-              gamePage.classList.remove("hidden");
-              import("./js/main.js").then((m) => m.initLevel(i + 1));
-            };
+            card.classList.add("clickable");
+            card.addEventListener("click", () => openLevelDetail(n));
           } else {
-            btn.className = "locked-button";
-            btn.textContent = "🔒 Bloqueado";
-            btn.disabled = true;
+            card.classList.add("locked");
+            const lock = document.createElement("div");
+            lock.className = "locked-button";
+            lock.textContent = "🔒 Bloqueado";
+            card.append(lock);
           }
-          card.append(span, btn);
+
           levelsCt.append(card);
         });
       }
+
+      // abre o detalhe de nível
+      async function openLevelDetail(n) {
+        const cur     = getCurrentProfile();
+        const levelId = `level-${n}`;
+
+        // título
+        detailTitle.textContent  = `Nível ${n}`;
+
+        // carregar leaderboard via tua função existente
+        detailTable.innerHTML = `<tr><td colspan="3">A carregar…</td></tr>`;
+        fetchLeaderboard(levelId, 5).then(rows => {
+          detailTable.innerHTML = "";
+          if (!rows.length) {
+            detailTable.innerHTML = `<tr><td colspan="3">Sem resultados</td></tr>`;
+          } else {
+            rows.forEach((r,i) => {
+              detailTable.innerHTML += `
+                <tr>
+                  <td>${i+1}</td>
+                  <td>${r.name}</td>
+                  <td>${r.time.toFixed(2)}s</td>
+                </tr>
+              `;
+            });
+          }
+        }).catch(() => {
+          detailTable.innerHTML = `<tr><td colspan="3">Erro ao carregar</td></tr>`;
+        });
+
+        // 2) carrega o teu “Melhor Pessoal” direto da Firestore
+        detailBest.textContent = "–";  // valor default
+        try {
+          const userId = getCurrentUserId();
+          const personalRef = doc(db, "levels", levelId, "leaderboard", userId);
+          const snap = await getDoc(personalRef);
+          if (snap.exists()) {
+            detailBest.textContent = snap.data().time.toFixed(2) + " s";
+          }
+        } catch (err) {
+          console.warn("Falha ao buscar melhor pessoal:", err);
+        }
+
+        // botão jogar
+        detailPlay.onclick = () => {
+          closeLevelDetail();
+          localStorage.setItem("selectedLevel", levelId);
+          closeLevels();
+          mainPage.classList.add("hidden");
+          gamePage.classList.remove("hidden");
+          import("./js/main.js").then(m => m.initLevel(n));
+        };
+
+        detailPanel.classList.remove("hidden");
+      }
+
+      // fecha o detalhe
+      function closeLevelDetail() {
+        detailPanel.classList.add("hidden");
+      }
+
+      window.openLevelDetail  = openLevelDetail;
+      window.closeLevelDetail = closeLevelDetail;
 
       // — Início —
       window.onload = () => {

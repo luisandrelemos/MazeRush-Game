@@ -13,21 +13,21 @@ music.play().catch(() => {
   }, { once: true });
 });
 
-// Efeitos de clique
-document.querySelectorAll('a, button').forEach(el => {
-  el.addEventListener('click', () => {
-    const cur = getCurrentProfile();
-    if (cur.soundEnabled) {
-      clickSound.currentTime = 0;
-      clickSound.play();
-    }
-  });
+// Efeitos de clique via delegation
+document.body.addEventListener('click', e => {
+  const trigger = e.target.closest('a, button, .level-card.clickable');
+  if (!trigger) return;
+  const cur = getCurrentProfile();
+  if (cur.soundEnabled) {
+    clickSound.currentTime = 0;
+    clickSound.play().catch(() => {});
+  }
 });
 
 /**
- * Aplica ao estado actual do perfil:
+ * Aplica ao estado atual do perfil:
  *  - habilita/desabilita música
- *  - ajusta volumes
+ *  - ajusta volumes de música e efeitos
  */
 export function updateAudioSettings() {
   const cur = getCurrentProfile();
@@ -40,6 +40,19 @@ export function updateAudioSettings() {
     music.pause();
   }
 
-  // Atualiza efeitos de clique
+  // Efeito de clique
   clickSound.volume = cur.soundVolume / 100;
+}
+
+/**
+ * Sincroniza os ícones de mute com o estado atual do perfil
+ */
+export function updateMuteIcons() {
+  const cur = getCurrentProfile();
+  const btnSound = document.getElementById('mute-sound-btn');
+  const btnMusic = document.getElementById('mute-music-btn');
+  if (!btnSound || !btnMusic) return;
+
+  btnSound.textContent = cur.soundEnabled ? '🔊' : '🔇';
+  btnMusic.textContent = cur.musicEnabled ? '🎵' : '🚫🎵';
 }
