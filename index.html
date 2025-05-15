@@ -198,7 +198,7 @@
       </main>
     </div>
 
-    <!-- === PAINEL DE DETALHES DO NÍVEL (full-screen) === -->
+    <!-- === SUBMENU DE DETALHES DO NÍVEL (full-screen) === -->
     <aside id="level-detail" class="hidden">
       <div class="detail-content">
         <button class="detail-close" onclick="closeLevelDetail()">×</button>
@@ -206,26 +206,27 @@
           <!-- coluna 1: leaderboard -->
           <section class="detail-leaderboard">
             <h3>Tabela de Classificação</h3>
-            <table id="detail-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Jogador</th>
-                  <th>Tempo</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- vai ser povoado dinamicamente -->
-              </tbody>
-            </table>
+            <div class="table-wrap">
+              <table id="detail-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Jogador</th>
+                    <th>Tempo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- povoado dinamicamente -->
+                </tbody>
+              </table>
+            </div>
           </section>
 
-          <!-- coluna 2: preview + info + botão -->
+          <!-- coluna 2: preview + big “Melhor Pessoal” + botão -->
           <aside class="detail-info">
             <h2 id="detail-title">Nível X</h2>
-            <div id="detail-map"><!-- aqui o mini-mapa/canvas --></div>
-            <div class="info-line">Autor: <span id="detail-author">–</span></div>
-            <div class="info-line">Melhor Pessoal: <span id="detail-best">–</span></div>
+            <div id="detail-map"><!-- mini-mapa/canvas aqui --></div>
+            <div class="best-line">Melhor Pessoal: <span id="detail-best">–</span></div>
             <button id="detail-play">▶ Jogar</button>
           </aside>
         </div>
@@ -382,7 +383,6 @@
       // elementos do painel de detalhe
       const detailPanel   = document.getElementById("level-detail");
       const detailTitle   = document.getElementById("detail-title");
-      const detailAuthor  = document.getElementById("detail-author");
       const detailBest    = document.getElementById("detail-best");
       const detailTable   = document.getElementById("detail-table").querySelector("tbody");
       const detailPlay    = document.getElementById("detail-play");
@@ -641,9 +641,8 @@
         const cur     = getCurrentProfile();
         const levelId = `level-${n}`;
 
-        // título e autor
+        // título
         detailTitle.textContent  = `Nível ${n}`;
-        detailAuthor.textContent = getCurrentProfile().name || "–";
 
         // carregar leaderboard via tua função existente
         detailTable.innerHTML = `<tr><td colspan="3">A carregar…</td></tr>`;

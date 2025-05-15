@@ -160,9 +160,6 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 28px;
-  width: 100%;
-  max-width: 1100px;
-  margin: auto;
 }
 
 /* Cartão de nível */
@@ -176,6 +173,7 @@ body {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
+  aspect-ratio: 1 / 1;
 }
 .level-card.clickable {
   cursor: pointer;
@@ -240,63 +238,51 @@ body {
 }
 
 /* ------------------ Painel de Detalhe Full-Screen --------------------- */
-/* Overlay com blur e fundo translúcido */
 #level-detail {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   backdrop-filter: blur(8px);
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center;
   z-index: 200;
 }
 #level-detail.hidden {
   display: none !important;
 }
 
-/* Cartão interno — vidro fosco */
-#level-detail .detail-content {
+/* Cartão interno – vidro fosco */
+.detail-content {
   position: relative;
-  width: 80vw;
-  max-width: 1100px;
-  height: 80vh;
-  max-height: 700px;
-  background: rgba(255, 255, 255, 0.08);
+  width: 80vw; max-width: 1100px;
+  height: 80vh; max-height: 700px;
+  background: rgba(255,255,255,0.08);
   backdrop-filter: blur(12px);
-  border: 0.2vw solid rgba(255, 255, 255, 0.2);
+  border: 0.2vw solid rgba(255,255,255,0.2);
   border-radius: 1.6vw;
-  box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 1vh 3vh rgba(0,0,0,0.5);
+  display: flex; flex-direction: column;
   overflow: hidden;
 }
 
-/* Botão fechar (X) */
-#level-detail .detail-close {
-  position: absolute;
-  top: 1rem; right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--quase-branco);
-  cursor: pointer;
-  z-index: 10;
+/* X de fechar */
+.detail-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none;
+  font-size: 1.5rem; color: var(--quase-branco);
+  cursor: pointer; z-index: 10;
 }
 
-/* Corpo em duas colunas */
+/* corpo em duas colunas */
 .detail-body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+  display: flex; flex: 1; overflow: hidden;
 }
 
-/* Coluna da tabela */
+/* — Coluna leaderboard — */
 .detail-leaderboard {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.05);
   padding: 1.5rem;
-  overflow-y: auto;
+  display: flex; flex-direction: column;
 }
 .detail-leaderboard h3 {
   margin: 0 0 1rem;
@@ -304,6 +290,11 @@ body {
   font-size: 1.5rem;
   color: var(--quase-branco);
   text-align: center;
+}
+/* wrapper para scroll */
+.table-wrap {
+  flex: 1;
+  overflow-y: auto;
 }
 #detail-table {
   width: 100%;
@@ -313,42 +304,43 @@ body {
 #detail-table td {
   padding: 0.5rem;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 #detail-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* Coluna info + preview */
+/* — Coluna preview + “Melhor Pessoal” + botão — */
 .detail-info {
-  flex: 0 0 350px;
-  background: rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-direction: column;
+  flex: 0 0 300px;
+  background: rgba(255,255,255,0.08);
+  display: flex; flex-direction: column;
   padding: 1.5rem;
 }
 .detail-info h2 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 1rem;
   font-family: 'Orbitron', sans-serif;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   color: var(--quase-branco);
   text-align: center;
 }
-.detail-info .info-line {
-  margin: 0.25rem 0;
-  font-size: 0.95rem;
-  color: var(--quase-branco);
-}
+/* mapa reduzido */
 #detail-map {
-  flex: 1;
+  flex: 0 0 180px;
   background: #222;
   border-radius: 4px;
   margin-bottom: 1rem;
 }
-
-/* Botão Jogar grande */
+/* linha do melhor pessoal, em destaque */
+.best-line {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.2rem;
+  color: var(--quase-branco);
+  text-align: center;
+  margin: 0 0 1.5rem;
+}
+/* botão ▶ Jogar grande */
 #detail-play {
-  margin-top: auto;
   padding: 0.75rem;
   font-family: 'Orbitron', sans-serif;
   font-size: 1.1rem;
@@ -363,7 +355,6 @@ body {
   background: var(--azul-claro);
   color: var(--verde-escuro);
 }
-
 
 /* ---------------------- Submenu de Perfil e Definições --------------------- */
 #profile-list,
