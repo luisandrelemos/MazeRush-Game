@@ -99,33 +99,32 @@ body {
 }
 
 /* ------------------ Seleção de Níveis ------------------------- */
-/* ─── Submenu de Níveis em fullscreen ─── */
+/* Submenu de Níveis em fullscreen */
 #levels-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   width: 100vw;
   height: 100vh;
   background: linear-gradient(120deg, var(--verde-escuro), var(--verde-médio));
   background-size: 200% 200%;
   animation: gradientAnim 12s ease infinite;
-  overflow: auto;         /* permite scroll se o conteúdo for maior que a viewport */
-  z-index: 100;           /* fica acima de tudo */
-  padding: 3vh 4vw;       /* mesmo padding que tinhas em levels.html */
+  overflow: auto;
+  z-index: 100;
+  padding: 3vh 4vw;
   box-sizing: border-box;
 }
 
-/* Mantém o header de níveis na largura original e centralizado */
+/* Header centralizado */
 #levels-page .levels-header {
-  margin: 0 auto 4vh;  /* 0 topo, auto nas laterais, 4vh em baixo */
+  margin: 0 auto 4vh;
   width: 100%;
   max-width: 1100px;
 }
 
-/* Faz o container de categorias (Campanha + grid) ficar também centralizado */
+/* Container de categorias centralizado */
 #levels-page .categories {
   width: 100%;
   max-width: 1100px;
@@ -136,40 +135,19 @@ body {
   display: none !important;
 }
 
-.levels-body {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: linear-gradient(120deg, var(--verde-escuro), var(--verde-médio));
-  background-size: 200% 200%;
-  animation: gradientAnim 12s ease infinite;
-  padding: 3vh 4vw;
-  color: var(--quase-branco);
-  font-family: 'Orbitron', sans-serif;
-}
-
-.section-title {
-  font-size: 2rem;
-  margin-bottom: 2vh;
-  text-align: center;
-  color: var(--quase-branco);
-}
-
+/* Título da secção */
 .section-heading {
   width: 100%;
   max-width: 1100px;
   margin: 0 auto 30px;
 }
-
 .section-heading h2 {
-  font-size: 2rem;
   font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--quase-branco);
   margin-bottom: 10px;
 }
-
 .section-line {
   height: 4px;
   width: 100%;
@@ -177,23 +155,39 @@ body {
   border-radius: 2px;
 }
 
+/* Grid de cartões */
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 28px;
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+}
+
+/* Cartão de nível */
 .level-card {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   border: 2px solid var(--azul-claro);
   border-radius: 20px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
 }
-
+.level-card.clickable {
+  cursor: pointer;
+}
+.level-card.locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
 .level-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 28px rgba(255, 255, 255, 0.15);
 }
-
 .level-card::before {
   content: attr(data-level);
   font-size: 5rem;
@@ -205,54 +199,17 @@ body {
   right: 12px;
   pointer-events: none;
 }
-
 .level-card span {
   display: block;
+  font-family: 'Orbitron', sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
+  color: var(--quase-branco);
   margin-bottom: 12px;
   z-index: 2;
-  color: var(--quase-branco);
 }
 
-.play-button,
-.locked-button {
-  padding: 10px 18px;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 10px;
-  border: none;
-  transition: 0.3s ease;
-}
-
-.play-button {
-  background: var(--verde-médio);
-  color: white;
-  cursor: pointer;
-}
-
-.play-button:hover {
-  background: var(--azul-claro);
-  color: var(--verde-escuro);
-}
-
-.locked-button {
-  background: #4d4d4d;
-  color: #ccc;
-  opacity: 0.7;
-  cursor: not-allowed;
-  border: 1px solid #666;
-}
-
-.levels-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 28px;
-  max-width: 1100px;
-  width: 100%;
-  margin: auto;
-}
-
+/* Botões back/reset */
 .levels-header {
   display: flex;
   align-items: center;
@@ -261,47 +218,150 @@ body {
   max-width: 1100px;
   margin-bottom: 4vh;
 }
-
-.levels-title {
-  font-size: 3rem;
-  text-align: center;
-  flex: 1;
-}
-
 .back-button,
 .reset-button {
-  background: none;
-  border: none;
-  color: var(--quase-branco);
-  font-size: 1.2rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-/* Estilo unificado para back e reset no menu de níveis */
-.back-button,
-.reset-button {
-  /* mesmo degradê dos pause-buttons */
   background: linear-gradient(135deg, var(--verde-médio), var(--azul-claro));
   color: var(--verde-escuro);
   border: none;
   padding: 14px 24px;
   border-radius: 10px;
+  font-family: 'Orbitron', sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
   transition: all 0.3s ease;
-  font-family: 'Orbitron', sans-serif;
 }
-
-/* Hover idêntico também */
 .back-button:hover,
 .reset-button:hover {
   background: var(--verde-médio);
-  color: white;
+  color: #fff;
   transform: translateY(-2px);
+}
+
+/* ------------------ Painel de Detalhe Full-Screen --------------------- */
+/* Overlay com blur e fundo translúcido */
+#level-detail {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+#level-detail.hidden {
+  display: none !important;
+}
+
+/* Cartão interno — vidro fosco */
+#level-detail .detail-content {
+  position: relative;
+  width: 80vw;
+  max-width: 1100px;
+  height: 80vh;
+  max-height: 700px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border: 0.2vw solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.6vw;
+  box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Botão fechar (X) */
+#level-detail .detail-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--quase-branco);
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* Corpo em duas colunas */
+.detail-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Coluna da tabela */
+.detail-leaderboard {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+.detail-leaderboard h3 {
+  margin: 0 0 1rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  color: var(--quase-branco);
+  text-align: center;
+}
+#detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+#detail-table th,
+#detail-table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+#detail-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Coluna info + preview */
+.detail-info {
+  flex: 0 0 350px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+.detail-info h2 {
+  margin: 0 0 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.6rem;
+  color: var(--quase-branco);
+  text-align: center;
+}
+.detail-info .info-line {
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+  color: var(--quase-branco);
+}
+#detail-map {
+  flex: 1;
+  background: #222;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+/* Botão Jogar grande */
+#detail-play {
+  margin-top: auto;
+  padding: 0.75rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  background: var(--verde-médio);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+#detail-play:hover {
+  background: var(--azul-claro);
+  color: var(--verde-escuro);
 }
 
 
