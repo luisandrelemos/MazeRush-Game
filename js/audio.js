@@ -43,3 +43,16 @@ export function updateAudioSettings() {
   // Efeito de clique
   clickSound.volume = cur.soundVolume / 100;
 }
+
+/**
+ * Sincroniza os ícones de mute com o estado atual do perfil
+ */
+export function updateMuteIcons() {
+  const cur = getCurrentProfile();
+  const btnSound = document.getElementById('mute-sound-btn');
+  const btnMusic = document.getElementById('mute-music-btn');
+  if (!btnSound || !btnMusic) return;
+
+  btnSound.textContent = cur.soundEnabled ? '🔊' : '🔇';
+  btnMusic.textContent = cur.musicEnabled ? '🎵' : '🚫🎵';
+}

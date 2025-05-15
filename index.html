@@ -339,7 +339,7 @@
     <script type="module">
       import { db } from "./js/firebase.js";
       import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
-      import { updateAudioSettings } from "./js/audio.js";
+      import { updateAudioSettings, updateMuteIcons  } from "./js/audio.js";
       import { fetchLeaderboard } from "./js/leaderboard.js";
       import { getCurrentUserId, getAllProfiles, getCurrentProfile, getActiveProfileId, setActiveProfileId, updateProfile,
         saveAllProfiles,} from "./js/profileSystem.js";
@@ -396,6 +396,22 @@
       // — Botões de export/import —
       const btnExport = document.getElementById("btn-export");
       const btnImportMenu = document.getElementById("btn-import-progress");
+
+      const firestoreTimeout = (promise, ms = 3000) =>
+        Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), ms))
+        ]);
+
+      async function fetchLeaderboardSafe(levelId, n) {
+        try {
+          return await firestoreTimeout(fetchLeaderboard(levelId, n), 2500);
+        } catch {
+          console.warn('Leaderboard demorou demais – vou regressar logo');
+          return [];
+        }
+      }
+
 
       // — Helpers de UI —
       function hideCommon() {
