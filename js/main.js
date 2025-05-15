@@ -688,6 +688,11 @@ async function initLevel(idx) {
   );
   visitedCells = data.map.map((r) => r.map((_) => false));
 
+  // Adiciona neve apenas no nível 2
+  if (currentLevelIndex === 2) {
+    createSnow(scene);
+  }
+
   if (idx === 2) {
     // Ambiente gelado
     ambientLight.color.set(0xb0e0ff); // azul claro (tom frio)
@@ -770,6 +775,38 @@ nextBtn.onclick = async () => {
 
   nextBtn.blur();
 };
+//neve a cair
+let snowParticles;
+
+function createSnow(scene) {
+  const snowCount = 1500;
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
+
+  for (let i = 0; i < snowCount; i++) {
+    positions.push(
+      (Math.random() - 0.5) * 100, // x
+      Math.random() * 50 + 10, // y (altura inicial)
+      (Math.random() - 0.5) * 100 // z
+    );
+  }
+
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3)
+  );
+
+  const material = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.1,
+    transparent: true,
+    opacity: 0.8,
+  });
+
+  snowParticles = new THREE.Points(geometry, material);
+  snowParticles.userData.levelObject = true; // permite remoção em novos níveis
+  scene.add(snowParticles);
+}
 
 /* ─────────────────────────────  Loop  ────────────────────────────────────── */
 function animate(now) {
@@ -958,6 +995,18 @@ function animate(now) {
     }
   }
   drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
+
+  // Neve a cair (apenas se existir)
+  if (snowParticles) {
+    const pos = snowParticles.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      pos.array[i * 3 + 1] -= 0.1; // desce no eixo Y
+      if (pos.array[i * 3 + 1] < 0) {
+        pos.array[i * 3 + 1] = Math.random() * 50 + 10; // reposiciona no topo
+      }
+    }
+    pos.needsUpdate = true;
+  }
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);
