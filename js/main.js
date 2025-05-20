@@ -9,10 +9,10 @@ import { animatedObjects } from "./LevelLoader.js";
 import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
-import { updateTunnelDirection } from './LevelLoader.js';
-
+import { updateTunnelDirection } from "./LevelLoader.js";
 
 const gameContainer = document.getElementById("game-container");
+
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -1042,6 +1042,7 @@ function animate(now) {
   if (igluTunnel && igluPosition && car) {
     updateTunnelDirection(igluTunnel, igluPosition, car.position);
   }
+
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);
