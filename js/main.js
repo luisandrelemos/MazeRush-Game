@@ -11,6 +11,7 @@ import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
 
+
 const gameContainer = document.getElementById("game-container");
 
 

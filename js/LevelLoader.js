@@ -271,7 +271,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
       });
 
       if (type === "celeiro") {
-        const group = new THREE.Group();
+        const celeiroGroup = new THREE.Group();
 
         // Forma do celeiro (perfil lateral)
         const barnShape = new THREE.Shape();
@@ -299,15 +299,15 @@ export async function loadLevel(levelName, scene, textureLoader) {
         const corpo = new THREE.Mesh(corpoGeometry, materialCeleiro);
 
         corpo.position.set(0, 0, -1); // centralizar
-        group.add(corpo);
+        celeiroGroup.add(corpo);
 
         // Posição e rotação do grupo no mapa
-        group.position.set(
+        celeiroGroup.position.set(
           obj.position.x * tileSize + offsetX,
           0,
           obj.position.z * tileSize + offsetZ
         );
-        group.rotation.y = obj.rotation || 0;
+        celeiroGroup.rotation.y = obj.rotation || 0;
 
         // Material para o telhado
         const telhadoMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
@@ -318,7 +318,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           telhadoMat
         );
         telhadoTopo.position.set(0, 3.05, 0.4); // alinhado com o topo do corpo
-        group.add(telhadoTopo);
+        celeiroGroup.add(telhadoTopo);
 
         // Inclinação esquerda
         const telhadoEsq = new THREE.Mesh(
@@ -327,13 +327,13 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         telhadoEsq.rotation.z = Math.atan(0.7 / 0.8); // ≈ 0.718 radianos (41.2°)
         telhadoEsq.position.set(-1.2, 2.7, 0.4); // centro entre os pontos inclinados
-        group.add(telhadoEsq);
+        celeiroGroup.add(telhadoEsq);
 
         // Inclinação direita
         const telhadoDir = telhadoEsq.clone();
         telhadoDir.rotation.z = -Math.atan(0.7 / 0.8);
         telhadoDir.position.x = 1.2;
-        group.add(telhadoDir);
+        celeiroGroup.add(telhadoDir);
 
         // === PORTA com aro branco ===
         const larguraPorta = 1.5;
@@ -353,12 +353,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
           alturaPorta / 2,
           2
         );
-        group.add(verticalEsq);
+        celeiroGroup.add(verticalEsq);
 
         // Vertical direita
         const verticalDir = verticalEsq.clone();
         verticalDir.position.x = larguraPorta / 2 - molduraEspessura / 2;
-        group.add(verticalDir);
+        celeiroGroup.add(verticalDir);
 
         // Horizontal topo
         const horizontalTopo = new THREE.Mesh(
@@ -366,12 +366,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
           molduraMat
         );
         horizontalTopo.position.set(0, alturaPorta - molduraEspessura / 2, 2);
-        group.add(horizontalTopo);
+        celeiroGroup.add(horizontalTopo);
 
         // Horizontal base
         const horizontalBase = horizontalTopo.clone();
         horizontalBase.position.y = molduraEspessura / 2;
-        group.add(horizontalBase);
+        celeiroGroup.add(horizontalBase);
 
         // Cruz em X (2 travessões diagonais)
         const cruzMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
@@ -382,11 +382,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         diagonal1.position.set(0, alturaPorta / 2, 2); // z = 2 para ficar sobre a porta
         diagonal1.rotation.z = Math.PI / 4;
-        group.add(diagonal1);
+        celeiroGroup.add(diagonal1);
 
         const diagonal2 = diagonal1.clone();
         diagonal2.rotation.z = -Math.PI / 4;
-        group.add(diagonal2);
+        celeiroGroup.add(diagonal2);
 
         // === JANELA circular acima da porta ===
         const raioExterior = 0.3;
@@ -402,7 +402,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         aroJanela.rotation.set(0, 0, 0); // virado para frente
         aroJanela.position.set(0, 2.35, 2.05); // posição acima da porta
-        group.add(aroJanela);
+        celeiroGroup.add(aroJanela);
 
         // Parte preta interior
         const interiorJanela = new THREE.Mesh(
@@ -414,7 +414,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         interiorJanela.rotation.set(0, 0, 0);
         interiorJanela.position.set(0, 2.35, 2.05); // ligeiramente atrás do aro
-        group.add(interiorJanela);
+        celeiroGroup.add(interiorJanela);
 
         // === FARDO DE PALHA JUNTO AO CELEIRO ===
 
@@ -434,16 +434,16 @@ export async function loadLevel(levelName, scene, textureLoader) {
         const fardo1 = new THREE.Mesh(geometriaFardo1, materialFardo);
         fardo1.position.set(2, 0.8, 2.8); // y = raio (0.7) para assentar no chão
         fardo1.castShadow = fardo1.receiveShadow = true;
-        group.add(fardo1);
+        celeiroGroup.add(fardo1);
 
         // Fardo superior (mais pequeno, empilhado)
         const geometriaFardo2 = new THREE.CylinderGeometry(0.6, 0.6, 0.8, 32); // raio = 0.6
         const fardo2 = new THREE.Mesh(geometriaFardo2, materialFardo);
         fardo2.position.set(2, 1.8, 2.8); // y = base + raio do fardo2 = 0.7 + 0.6
         fardo2.castShadow = fardo2.receiveShadow = true;
-        group.add(fardo2);
+        celeiroGroup.add(fardo2);
 
-        scene.add(group);
+        scene.add(celeiroGroup);
       }
     });
   }
@@ -634,3 +634,12 @@ export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
 
   tunnelGroup.rotation.y = angle;
 }
+
+export function updateCeleiroDirection(celeiroGroup, celeiroPosition, carPosition) {
+  const dx = carPosition.x - celeiroPosition.x;
+  const dz = carPosition.z - celeiroPosition.z;
+  const angle = Math.atan2(dx, dz);
+
+  celeiroGroup.rotation.y = angle;
+}
+
