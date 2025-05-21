@@ -75,10 +75,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const texturaMadeira = textureLoader.load("../assets/textures/cerca.jpg");
   texturaMadeira.wrapS = THREE.RepeatWrapping;
   texturaMadeira.wrapT = THREE.RepeatWrapping;
-  texturaMadeira.repeat.set(3, 3);
+  texturaMadeira.repeat.set(1, 1);
 
   const madeiraMat = new THREE.MeshStandardMaterial({
     map: texturaMadeira,
+    color: 0xffffff,
   });
 
   lvl.map.forEach((row, z) =>
@@ -258,6 +259,18 @@ export async function loadLevel(levelName, scene, textureLoader) {
         igluTunnel = createIglu(igluPosition, scene, igluTexture);
       }
 
+
+      const texturaCeleiroVermelha = textureLoader.load(
+        "../assets/textures/textura_celeiro_vermelha.jpg"
+      );
+      texturaCeleiroVermelha.wrapS = THREE.RepeatWrapping;
+      texturaCeleiroVermelha.wrapT = THREE.RepeatWrapping;
+      texturaCeleiroVermelha.repeat.set(2, 1); // aumenta para ver mais "tábuas"
+      const materialCeleiro = new THREE.MeshStandardMaterial({
+        map: texturaCeleiroVermelha,
+        color: 0xffffff, // garante que a cor da textura não é alterada
+      });
+
       if (type === "celeiro") {
         const group = new THREE.Group();
 
@@ -283,10 +296,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
           barnShape,
           extrudeSettings
         );
-        const corpo = new THREE.Mesh(
-          corpoGeometry,
-          new THREE.MeshStandardMaterial({ color: 0xaa0000 }) // vermelho
-        );
+
+        const corpo = new THREE.Mesh(corpoGeometry, materialCeleiro);
 
         corpo.position.set(0, 0, -1); // centralizar
         group.add(corpo);
@@ -307,7 +318,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           new THREE.BoxGeometry(1.7, 0.05, 3.2), // largura = topo reto (-0.8 a 0.8), profundidade igual ao celeiro
           telhadoMat
         );
-        telhadoTopo.position.set(0, 3, 0.4); // alinhado com o topo do corpo
+        telhadoTopo.position.set(0, 3.05, 0.4); // alinhado com o topo do corpo
         group.add(telhadoTopo);
 
         // Inclinação esquerda
@@ -316,7 +327,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           telhadoMat
         );
         telhadoEsq.rotation.z = Math.atan(0.7 / 0.8); // ≈ 0.718 radianos (41.2°)
-        telhadoEsq.position.set(-1.2, 2.65, 0.4); // centro entre os pontos inclinados
+        telhadoEsq.position.set(-1.2, 2.7, 0.4); // centro entre os pontos inclinados
         group.add(telhadoEsq);
 
         // Inclinação direita
