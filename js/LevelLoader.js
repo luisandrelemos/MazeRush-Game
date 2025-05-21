@@ -9,7 +9,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
-  const redesAoVento = [];
+  
 
   /* 2. Limpar restos do nível anterior */
   scene.children
