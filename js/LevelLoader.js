@@ -4,6 +4,8 @@ export const animatedObjects = [];
 export const coinMeshes = [];
 export let igluTunnel = null;
 export let igluPosition = null;
+export let celeiroGroup = null;
+export let celeiroPosition = null;
 
 export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
@@ -271,7 +273,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
       });
 
       if (type === "celeiro") {
-        const celeiroGroup = new THREE.Group();
+        celeiroGroup = new THREE.Group();
 
         // Forma do celeiro (perfil lateral)
         const barnShape = new THREE.Shape();
@@ -302,11 +304,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
         celeiroGroup.add(corpo);
 
         // Posição e rotação do grupo no mapa
-        celeiroGroup.position.set(
+        celeiroPosition = new THREE.Vector3(
           obj.position.x * tileSize + offsetX,
           0,
           obj.position.z * tileSize + offsetZ
         );
+        celeiroGroup.position.copy(celeiroPosition);
         celeiroGroup.rotation.y = obj.rotation || 0;
 
         // Material para o telhado
@@ -635,11 +638,14 @@ export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
   tunnelGroup.rotation.y = angle;
 }
 
-export function updateCeleiroDirection(celeiroGroup, celeiroPosition, carPosition) {
+export function updateBarnDirection(
+  celeiroGroup,
+  celeiroPosition,
+  carPosition
+) {
   const dx = carPosition.x - celeiroPosition.x;
   const dz = carPosition.z - celeiroPosition.z;
   const angle = Math.atan2(dx, dz);
 
   celeiroGroup.rotation.y = angle;
 }
-

@@ -10,10 +10,10 @@ import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
+import { celeiroGroup, celeiroPosition, updateBarnDirection } from "./LevelLoader.js";
 
 
 const gameContainer = document.getElementById("game-container");
-
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -51,6 +51,7 @@ let levelStartTime = 0;
 let isTimerRunning = false;
 let pauseStartTime = 0;
 let coinCount = 0;
+
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById("level-complete-modal");
@@ -1044,6 +1045,9 @@ function animate(now) {
     updateTunnelDirection(igluTunnel, igluPosition, car.position);
   }
 
+  if (celeiroGroup && celeiroPosition) {
+    updateBarnDirection(celeiroGroup, celeiroPosition, car.position);
+  }
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);
