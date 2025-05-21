@@ -259,7 +259,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
         igluTunnel = createIglu(igluPosition, scene, igluTexture);
       }
 
-
       const texturaCeleiroVermelha = textureLoader.load(
         "../assets/textures/textura_celeiro_vermelha.jpg"
       );
@@ -416,6 +415,33 @@ export async function loadLevel(levelName, scene, textureLoader) {
         interiorJanela.rotation.set(0, 0, 0);
         interiorJanela.position.set(0, 2.35, 2.05); // ligeiramente atrás do aro
         group.add(interiorJanela);
+
+        // === FARDO DE PALHA JUNTO AO CELEIRO ===
+
+        const texturaPalha = textureLoader.load("../assets/textures/palha.jpg");
+
+        texturaPalha.wrapS = THREE.RepeatWrapping;
+        texturaPalha.wrapT = THREE.RepeatWrapping;
+        texturaPalha.repeat.set(1, 1);
+
+        const materialFardo = new THREE.MeshStandardMaterial({
+          map: texturaPalha,
+          color: 0xffffff,
+        });
+
+        // Fardo inferior (maior, assente no chão)
+        const geometriaFardo1 = new THREE.CylinderGeometry(0.7, 0.8, 1.2, 32); // raio = 0.7
+        const fardo1 = new THREE.Mesh(geometriaFardo1, materialFardo);
+        fardo1.position.set(2, 0.8, 2.8); // y = raio (0.7) para assentar no chão
+        fardo1.castShadow = fardo1.receiveShadow = true;
+        group.add(fardo1);
+
+        // Fardo superior (mais pequeno, empilhado)
+        const geometriaFardo2 = new THREE.CylinderGeometry(0.6, 0.6, 0.8, 32); // raio = 0.6
+        const fardo2 = new THREE.Mesh(geometriaFardo2, materialFardo);
+        fardo2.position.set(2, 1.8, 2.8); // y = base + raio do fardo2 = 0.7 + 0.6
+        fardo2.castShadow = fardo2.receiveShadow = true;
+        group.add(fardo2);
 
         scene.add(group);
       }
