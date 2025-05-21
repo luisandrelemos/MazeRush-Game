@@ -9,7 +9,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
-  
 
   /* 2. Limpar restos do nível anterior */
   scene.children
@@ -257,6 +256,157 @@ export async function loadLevel(levelName, scene, textureLoader) {
           position.z * tileSize + offsetZ
         );
         igluTunnel = createIglu(igluPosition, scene, igluTexture);
+      }
+
+      if (type === "celeiro") {
+        const group = new THREE.Group();
+
+        // Forma do celeiro (perfil lateral)
+        const barnShape = new THREE.Shape();
+        barnShape.moveTo(-2, 0);
+        barnShape.lineTo(-2, 1.6);
+        barnShape.lineTo(-1.6, 2.3);
+        barnShape.lineTo(-0.8, 3);
+        barnShape.lineTo(0.8, 3);
+        barnShape.lineTo(1.6, 2.3);
+        barnShape.lineTo(2, 1.6);
+        barnShape.lineTo(2, 0);
+        barnShape.lineTo(-2, 0);
+
+        // Extrusão para dar volume
+        const extrudeSettings = {
+          depth: 3,
+          bevelEnabled: false,
+        };
+
+        const corpoGeometry = new THREE.ExtrudeGeometry(
+          barnShape,
+          extrudeSettings
+        );
+        const corpo = new THREE.Mesh(
+          corpoGeometry,
+          new THREE.MeshStandardMaterial({ color: 0xaa0000 }) // vermelho
+        );
+
+        corpo.position.set(0, 0, -1); // centralizar
+        group.add(corpo);
+
+        // Posição e rotação do grupo no mapa
+        group.position.set(
+          obj.position.x * tileSize + offsetX,
+          0,
+          obj.position.z * tileSize + offsetZ
+        );
+        group.rotation.y = obj.rotation || 0;
+
+        // Material para o telhado
+        const telhadoMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+
+        // Topo reto (horizontal)
+        const telhadoTopo = new THREE.Mesh(
+          new THREE.BoxGeometry(1.7, 0.05, 3.2), // largura = topo reto (-0.8 a 0.8), profundidade igual ao celeiro
+          telhadoMat
+        );
+        telhadoTopo.position.set(0, 3, 0.4); // alinhado com o topo do corpo
+        group.add(telhadoTopo);
+
+        // Inclinação esquerda
+        const telhadoEsq = new THREE.Mesh(
+          new THREE.BoxGeometry(1, 0.05, 3.2), // largura entre -1.6 e -0.8
+          telhadoMat
+        );
+        telhadoEsq.rotation.z = Math.atan(0.7 / 0.8); // ≈ 0.718 radianos (41.2°)
+        telhadoEsq.position.set(-1.2, 2.65, 0.4); // centro entre os pontos inclinados
+        group.add(telhadoEsq);
+
+        // Inclinação direita
+        const telhadoDir = telhadoEsq.clone();
+        telhadoDir.rotation.z = -Math.atan(0.7 / 0.8);
+        telhadoDir.position.x = 1.2;
+        group.add(telhadoDir);
+
+        // === PORTA com aro branco ===
+        const larguraPorta = 1.5;
+        const alturaPorta = 1.5;
+        const espessuraPorta = 0.05;
+        const molduraEspessura = 0.1;
+
+        const molduraMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+        // Vertical esquerda
+        const verticalEsq = new THREE.Mesh(
+          new THREE.BoxGeometry(molduraEspessura, alturaPorta, espessuraPorta),
+          molduraMat
+        );
+        verticalEsq.position.set(
+          -larguraPorta / 2 + molduraEspessura / 2,
+          alturaPorta / 2,
+          2
+        );
+        group.add(verticalEsq);
+
+        // Vertical direita
+        const verticalDir = verticalEsq.clone();
+        verticalDir.position.x = larguraPorta / 2 - molduraEspessura / 2;
+        group.add(verticalDir);
+
+        // Horizontal topo
+        const horizontalTopo = new THREE.Mesh(
+          new THREE.BoxGeometry(larguraPorta, molduraEspessura, espessuraPorta),
+          molduraMat
+        );
+        horizontalTopo.position.set(0, alturaPorta - molduraEspessura / 2, 2);
+        group.add(horizontalTopo);
+
+        // Horizontal base
+        const horizontalBase = horizontalTopo.clone();
+        horizontalBase.position.y = molduraEspessura / 2;
+        group.add(horizontalBase);
+
+        // Cruz em X (2 travessões diagonais)
+        const cruzMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+        const diagonal1 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.05, alturaPorta * 1.25, 0.02),
+          cruzMat
+        );
+        diagonal1.position.set(0, alturaPorta / 2, 2); // z = 2 para ficar sobre a porta
+        diagonal1.rotation.z = Math.PI / 4;
+        group.add(diagonal1);
+
+        const diagonal2 = diagonal1.clone();
+        diagonal2.rotation.z = -Math.PI / 4;
+        group.add(diagonal2);
+
+        // === JANELA circular acima da porta ===
+        const raioExterior = 0.3;
+        const raioInterior = 0.22;
+
+        // Aro branco (fino, tipo moldura)
+        const aroJanela = new THREE.Mesh(
+          new THREE.RingGeometry(raioInterior, raioExterior, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+          })
+        );
+        aroJanela.rotation.set(0, 0, 0); // virado para frente
+        aroJanela.position.set(0, 2.35, 2.05); // posição acima da porta
+        group.add(aroJanela);
+
+        // Parte preta interior
+        const interiorJanela = new THREE.Mesh(
+          new THREE.CircleGeometry(raioInterior, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0x000000,
+            side: THREE.DoubleSide,
+          })
+        );
+        interiorJanela.rotation.set(0, 0, 0);
+        interiorJanela.position.set(0, 2.35, 2.05); // ligeiramente atrás do aro
+        group.add(interiorJanela);
+
+        scene.add(group);
       }
     });
   }
