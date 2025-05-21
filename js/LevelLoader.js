@@ -9,6 +9,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   /* 1. Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
+  
 
   /* 2. Limpar restos do nível anterior */
   scene.children
@@ -72,70 +73,80 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
 
+  const texturaMadeira = textureLoader.load("../assets/textures/cerca.jpg");
+  texturaMadeira.wrapS = THREE.RepeatWrapping;
+  texturaMadeira.wrapT = THREE.RepeatWrapping;
+  texturaMadeira.repeat.set(3, 3);
+
+  const madeiraMat = new THREE.MeshStandardMaterial({
+    map: texturaMadeira,
+  });
+
   lvl.map.forEach((row, z) =>
     row.forEach((cell, x) => {
       let height = lvl.wallHeight;
 
       if (cell === 1 || cell === 2) {
         if (cell === 2) {
-          height = lvl.wallHeight / 3;
+          const tileCenterX = x * lvl.tileSize + offsetX;
+          const tileCenterZ = z * lvl.tileSize + offsetZ;
 
-          const left = lvl.map[z]?.[x - 1] === 0;
-          const right = lvl.map[z]?.[x + 1] === 0;
-          const top = lvl.map[z - 1]?.[x] === 0;
-          const down = lvl.map[z + 1]?.[x] === 0;
+          const cercaGroup = new THREE.Group();
 
-          let geo;
+          const largura = lvl.tileSize;
+          const altura = lvl.wallHeight / 3;
+          const espessura = 0.25;
 
-          if (left && right && !(top && down)) {
-            // Caminho à esquerda e à direita → estreita no eixo X
-            geo = new THREE.BoxGeometry(
-              lvl.tileSize * 0.2,
-              height,
-              lvl.tileSize
+          // Tábuas horizontais
+          const numTabuasHorizontais = 2;
+          for (let i = 0; i < numTabuasHorizontais; i++) {
+            const y = i === 0 ? altura * 0.25 : altura * 0.75;
+            const tabua = new THREE.Mesh(
+              new THREE.BoxGeometry(largura * 0.95, espessura, espessura),
+              madeiraMat
             );
-          } else if (top && down && !(left && right)) {
-            // Caminho em cima e em baixo → estreita no eixo Z
-            geo = new THREE.BoxGeometry(
-              lvl.tileSize,
-              height,
-              lvl.tileSize * 0.2
-            );
-          } else {
-            // Fallback: nenhuma direção clara, criar pequeno bloco quadrado
-            geo = new THREE.BoxGeometry(
-              lvl.tileSize * 0.2,
-              height,
-              lvl.tileSize * 0.2
-            );
+            tabua.position.set(0, y, 0);
+            cercaGroup.add(tabua);
           }
 
-          const wall = new THREE.Mesh(geo, wallMat);
-          wall.position.set(
-            x * lvl.tileSize + offsetX,
-            height / 2,
-            z * lvl.tileSize + offsetZ
-          );
-          wall.castShadow = wall.receiveShadow = true;
-          wall.userData.levelObject = true;
-          wall.userData.isLowWall = true;
-          scene.add(wall);
-        }
+          // Estacas verticais (mais densas)
+          const estacaAltura = altura;
+          const estacaLargura = espessura;
+          const numEstacas = 5;
+          for (let i = 0; i < numEstacas; i++) {
+            const estacaX = -largura / 2 + (i / (numEstacas - 1)) * largura;
 
-        if (cell === 1) {
-          const wall = new THREE.Mesh(
-            new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize),
-            wallMat
-          );
-          wall.position.set(
-            x * lvl.tileSize + offsetX,
-            height / 2,
-            z * lvl.tileSize + offsetZ
-          );
-          wall.castShadow = wall.receiveShadow = true;
-          wall.userData.levelObject = true;
-          scene.add(wall);
+            const estaca = new THREE.Mesh(
+              new THREE.BoxGeometry(estacaLargura, estacaAltura, estacaLargura),
+              madeiraMat
+            );
+            estaca.position.set(estacaX, estacaAltura / 2, 0);
+            cercaGroup.add(estaca);
+          }
+
+          // Orientação e posição
+          cercaGroup.rotation.y =
+            lvl.map[z]?.[x - 1] === 1 && lvl.map[z]?.[x + 1] === 1
+              ? 0
+              : Math.PI / 2;
+          cercaGroup.position.set(tileCenterX, 0, tileCenterZ);
+
+          scene.add(cercaGroup);
         }
+      }
+      if (cell === 1) {
+        const wall = new THREE.Mesh(
+          new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize),
+          wallMat
+        );
+        wall.position.set(
+          x * lvl.tileSize + offsetX,
+          height / 2,
+          z * lvl.tileSize + offsetZ
+        );
+        wall.castShadow = wall.receiveShadow = true;
+        wall.userData.levelObject = true;
+        scene.add(wall);
       }
     })
   );
@@ -294,7 +305,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
     // Grupo dos túneis
     const tunnelGroup = new THREE.Group();
-
     // Túnel interior (totalmente aberto)
     const innerGeometry = new THREE.CylinderGeometry(
       0.9,
@@ -350,7 +360,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
     const wall = new THREE.Mesh(wallGeometry, wallMaterial);
     wall.rotation.z = Math.PI / 2; // deitar no chão
-    wall
+    wall;
     wall.position.set(0, 0.1, 3.3); // à frente dos túneis (ajusta se necessário)
     tunnelGroup.add(wall);
 

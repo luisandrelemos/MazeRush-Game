@@ -9,10 +9,10 @@ import { animatedObjects } from "./LevelLoader.js";
 import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
-import { updateTunnelDirection } from './LevelLoader.js';
-
+import { updateTunnelDirection } from "./LevelLoader.js";
 
 const gameContainer = document.getElementById("game-container");
+
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -1053,6 +1053,7 @@ function animate(now) {
     updateTunnelDirection(igluTunnel, igluPosition, car.position);
   }
 
+
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);
   checkLevelComplete();
@@ -1063,7 +1064,7 @@ async function checkLevelComplete() {
   if (levelComplete || isInPreview || !levelData?.endPortal) return;
 
   const dist = car.position.distanceTo(levelData.endPortal.position);
-  if (dist < 0.8) {
+  if (dist < 2.5) {
     levelComplete = true;
     controlsLocked = true;
     isTimerRunning = false;
