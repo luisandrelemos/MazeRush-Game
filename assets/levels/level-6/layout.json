@@ -74,8 +74,6 @@
 
 "floor": {
   "texture": "chao_quinta.png"
-},
-
-"wallTexture": "parede_quinta.jpg"
+}
 
 }

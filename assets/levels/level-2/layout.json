@@ -46,10 +46,10 @@
   ],
 
   "floor": {
-    "texture": "floor.jpg"
+    "texture": "floor.png"
   },
   
-  "wallTexture": "ice_blocks.jpg",
+  "wallTexture": "wall.png",
 
   "objects": [
   {
