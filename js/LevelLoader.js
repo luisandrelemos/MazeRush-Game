@@ -26,14 +26,25 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture = textureLoader.load(
       `../assets/levels/${levelName}/${lvl.floor.texture}`
     );
-    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set(mapW / 2, mapH / 2); // ajusta à dimensão do labirinto
+    floorTexture.wrapS = THREE.RepeatWrapping;
+    floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.anisotropy = 16; // para qualidade máxima
+
+    // Controla a repetição manualmente — isto evita distorção
+    floorTexture.repeat.set(20, 20); // ajusta se necessário
   }
 
   /* Paredes internas do labirinto */
   const wallTexture = lvl.wallTexture
     ? textureLoader.load(`../assets/levels/${levelName}/${lvl.wallTexture}`)
     : null;
+
+  if (wallTexture) {
+    wallTexture.wrapS = THREE.RepeatWrapping;
+    wallTexture.wrapT = THREE.RepeatWrapping;
+    wallTexture.repeat.set(1, 1); // Repete a textura 1x1 por parede (ajusta mais tarde)
+    wallTexture.anisotropy = 16; // para maior nitidez nos ângulos
+  }
 
   const wallMat = wallTexture
     ? new THREE.MeshStandardMaterial({
@@ -51,6 +62,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
+
+  
 
   // Textura do iglu
   const igluTexture = textureLoader.load(
@@ -101,8 +114,9 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture = textureLoader.load(
       `../assets/levels/${levelName}/${lvl.floor.texture}`
     );
-    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set(mapW / 2, mapH / 2); // ajuste ao tamanho do mapa
+    floorTexture.wrapS = THREE.RepeatWrapping;
+    floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set(10, 10); // ajusta os valores conforme o tamanho do chão
   }
 
   lvl.map.forEach((row, z) =>
@@ -490,7 +504,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
   }
 
-  //construir o iglu 
+  //construir o iglu
   function createIglu(position, scene, igluTexture) {
     // Corpo do iglu (esfera)
     const domeGeometry = new THREE.SphereGeometry(2.5, 32, 32);
@@ -612,7 +626,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     light.userData.levelObject = true;
     scene.add(light);
 
-    return ring; 
+    return ring;
   }
 
   const startPos = new THREE.Vector3(
@@ -640,7 +654,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
     endPortal: lvl.endPortal,
   };
 }
-
 
 // === Rotação do iglu em relação ao carro ===
 export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
