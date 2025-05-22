@@ -50,5 +50,11 @@
   { "type": "moeda", "position":{"x": 10, "z": 5}, "scale": 2 },
   { "type": "moeda", "position":{"x": 10, "z": 6}, "scale": 2 },
   { "type": "moeda", "position":{"x": 10, "z": 7}, "scale": 2 }
-]
+],
+
+"floor": {
+    "texture": "floor.png"
+  },
+  
+  "wallTexture": "wall.png"
 }

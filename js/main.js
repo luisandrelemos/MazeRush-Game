@@ -188,7 +188,7 @@ document.getElementById("game-container").appendChild(renderer.domElement);
 /* ───────────────────────────  Luzes globais  ─────────────────────────── */
 const ambientLight = new THREE.AmbientLight(0x334477, 0.2);
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0x8899ff, 0.9);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
 directionalLight.position.set(-20, 50, 20);
 directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.set(4096, 4096);
@@ -211,7 +211,7 @@ const defaultAmbientIntensity = ambientLight.intensity;
 const defaultDirectionalColor = directionalLight.color.clone();
 const defaultDirectionalIntensity = directionalLight.intensity;
 
-const pointLight = new THREE.PointLight(0x445577, 0.4, 60, 2);
+const pointLight = new THREE.PointLight(0xffffff, 0.4, 60, 2);
 pointLight.position.set(0, 10, 0);
 scene.add(pointLight);
 
