@@ -44,8 +44,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.repeat.set(1, 1); // Repete a textura 1x1 por parede (ajusta mais tarde)
     wallTexture.anisotropy = 16; // para maior nitidez nos ângulos
-
-    wallTexture.repeat.set(1,1);
   }
 
   const wallMat = wallTexture
@@ -64,6 +62,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
+
+  
 
   // Textura do iglu
   const igluTexture = textureLoader.load(

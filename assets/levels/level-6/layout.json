@@ -73,7 +73,9 @@
 ],
 
 "floor": {
-  "texture": "chao_quinta.png"
-}
+  "texture": "floor.png"
+},
+
+"wallTexture": "parede_quinta.png"
 
 }
