@@ -12,8 +12,11 @@ import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
-import { celeiroGroup, celeiroPosition, updateBarnDirection } from "./LevelLoader.js";
-
+import {
+  celeiroGroup,
+  celeiroPosition,
+  updateBarnDirection,
+} from "./LevelLoader.js";
 
 const gameContainer = document.getElementById("game-container");
 
@@ -53,7 +56,6 @@ let levelStartTime = 0;
 let isTimerRunning = false;
 let pauseStartTime = 0;
 let coinCount = 0;
-
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById("level-complete-modal");
@@ -725,10 +727,19 @@ async function initLevel(idx) {
     (o) => o.userData.levelObject && o.geometry?.type === "BoxGeometry"
   );
   visitedCells = data.map.map((r) => r.map((_) => false));
- 
+
   // Adiciona neve no nivel 2
   if (currentLevelIndex === 2) {
     createSnow(scene);
+
+    // Ambiente gelado
+    ambientLight.color.set(0xb0e0ff); // azul claro (tom frio)
+    ambientLight.intensity = 0.3;
+
+    directionalLight.color.set(0xe0f8ff); // luz gélida
+    directionalLight.intensity = 0.8;
+
+    directionalLight.position.set(20, 50, 20); // (opcional: ângulo da luz)
   }
 
   //  posicionar carro no início
@@ -859,11 +870,11 @@ function animate(now) {
     d.brakePower = 3;
     d.steeringMultiplier = 0.4;
   } else {*/
-    d.acceleration = 13; // mais rápido: 12 m/s²
-    d.maxSpeed = 15; // mantém top speed em 15 m/s
-    d.brakePower = 40;
-    d.friction = 15;
-    d.steeringMultiplier = 1;
+  d.acceleration = 13; // mais rápido: 12 m/s²
+  d.maxSpeed = 15; // mantém top speed em 15 m/s
+  d.brakePower = 40;
+  d.friction = 15;
+  d.steeringMultiplier = 1;
   //}
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
@@ -958,7 +969,7 @@ function animate(now) {
   animatedObjects.forEach((obj) => {
     obj.rotation.y += 1.2 * deltaTime;
   });
- // Rotação da moeda
+  // Rotação da moeda
   coinMeshes.forEach((coin) => {
     coin.rotation.z += 2 * deltaTime; // velocidade de rotação
   });
@@ -1029,7 +1040,7 @@ function animate(now) {
   }
   drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
 
-  //Animação da neve a cair 
+  //Animação da neve a cair
   if (snowParticles) {
     const pos = snowParticles.geometry.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -1041,12 +1052,11 @@ function animate(now) {
     pos.needsUpdate = true;
   }
 
-
- //Movimento do iglu em relação ao carro
+  //Movimento do iglu em relação ao carro
   if (igluTunnel && igluPosition && car) {
     updateTunnelDirection(igluTunnel, igluPosition, car.position);
   }
- //Movimento do celeiro em relação ao carro
+  //Movimento do celeiro em relação ao carro
   if (celeiroGroup && celeiroPosition) {
     updateBarnDirection(celeiroGroup, celeiroPosition, car.position);
   }
