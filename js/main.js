@@ -204,6 +204,13 @@ Object.assign(directionalLight.shadow.camera, {
 directionalLight.shadow.camera.updateProjectionMatrix();
 scene.add(directionalLight);
 
+// Guardar valores padrão das luzes para restaurar depois
+const defaultAmbientColor = ambientLight.color.clone();
+const defaultAmbientIntensity = ambientLight.intensity;
+
+const defaultDirectionalColor = directionalLight.color.clone();
+const defaultDirectionalIntensity = directionalLight.intensity;
+
 const pointLight = new THREE.PointLight(0x445577, 0.4, 60, 2);
 pointLight.position.set(0, 10, 0);
 scene.add(pointLight);
@@ -703,6 +710,14 @@ async function initLevel(idx) {
 
   // garantir que nenhum modal / tempo antigo fica no caminho
   modal.classList.remove("show");
+
+  // Restaurar luzes padrão (para evitar herança do nível anterior)
+  ambientLight.color.copy(defaultAmbientColor);
+  ambientLight.intensity = defaultAmbientIntensity;
+
+  directionalLight.color.copy(defaultDirectionalColor);
+  directionalLight.intensity = defaultDirectionalIntensity;
+
   // não removemos mais o <p class="time-display">, apenas limpamos o texto
   const timeEl = modal.querySelector(".time-display");
   if (timeEl) timeEl.textContent = "";
