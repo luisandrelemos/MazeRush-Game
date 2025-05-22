@@ -93,6 +93,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture.repeat.set(mapW / 2, mapH / 2); // ajuste ao tamanho do mapa
   }
 
+  
+
 
 
   lvl.map.forEach((row, z) =>
