@@ -85,6 +85,17 @@ export async function loadLevel(levelName, scene, textureLoader) {
     color: 0xffffff,
   });
 
+  const texturaCeleiroVermelha = textureLoader.load(
+    "../assets/textures/textura_celeiro_vermelha.jpg"
+  );
+  texturaCeleiroVermelha.wrapS = THREE.RepeatWrapping;
+  texturaCeleiroVermelha.wrapT = THREE.RepeatWrapping;
+  texturaCeleiroVermelha.repeat.set(2, 1); // aumenta para ver mais "tábuas"
+  const materialCeleiro = new THREE.MeshStandardMaterial({
+    map: texturaCeleiroVermelha,
+    color: 0xffffff, // garante que a cor da textura não é alterada
+  });
+
   // === Chão do nível 6 ===
   if (levelName === "level6" && lvl.floor?.texture) {
     floorTexture = textureLoader.load(
@@ -97,7 +108,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   lvl.map.forEach((row, z) =>
     row.forEach((cell, x) => {
       let height = lvl.wallHeight;
-      
+
       if (cell === 1 || cell === 2) {
         // Cercas caso haja "2" na matriz
         if (cell === 2) {
@@ -251,7 +262,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           opacity: 0.6,
           depthWrite: false,
         });
-        
+
         const glowSprite = new THREE.Sprite(glowMat);
         glowSprite.scale.set(2, 2, 1);
         glowSprite.position.set(0, -0.05, 0.8);
@@ -272,17 +283,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         igluTunnel = createIglu(igluPosition, scene, igluTexture);
       }
-
-      const texturaCeleiroVermelha = textureLoader.load(
-        "../assets/textures/textura_celeiro_vermelha.jpg"
-      );
-      texturaCeleiroVermelha.wrapS = THREE.RepeatWrapping;
-      texturaCeleiroVermelha.wrapT = THREE.RepeatWrapping;
-      texturaCeleiroVermelha.repeat.set(2, 1); // aumenta para ver mais "tábuas"
-      const materialCeleiro = new THREE.MeshStandardMaterial({
-        map: texturaCeleiroVermelha,
-        color: 0xffffff, // garante que a cor da textura não é alterada
-      });
 
       if (type === "celeiro") {
         celeiroGroup = new THREE.Group();
@@ -432,7 +432,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
         celeiroGroup.add(interiorJanela);
 
         // === FARDO DE PALHA JUNTO AO CELEIRO ===
-
         const texturaPalha = textureLoader.load("../assets/textures/palha.jpg");
 
         texturaPalha.wrapS = THREE.RepeatWrapping;
@@ -463,7 +462,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     });
   }
 
-  /* 5. Bordas exteriores */
+  /* Bordas exteriores */
   if (lvl.borderThickness && lvl.borderThickness > 0) {
     const bt = lvl.borderThickness;
     const w = mapW * lvl.tileSize;
@@ -491,7 +490,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
   }
 
-  //construir um iglu nas ruas sem saida
+  //construir o iglu 
   function createIglu(position, scene, igluTexture) {
     // Corpo do iglu (esfera)
     const domeGeometry = new THREE.SphereGeometry(2.5, 32, 32);
@@ -505,7 +504,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     dome.userData.levelObject = true;
     scene.add(dome);
 
-    // Grupo dos túneis
+    // Grupo do túnel
     const tunnelGroup = new THREE.Group();
     // Túnel interior (totalmente aberto)
     const innerGeometry = new THREE.CylinderGeometry(
@@ -578,7 +577,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     return tunnelGroup;
   }
 
-  /* 6. Novo design de portais (translúcido e plano) */
+  /* Novo design de portais (translúcido e plano) */
   function mkPortal(cfg, pos) {
     // Anel translúcido e plano
     const ring = new THREE.Mesh(
@@ -613,7 +612,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     light.userData.levelObject = true;
     scene.add(light);
 
-    return ring; // <-- ADICIONADO: Devolve o anel criado!
+    return ring; 
   }
 
   const startPos = new THREE.Vector3(
@@ -642,6 +641,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
   };
 }
 
+
+// === Rotação do iglu em relação ao carro ===
 export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
   const dx = carPosition.x - igluPosition.x;
   const dz = carPosition.z - igluPosition.z;
@@ -649,7 +650,7 @@ export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
 
   tunnelGroup.rotation.y = angle;
 }
-
+// === Rotação do celeiro em relação ao carro ===
 export function updateBarnDirection(
   celeiroGroup,
   celeiroPosition,
