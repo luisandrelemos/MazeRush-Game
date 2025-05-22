@@ -4,14 +4,15 @@ export const animatedObjects = [];
 export const coinMeshes = [];
 export let igluTunnel = null;
 export let igluPosition = null;
+export let celeiroGroup = null;
+export let celeiroPosition = null;
 
 export async function loadLevel(levelName, scene, textureLoader) {
-  /* 1. Ler JSON */
+  /* Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
-  
 
-  /* 2. Limpar restos do nível anterior */
+  /* Limpar restos do nível anterior */
   scene.children
     .filter((o) => o.userData.levelObject)
     .forEach((o) => scene.remove(o));
@@ -19,7 +20,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const mapW = lvl.map[0].length;
   const mapH = lvl.map.length;
 
-  //chao
+  //Textura do chao
   let floorTexture;
   if (lvl.floor?.texture) {
     floorTexture = textureLoader.load(
@@ -29,29 +30,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture.repeat.set(mapW / 2, mapH / 2); // ajusta à dimensão do labirinto
   }
 
-  // textura do iglu
-  const igluTexture = textureLoader.load(
-    `../assets/levels/level-2/textureiglu.jpg`
-  );
-  igluTexture.wrapS = igluTexture.wrapT = THREE.RepeatWrapping;
-
-  const floorMat = floorTexture
-    ? new THREE.MeshStandardMaterial({
-        map: floorTexture,
-        metalness: 0.2,
-        roughness: 0.8,
-      })
-    : new THREE.MeshStandardMaterial({ color: lvl.colors?.floor ?? "#888" });
-
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(mapW * lvl.tileSize, mapH * lvl.tileSize),
-    floorMat
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.userData.levelObject = true;
-  scene.add(floor);
-
-  /* 4. Paredes internas do labirinto */
+  /* Paredes internas do labirinto */
   const wallTexture = lvl.wallTexture
     ? textureLoader.load(`../assets/levels/${levelName}/${lvl.wallTexture}`)
     : null;
@@ -73,26 +52,60 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
 
+  // Textura do iglu
+  const igluTexture = textureLoader.load(
+    `../assets/levels/level-2/textureiglu.jpg`
+  );
+  igluTexture.wrapS = igluTexture.wrapT = THREE.RepeatWrapping;
+
+  const floorMat = floorTexture
+    ? new THREE.MeshStandardMaterial({
+        map: floorTexture,
+        metalness: 0.2,
+        roughness: 0.8,
+      })
+    : new THREE.MeshStandardMaterial({ color: lvl.colors?.floor ?? "#888" });
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(mapW * lvl.tileSize, mapH * lvl.tileSize),
+    floorMat
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.userData.levelObject = true;
+  scene.add(floor);
+
+  // Textura das cercas
   const texturaMadeira = textureLoader.load("../assets/textures/cerca.jpg");
   texturaMadeira.wrapS = THREE.RepeatWrapping;
   texturaMadeira.wrapT = THREE.RepeatWrapping;
-  texturaMadeira.repeat.set(3, 3);
+  texturaMadeira.repeat.set(1, 1);
 
   const madeiraMat = new THREE.MeshStandardMaterial({
     map: texturaMadeira,
+    color: 0xffffff,
   });
+
+  // === Chão do nível 6 ===
+  if (levelName === "level6" && lvl.floor?.texture) {
+    floorTexture = textureLoader.load(
+      `../assets/levels/${levelName}/${lvl.floor.texture}`
+    );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set(mapW / 2, mapH / 2); // ajuste ao tamanho do mapa
+  }
 
   lvl.map.forEach((row, z) =>
     row.forEach((cell, x) => {
       let height = lvl.wallHeight;
-
+      
       if (cell === 1 || cell === 2) {
+        // Cercas caso haja "2" na matriz
         if (cell === 2) {
           const tileCenterX = x * lvl.tileSize + offsetX;
           const tileCenterZ = z * lvl.tileSize + offsetZ;
 
           const cercaGroup = new THREE.Group();
-
+          //Dimensões
           const largura = lvl.tileSize;
           const altura = lvl.wallHeight / 3;
           const espessura = 0.25;
@@ -134,6 +147,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           scene.add(cercaGroup);
         }
       }
+      //Paredes
       if (cell === 1) {
         const wall = new THREE.Mesh(
           new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize),
@@ -151,7 +165,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     })
   );
 
-  // paralelepipedo animado nivel 6
+  // Criação dos objetos customizados (layout.json)
   function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
     if (!objects) return;
 
@@ -237,7 +251,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           opacity: 0.6,
           depthWrite: false,
         });
-
+        
         const glowSprite = new THREE.Sprite(glowMat);
         glowSprite.scale.set(2, 2, 1);
         glowSprite.position.set(0, -0.05, 0.8);
@@ -257,6 +271,194 @@ export async function loadLevel(levelName, scene, textureLoader) {
           position.z * tileSize + offsetZ
         );
         igluTunnel = createIglu(igluPosition, scene, igluTexture);
+      }
+
+      const texturaCeleiroVermelha = textureLoader.load(
+        "../assets/textures/textura_celeiro_vermelha.jpg"
+      );
+      texturaCeleiroVermelha.wrapS = THREE.RepeatWrapping;
+      texturaCeleiroVermelha.wrapT = THREE.RepeatWrapping;
+      texturaCeleiroVermelha.repeat.set(2, 1); // aumenta para ver mais "tábuas"
+      const materialCeleiro = new THREE.MeshStandardMaterial({
+        map: texturaCeleiroVermelha,
+        color: 0xffffff, // garante que a cor da textura não é alterada
+      });
+
+      if (type === "celeiro") {
+        celeiroGroup = new THREE.Group();
+
+        // Forma do celeiro (perfil lateral)
+        const barnShape = new THREE.Shape();
+        barnShape.moveTo(-2, 0);
+        barnShape.lineTo(-2, 1.6);
+        barnShape.lineTo(-1.6, 2.3);
+        barnShape.lineTo(-0.8, 3);
+        barnShape.lineTo(0.8, 3);
+        barnShape.lineTo(1.6, 2.3);
+        barnShape.lineTo(2, 1.6);
+        barnShape.lineTo(2, 0);
+        barnShape.lineTo(-2, 0);
+
+        // Extrusão para dar volume
+        const extrudeSettings = {
+          depth: 3,
+          bevelEnabled: false,
+        };
+
+        const corpoGeometry = new THREE.ExtrudeGeometry(
+          barnShape,
+          extrudeSettings
+        );
+
+        const corpo = new THREE.Mesh(corpoGeometry, materialCeleiro);
+
+        corpo.position.set(0, 0, -1); // centralizar
+        celeiroGroup.add(corpo);
+
+        // Posição e rotação do grupo no mapa
+        celeiroPosition = new THREE.Vector3(
+          obj.position.x * tileSize + offsetX,
+          0,
+          obj.position.z * tileSize + offsetZ
+        );
+        celeiroGroup.position.copy(celeiroPosition);
+        celeiroGroup.rotation.y = obj.rotation || 0;
+
+        // Material para o telhado
+        const telhadoMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+
+        // Topo reto (horizontal)
+        const telhadoTopo = new THREE.Mesh(
+          new THREE.BoxGeometry(1.7, 0.05, 3.2), // largura = topo reto (-0.8 a 0.8), profundidade igual ao celeiro
+          telhadoMat
+        );
+        telhadoTopo.position.set(0, 3.05, 0.4); // alinhado com o topo do corpo
+        celeiroGroup.add(telhadoTopo);
+
+        // Inclinação esquerda
+        const telhadoEsq = new THREE.Mesh(
+          new THREE.BoxGeometry(1, 0.05, 3.2), // largura entre -1.6 e -0.8
+          telhadoMat
+        );
+        telhadoEsq.rotation.z = Math.atan(0.7 / 0.8); // ≈ 0.718 radianos (41.2°)
+        telhadoEsq.position.set(-1.2, 2.7, 0.4); // centro entre os pontos inclinados
+        celeiroGroup.add(telhadoEsq);
+
+        // Inclinação direita
+        const telhadoDir = telhadoEsq.clone();
+        telhadoDir.rotation.z = -Math.atan(0.7 / 0.8);
+        telhadoDir.position.x = 1.2;
+        celeiroGroup.add(telhadoDir);
+
+        // === PORTA com aro branco ===
+        const larguraPorta = 1.5;
+        const alturaPorta = 1.5;
+        const espessuraPorta = 0.05;
+        const molduraEspessura = 0.1;
+
+        const molduraMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+        // Vertical esquerda
+        const verticalEsq = new THREE.Mesh(
+          new THREE.BoxGeometry(molduraEspessura, alturaPorta, espessuraPorta),
+          molduraMat
+        );
+        verticalEsq.position.set(
+          -larguraPorta / 2 + molduraEspessura / 2,
+          alturaPorta / 2,
+          2
+        );
+        celeiroGroup.add(verticalEsq);
+
+        // Vertical direita
+        const verticalDir = verticalEsq.clone();
+        verticalDir.position.x = larguraPorta / 2 - molduraEspessura / 2;
+        celeiroGroup.add(verticalDir);
+
+        // Horizontal topo
+        const horizontalTopo = new THREE.Mesh(
+          new THREE.BoxGeometry(larguraPorta, molduraEspessura, espessuraPorta),
+          molduraMat
+        );
+        horizontalTopo.position.set(0, alturaPorta - molduraEspessura / 2, 2);
+        celeiroGroup.add(horizontalTopo);
+
+        // Horizontal base
+        const horizontalBase = horizontalTopo.clone();
+        horizontalBase.position.y = molduraEspessura / 2;
+        celeiroGroup.add(horizontalBase);
+
+        // Cruz em X (2 travessões diagonais)
+        const cruzMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+        const diagonal1 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.05, alturaPorta * 1.25, 0.02),
+          cruzMat
+        );
+        diagonal1.position.set(0, alturaPorta / 2, 2); // z = 2 para ficar sobre a porta
+        diagonal1.rotation.z = Math.PI / 4;
+        celeiroGroup.add(diagonal1);
+
+        const diagonal2 = diagonal1.clone();
+        diagonal2.rotation.z = -Math.PI / 4;
+        celeiroGroup.add(diagonal2);
+
+        // === JANELA circular acima da porta ===
+        const raioExterior = 0.3;
+        const raioInterior = 0.22;
+
+        // Aro branco (fino, tipo moldura)
+        const aroJanela = new THREE.Mesh(
+          new THREE.RingGeometry(raioInterior, raioExterior, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+          })
+        );
+        aroJanela.rotation.set(0, 0, 0); // virado para frente
+        aroJanela.position.set(0, 2.35, 2.05); // posição acima da porta
+        celeiroGroup.add(aroJanela);
+
+        // Parte preta interior
+        const interiorJanela = new THREE.Mesh(
+          new THREE.CircleGeometry(raioInterior, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0x000000,
+            side: THREE.DoubleSide,
+          })
+        );
+        interiorJanela.rotation.set(0, 0, 0);
+        interiorJanela.position.set(0, 2.35, 2.05); // ligeiramente atrás do aro
+        celeiroGroup.add(interiorJanela);
+
+        // === FARDO DE PALHA JUNTO AO CELEIRO ===
+
+        const texturaPalha = textureLoader.load("../assets/textures/palha.jpg");
+
+        texturaPalha.wrapS = THREE.RepeatWrapping;
+        texturaPalha.wrapT = THREE.RepeatWrapping;
+        texturaPalha.repeat.set(1, 1);
+
+        const materialFardo = new THREE.MeshStandardMaterial({
+          map: texturaPalha,
+          color: 0xffffff,
+        });
+
+        // Fardo inferior (maior, assente no chão)
+        const geometriaFardo1 = new THREE.CylinderGeometry(0.7, 0.8, 1.2, 32); // raio = 0.7
+        const fardo1 = new THREE.Mesh(geometriaFardo1, materialFardo);
+        fardo1.position.set(2, 0.8, 2.8); // y = raio (0.7) para assentar no chão
+        fardo1.castShadow = fardo1.receiveShadow = true;
+        celeiroGroup.add(fardo1);
+
+        // Fardo superior (mais pequeno, empilhado)
+        const geometriaFardo2 = new THREE.CylinderGeometry(0.6, 0.6, 0.8, 32); // raio = 0.6
+        const fardo2 = new THREE.Mesh(geometriaFardo2, materialFardo);
+        fardo2.position.set(2, 1.8, 2.8); // y = base + raio do fardo2 = 0.7 + 0.6
+        fardo2.castShadow = fardo2.receiveShadow = true;
+        celeiroGroup.add(fardo2);
+
+        scene.add(celeiroGroup);
       }
     });
   }
@@ -446,4 +648,16 @@ export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
   const angle = Math.atan2(dx, dz);
 
   tunnelGroup.rotation.y = angle;
+}
+
+export function updateBarnDirection(
+  celeiroGroup,
+  celeiroPosition,
+  carPosition
+) {
+  const dx = carPosition.x - celeiroPosition.x;
+  const dz = carPosition.z - celeiroPosition.z;
+  const angle = Math.atan2(dx, dz);
+
+  celeiroGroup.rotation.y = angle;
 }

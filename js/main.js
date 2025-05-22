@@ -1,4 +1,6 @@
 // js/main.js
+
+/* ───────────────────────────  Import  ─────────────────────────── */
 import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
 import { createCar } from "../assets/models/CarModel.js";
 import { loadLevel } from "./LevelLoader.js";
@@ -10,9 +12,10 @@ import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
+import { celeiroGroup, celeiroPosition, updateBarnDirection } from "./LevelLoader.js";
+
 
 const gameContainer = document.getElementById("game-container");
-
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
@@ -50,6 +53,7 @@ let levelStartTime = 0;
 let isTimerRunning = false;
 let pauseStartTime = 0;
 let coinCount = 0;
+
 
 /* ───────────────────────────  Modal de nível ─────────────────────────── */
 const modal = document.getElementById("level-complete-modal");
@@ -100,7 +104,7 @@ async function levelExists(idx) {
     return false;
   }
 }
-
+/* ────────────────────────────  Cameras ───────────── */
 // ▼ Câmaras principais
 const cameraPerspective = new THREE.PerspectiveCamera(
   75,
@@ -265,7 +269,7 @@ function easeInOutCubic(t) {
 }
 
 /* ──────────────────────  Efeitos visuais (fumo, salto)  ───────────────────── */
-
+//fumo
 function createSmoke(textureLoader, position) {
   const tex = textureLoader.load("./assets/textures/smoke.png");
   const mat = new THREE.SpriteMaterial({
@@ -290,39 +294,7 @@ function createSmoke(textureLoader, position) {
   }
   requestAnimationFrame(anim);
 }
-
-let isRotating = false;
-function rotateCar180(car, dir = "right") {
-  if (isRotating) return;
-  isRotating = true;
-
-  // fumo nas rodas traseiras
-  const backL = new THREE.Vector3(-0.5, 0.2, 1.2),
-    backR = new THREE.Vector3(0.5, 0.2, 1.2);
-  car.localToWorld(backL);
-  car.localToWorld(backR);
-  createSmoke(textureLoader, backL);
-  createSmoke(textureLoader, backR);
-
-  const startRot = car.rotation.y;
-  const angle = dir === "left" ? Math.PI : -Math.PI;
-  const targetRot = startRot + angle;
-  const start = performance.now(),
-    duration = 1000;
-
-  function anim(t) {
-    const p = Math.min((t - start) / duration, 1);
-    car.rotation.y = startRot + angle * easeOutCubic(p);
-    if (p < 1) requestAnimationFrame(anim);
-    else {
-      car.rotation.y = targetRot;
-      isRotating = false;
-    }
-  }
-  requestAnimationFrame(anim);
-}
-
-let isJumping = false;
+//salto
 function createJumpDust(textureLoader, pos, count = 12, spread = 0.5) {
   const tex = textureLoader.load("./assets/textures/smoke.png");
   const parts = [];
@@ -362,7 +334,39 @@ function createJumpDust(textureLoader, pos, count = 12, spread = 0.5) {
   }
   requestAnimationFrame(anim);
 }
+/* ──────────────────────  Rotação 180º ───────────────────── */
+let isRotating = false;
+function rotateCar180(car, dir = "right") {
+  if (isRotating) return;
+  isRotating = true;
 
+  // fumo nas rodas traseiras
+  const backL = new THREE.Vector3(-0.5, 0.2, 1.2),
+    backR = new THREE.Vector3(0.5, 0.2, 1.2);
+  car.localToWorld(backL);
+  car.localToWorld(backR);
+  createSmoke(textureLoader, backL);
+  createSmoke(textureLoader, backR);
+
+  const startRot = car.rotation.y;
+  const angle = dir === "left" ? Math.PI : -Math.PI;
+  const targetRot = startRot + angle;
+  const start = performance.now(),
+    duration = 1000;
+
+  function anim(t) {
+    const p = Math.min((t - start) / duration, 1);
+    car.rotation.y = startRot + angle * easeOutCubic(p);
+    if (p < 1) requestAnimationFrame(anim);
+    else {
+      car.rotation.y = targetRot;
+      isRotating = false;
+    }
+  }
+  requestAnimationFrame(anim);
+}
+/* ──────────────────────  Salto ───────────────────── */
+let isJumping = false;
 function jumpCar(car) {
   if (isJumping) return;
   isJumping = true;
@@ -705,7 +709,7 @@ async function initLevel(idx) {
   currentLevelIndex = idx;
   const levelName = `level-${idx}`;
 
-  // 1) garantir que nenhum modal / tempo antigo fica no caminho
+  // garantir que nenhum modal / tempo antigo fica no caminho
   modal.classList.remove("show");
   // não removemos mais o <p class="time-display">, apenas limpamos o texto
   const timeEl = modal.querySelector(".time-display");
@@ -714,38 +718,25 @@ async function initLevel(idx) {
   controlsLocked = true;
   isInPreview = true;
 
-  // 2) carregar JSON e instanciar tudo
+  // carregar JSON e instanciar tudo
   const data = await loadLevel(levelName, scene, textureLoader);
   levelData = data;
   wallMeshes = scene.children.filter(
     (o) => o.userData.levelObject && o.geometry?.type === "BoxGeometry"
   );
   visitedCells = data.map.map((r) => r.map((_) => false));
-
-  // Adiciona neve apenas no nível 2
+ 
+  // Adiciona neve no nivel 2
   if (currentLevelIndex === 2) {
     createSnow(scene);
   }
 
-  if (idx === 2) {
-    // Ambiente gelado
-    ambientLight.color.set(0xb0e0ff); // azul claro (tom frio)
-    ambientLight.intensity = 0.3;
-
-    directionalLight.color.set(0xe0f8ff); // luz gélida
-    directionalLight.intensity = 0.8;
-
-    directionalLight.position.set(20, 50, 20); // (opcional: ângulo da luz)
-
-    // A fog azul clara já vem do layout.json do nível 2
-  }
-
-  // 3) posicionar carro no início
+  //  posicionar carro no início
   car.position.copy(data.startPos);
   car.pos;
   car.userData.velocity = 0;
 
-  // 4) rotação automática inicial
+  // rotação automática inicial
   {
     const tx = Math.round((data.startPos.x - data.offsetX) / data.tileSize);
     const tz = Math.round((data.startPos.z - data.offsetZ) / data.tileSize);
@@ -765,7 +756,7 @@ async function initLevel(idx) {
     car.rotation.set(0, angle, 0);
   }
 
-  // 5) fog + iniciar loop e preview
+  // fog + iniciar loop e preview
   scene.fog = new THREE.Fog(data.fog.color, data.fog.near, data.fog.far);
   if (!animationStarted) {
     requestAnimationFrame(animate);
@@ -809,7 +800,8 @@ nextBtn.onclick = async () => {
 
   nextBtn.blur();
 };
-//neve a cair
+
+/* ─────────────────────  Neve ───────────────────── */
 let snowParticles;
 
 function createSnow(scene) {
@@ -858,21 +850,21 @@ function animate(now) {
     timerEl.textContent = `${elapsed.toFixed(2)}s`;
   }
 
-  // ───── Parâmetros de física ─────
+  // ───── Parâmetros de física para o Nivel 2  ─────
   const d = car.userData;
-  if (currentLevelIndex === 2) {
+  /*if (currentLevelIndex === 2) {
     d.acceleration = 5; // mais rápido: 12 m/s²
     d.maxSpeed = 10; // mantém top speed em 15 m/s
     d.friction = 1;
     d.brakePower = 3;
     d.steeringMultiplier = 0.4;
-  } else {
+  } else {*/
     d.acceleration = 13; // mais rápido: 12 m/s²
     d.maxSpeed = 15; // mantém top speed em 15 m/s
     d.brakePower = 40;
     d.friction = 15;
     d.steeringMultiplier = 1;
-  }
+  //}
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapW = map[0].length,
@@ -962,11 +954,11 @@ function animate(now) {
     });
   }
 
-  // Roda todos os objetos animados (como o paralelepípedo)
+  // Rotação do paralelepípedo
   animatedObjects.forEach((obj) => {
     obj.rotation.y += 1.2 * deltaTime;
   });
-
+ // Rotação da moeda
   coinMeshes.forEach((coin) => {
     coin.rotation.z += 2 * deltaTime; // velocidade de rotação
   });
@@ -1037,7 +1029,7 @@ function animate(now) {
   }
   drawMinimap(mapW, mapH, tileSize, offsetX, offsetZ);
 
-  // Neve a cair (apenas se existir)
+  //Animação da neve a cair 
   if (snowParticles) {
     const pos = snowParticles.geometry.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -1049,10 +1041,15 @@ function animate(now) {
     pos.needsUpdate = true;
   }
 
+
+ //Movimento do iglu em relação ao carro
   if (igluTunnel && igluPosition && car) {
     updateTunnelDirection(igluTunnel, igluPosition, car.position);
   }
-
+ //Movimento do celeiro em relação ao carro
+  if (celeiroGroup && celeiroPosition) {
+    updateBarnDirection(celeiroGroup, celeiroPosition, car.position);
+  }
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);
@@ -1234,7 +1231,7 @@ function showCountdown(seconds = 3) {
     }
   }, 1000);
 }
-
+/* ───────────────────────  Inicialização do mapa nos 3s  ───────────────────────── */
 function startMapPreviewSequence() {
   if (!levelData) return;
 
