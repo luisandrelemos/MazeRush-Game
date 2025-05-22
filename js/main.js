@@ -842,19 +842,19 @@ function animate(now) {
 
   // ───── Parâmetros de física para o Nivel 2  ─────
   const d = car.userData;
-  if (currentLevelIndex === 2) {
+  /*if (currentLevelIndex === 2) {
     d.acceleration = 5; // mais rápido: 12 m/s²
     d.maxSpeed = 10; // mantém top speed em 15 m/s
     d.friction = 1;
     d.brakePower = 3;
     d.steeringMultiplier = 0.4;
-  } else {
+  } else {*/
     d.acceleration = 13; // mais rápido: 12 m/s²
     d.maxSpeed = 15; // mantém top speed em 15 m/s
     d.brakePower = 40;
     d.friction = 15;
     d.steeringMultiplier = 1;
-  }
+  //}
 
   const { tileSize, offsetX, offsetZ, map } = levelData;
   const mapW = map[0].length,

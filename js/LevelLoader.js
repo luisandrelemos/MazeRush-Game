@@ -8,11 +8,11 @@ export let celeiroGroup = null;
 export let celeiroPosition = null;
 
 export async function loadLevel(levelName, scene, textureLoader) {
-  /* 1. Ler JSON */
+  /* Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
 
-  /* 2. Limpar restos do nível anterior */
+  /* Limpar restos do nível anterior */
   scene.children
     .filter((o) => o.userData.levelObject)
     .forEach((o) => scene.remove(o));
@@ -20,7 +20,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const mapW = lvl.map[0].length;
   const mapH = lvl.map.length;
 
-  //chao
+  //Textura do chao
   let floorTexture;
   if (lvl.floor?.texture) {
     floorTexture = textureLoader.load(
@@ -30,29 +30,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture.repeat.set(mapW / 2, mapH / 2); // ajusta à dimensão do labirinto
   }
 
-  // textura do iglu
-  const igluTexture = textureLoader.load(
-    `../assets/levels/level-2/textureiglu.jpg`
-  );
-  igluTexture.wrapS = igluTexture.wrapT = THREE.RepeatWrapping;
-
-  const floorMat = floorTexture
-    ? new THREE.MeshStandardMaterial({
-        map: floorTexture,
-        metalness: 0.2,
-        roughness: 0.8,
-      })
-    : new THREE.MeshStandardMaterial({ color: lvl.colors?.floor ?? "#888" });
-
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(mapW * lvl.tileSize, mapH * lvl.tileSize),
-    floorMat
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.userData.levelObject = true;
-  scene.add(floor);
-
-  /* 4. Paredes internas do labirinto */
+  /* Paredes internas do labirinto */
   const wallTexture = lvl.wallTexture
     ? textureLoader.load(`../assets/levels/${levelName}/${lvl.wallTexture}`)
     : null;
@@ -74,6 +52,29 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
 
+  // Textura do iglu
+  const igluTexture = textureLoader.load(
+    `../assets/levels/level-2/textureiglu.jpg`
+  );
+  igluTexture.wrapS = igluTexture.wrapT = THREE.RepeatWrapping;
+
+  const floorMat = floorTexture
+    ? new THREE.MeshStandardMaterial({
+        map: floorTexture,
+        metalness: 0.2,
+        roughness: 0.8,
+      })
+    : new THREE.MeshStandardMaterial({ color: lvl.colors?.floor ?? "#888" });
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(mapW * lvl.tileSize, mapH * lvl.tileSize),
+    floorMat
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.userData.levelObject = true;
+  scene.add(floor);
+
+  // Textura das cercas
   const texturaMadeira = textureLoader.load("../assets/textures/cerca.jpg");
   texturaMadeira.wrapS = THREE.RepeatWrapping;
   texturaMadeira.wrapT = THREE.RepeatWrapping;
@@ -93,21 +94,18 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture.repeat.set(mapW / 2, mapH / 2); // ajuste ao tamanho do mapa
   }
 
-  
-
-
-
   lvl.map.forEach((row, z) =>
     row.forEach((cell, x) => {
       let height = lvl.wallHeight;
-
+      
       if (cell === 1 || cell === 2) {
+        // Cercas caso haja "2" na matriz
         if (cell === 2) {
           const tileCenterX = x * lvl.tileSize + offsetX;
           const tileCenterZ = z * lvl.tileSize + offsetZ;
 
           const cercaGroup = new THREE.Group();
-
+          //Dimensões
           const largura = lvl.tileSize;
           const altura = lvl.wallHeight / 3;
           const espessura = 0.25;
@@ -149,6 +147,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           scene.add(cercaGroup);
         }
       }
+      //Paredes
       if (cell === 1) {
         const wall = new THREE.Mesh(
           new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize),
@@ -166,7 +165,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     })
   );
 
-  // paralelepipedo animado nivel 6
+  // Criação dos objetos customizados (layout.json)
   function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
     if (!objects) return;
 
@@ -252,7 +251,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           opacity: 0.6,
           depthWrite: false,
         });
-
+        
         const glowSprite = new THREE.Sprite(glowMat);
         glowSprite.scale.set(2, 2, 1);
         glowSprite.position.set(0, -0.05, 0.8);
