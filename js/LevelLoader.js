@@ -84,6 +84,17 @@ export async function loadLevel(levelName, scene, textureLoader) {
     color: 0xffffff,
   });
 
+  // === Chão do nível 6 ===
+  if (levelName === "level6" && lvl.floor?.texture) {
+    floorTexture = textureLoader.load(
+      `../assets/levels/${levelName}/${lvl.floor.texture}`
+    );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set(mapW / 2, mapH / 2); // ajuste ao tamanho do mapa
+  }
+
+
+
   lvl.map.forEach((row, z) =>
     row.forEach((cell, x) => {
       let height = lvl.wallHeight;

@@ -48,6 +48,7 @@
   "floor": {
     "texture": "floor.jpg"
   },
+  
   "wallTexture": "ice_blocks.jpg",
 
   "objects": [
