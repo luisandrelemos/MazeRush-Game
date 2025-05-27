@@ -7,6 +7,8 @@ export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
 
+
+
 export async function loadLevel(levelName, scene, textureLoader) {
   /* Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
@@ -62,8 +64,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
   const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
-
-  
 
   // Textura do iglu
   const igluTexture = textureLoader.load(
@@ -472,6 +472,91 @@ export async function loadLevel(levelName, scene, textureLoader) {
         celeiroGroup.add(fardo2);
 
         scene.add(celeiroGroup);
+      }
+
+      if (type === "arvore") {
+        const group = new THREE.Group();
+
+        // TEXTURAS
+        const texturaTronco = textureLoader.load("../assets/textures/bark.png");
+        const texturaFolhas = textureLoader.load(
+          "../assets/textures/leaves.png"
+        );
+
+        // TRONCO
+        const tronco = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.5, 2.5, 8, 30),
+          new THREE.MeshStandardMaterial({
+            map: texturaTronco,
+          })
+        );
+        tronco.position.y = 1.5;
+        group.add(tronco);
+
+        // COPA (folhas)
+        const copa = new THREE.Mesh(
+          new THREE.SphereGeometry(4, 32, 32),
+          new THREE.MeshStandardMaterial({
+            map: texturaFolhas,
+            emissive: 0x228b22,
+            emissiveIntensity: 0.4,
+          })
+        );
+        copa.position.y = 8.5;
+        group.add(copa);
+
+        // POSIÇÃO final
+        group.position.set(
+          position.x * tileSize + offsetX,
+          0,
+          position.z * tileSize + offsetZ
+        );
+
+        // PORTA (círculo escuro)
+        const porta = new THREE.Mesh(
+          new THREE.CircleGeometry(1.2, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            side: THREE.DoubleSide,
+          })
+        );
+        const distanciaFrontal = 2.19; // raio + margem
+        porta.rotation.y = Math.PI; // gira 180 graus
+        porta.position.set(0, 1.2, -distanciaFrontal);
+        group.add(porta);
+
+        // MOLDURA da porta (aro)
+        const aro = new THREE.Mesh(
+          new THREE.RingGeometry(1.3, 1.5, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+          })
+        );
+        aro.rotation.y = Math.PI;
+        aro.position.set(0, 1.2, -distanciaFrontal - 0.01); // ligeiramente mais à frente
+        group.add(aro);
+
+        // TEXTURA de brilho 
+        const glowTexture = textureLoader.load("../assets/textures/glow.png");
+
+        const glowMaterial = new THREE.SpriteMaterial({
+          map: glowTexture,
+          color: 0x00ff99, // tom mágico verde-azulado
+          transparent: true,
+          opacity: 1,
+          depthWrite: false,
+        });
+
+        const glowSprite = new THREE.Sprite(glowMaterial);
+        glowSprite.scale.set(8, 8, 1); // tamanho do brilho
+        glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4); // mesmo centro da porta
+        group.add(glowSprite);
+
+        
+
+        group.userData.levelObject = true;
+        scene.add(group);
       }
     });
   }
