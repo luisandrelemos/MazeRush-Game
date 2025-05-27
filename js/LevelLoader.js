@@ -7,49 +7,6 @@ export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
 
-function createRoundedWallGeometry(tileSize, height = 2) {
-  const radius = 0.2;
-
-  const shape = new THREE.Shape();
-  shape.moveTo(-tileSize / 2 + radius, -tileSize / 2);
-  shape.lineTo(tileSize / 2 - radius, -tileSize / 2);
-  shape.quadraticCurveTo(
-    tileSize / 2,
-    -tileSize / 2,
-    tileSize / 2,
-    -tileSize / 2 + radius
-  );
-  shape.lineTo(tileSize / 2, tileSize / 2 - radius);
-  shape.quadraticCurveTo(
-    tileSize / 2,
-    tileSize / 2,
-    tileSize / 2 - radius,
-    tileSize / 2
-  );
-  shape.lineTo(-tileSize / 2 + radius, tileSize / 2);
-  shape.quadraticCurveTo(
-    -tileSize / 2,
-    tileSize / 2,
-    -tileSize / 2,
-    tileSize / 2 - radius
-  );
-  shape.lineTo(-tileSize / 2, -tileSize / 2 + radius);
-  shape.quadraticCurveTo(
-    -tileSize / 2,
-    -tileSize / 2,
-    -tileSize / 2 + radius,
-    -tileSize / 2
-  );
-
-  const extrudeSettings = {
-    depth: height,
-    bevelEnabled: false,
-  };
-
-  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-  geometry.rotateX(-Math.PI / 2); // deita o bloco para ficar em pé
-  return geometry;
-}
 
 export async function loadLevel(levelName, scene, textureLoader) {
   /* Ler JSON */
