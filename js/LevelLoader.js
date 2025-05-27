@@ -7,7 +7,49 @@ export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
 
+function createRoundedWallGeometry(tileSize, height = 2) {
+  const radius = 0.2;
 
+  const shape = new THREE.Shape();
+  shape.moveTo(-tileSize / 2 + radius, -tileSize / 2);
+  shape.lineTo(tileSize / 2 - radius, -tileSize / 2);
+  shape.quadraticCurveTo(
+    tileSize / 2,
+    -tileSize / 2,
+    tileSize / 2,
+    -tileSize / 2 + radius
+  );
+  shape.lineTo(tileSize / 2, tileSize / 2 - radius);
+  shape.quadraticCurveTo(
+    tileSize / 2,
+    tileSize / 2,
+    tileSize / 2 - radius,
+    tileSize / 2
+  );
+  shape.lineTo(-tileSize / 2 + radius, tileSize / 2);
+  shape.quadraticCurveTo(
+    -tileSize / 2,
+    tileSize / 2,
+    -tileSize / 2,
+    tileSize / 2 - radius
+  );
+  shape.lineTo(-tileSize / 2, -tileSize / 2 + radius);
+  shape.quadraticCurveTo(
+    -tileSize / 2,
+    -tileSize / 2,
+    -tileSize / 2 + radius,
+    -tileSize / 2
+  );
+
+  const extrudeSettings = {
+    depth: height,
+    bevelEnabled: false,
+  };
+
+  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  geometry.rotateX(-Math.PI / 2); // deita o bloco para ficar em pé
+  return geometry;
+}
 
 export async function loadLevel(levelName, scene, textureLoader) {
   /* Ler JSON */
@@ -193,6 +235,34 @@ export async function loadLevel(levelName, scene, textureLoader) {
   // Criação dos objetos customizados (layout.json)
   function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
     if (!objects) return;
+
+    /* Bordas exteriores */
+    if (lvl.borderThickness && lvl.borderThickness > 0) {
+      const bt = lvl.borderThickness;
+      const w = mapW * lvl.tileSize;
+      const h = mapH * lvl.tileSize;
+
+      const leftX = offsetX - lvl.tileSize / 2 - bt / 2;
+      const rightX = offsetX + w - lvl.tileSize / 2 + bt / 2;
+      const topZ = offsetZ - lvl.tileSize / 2 - bt / 2;
+      const bottomZ = offsetZ + h - lvl.tileSize / 2 + bt / 2;
+
+      const makeBorder = (sizeX, sizeZ, x, z) => {
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(sizeX, lvl.wallHeight, sizeZ),
+          wallMat
+        );
+        mesh.position.set(x, lvl.wallHeight / 2, z);
+        mesh.castShadow = mesh.receiveShadow = true;
+        mesh.userData.levelObject = true;
+        scene.add(mesh);
+      };
+
+      makeBorder(w, bt, (leftX + rightX) / 2, topZ);
+      makeBorder(w, bt, (leftX + rightX) / 2, bottomZ);
+      makeBorder(bt, h, leftX, (topZ + bottomZ) / 2);
+      makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
+    }
 
     objects.forEach((obj) => {
       const { type, position, dimensions, color } = obj;
@@ -537,7 +607,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         aro.position.set(0, 1.2, -distanciaFrontal - 0.01); // ligeiramente mais à frente
         group.add(aro);
 
-        // TEXTURA de brilho 
+        // TEXTURA de brilho
         const glowTexture = textureLoader.load("../assets/textures/glow.png");
 
         const glowMaterial = new THREE.SpriteMaterial({
@@ -553,40 +623,10 @@ export async function loadLevel(levelName, scene, textureLoader) {
         glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4); // mesmo centro da porta
         group.add(glowSprite);
 
-        
-
         group.userData.levelObject = true;
         scene.add(group);
       }
     });
-  }
-
-  /* Bordas exteriores */
-  if (lvl.borderThickness && lvl.borderThickness > 0) {
-    const bt = lvl.borderThickness;
-    const w = mapW * lvl.tileSize;
-    const h = mapH * lvl.tileSize;
-
-    const leftX = offsetX - lvl.tileSize / 2 - bt / 2;
-    const rightX = offsetX + w - lvl.tileSize / 2 + bt / 2;
-    const topZ = offsetZ - lvl.tileSize / 2 - bt / 2;
-    const bottomZ = offsetZ + h - lvl.tileSize / 2 + bt / 2;
-
-    const makeBorder = (sizeX, sizeZ, x, z) => {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(sizeX, lvl.wallHeight, sizeZ),
-        wallMat
-      );
-      mesh.position.set(x, lvl.wallHeight / 2, z);
-      mesh.castShadow = mesh.receiveShadow = true;
-      mesh.userData.levelObject = true;
-      scene.add(mesh);
-    };
-
-    makeBorder(w, bt, (leftX + rightX) / 2, topZ);
-    makeBorder(w, bt, (leftX + rightX) / 2, bottomZ);
-    makeBorder(bt, h, leftX, (topZ + bottomZ) / 2);
-    makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
   }
 
   //construir o iglu
