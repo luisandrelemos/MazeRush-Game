@@ -1,7 +1,7 @@
 // js/main.js
-
 /* ───────────────────────────  Import  ─────────────────────────── */
-import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
 import { createCar } from "../assets/models/CarModel.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
@@ -12,6 +12,7 @@ import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
+import { initCustomize } from './customize.js';
 import {
   celeiroGroup,
   celeiroPosition,
@@ -20,6 +21,10 @@ import {
 
 const gameContainer = document.getElementById("game-container");
 window.magicParticles = [];
+
+// quando abrir o Personalizar:
+const container = document.getElementById('customize-container');
+initCustomize(container);
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
