@@ -1,7 +1,7 @@
 // js/main.js
-
 /* ───────────────────────────  Import  ─────────────────────────── */
-import * as THREE from "https://cdn.skypack.dev/three@0.152.2";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
 import { createCar } from "../assets/models/CarModel.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
@@ -12,6 +12,7 @@ import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
+import { initCustomize } from './customize.js';
 import {
   celeiroGroup,
   celeiroPosition,
@@ -21,11 +22,15 @@ import {
 const gameContainer = document.getElementById("game-container");
 window.magicParticles = [];
 
+// quando abrir o Personalizar:
+const container = document.getElementById('customize-container');
+initCustomize(container);
+
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
 let lastFrameTime = performance.now();
 
-/* ───────────────────────────  Timer Countdown  ─────────────────────────── */
+ /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
 const countdownEl = document.createElement("div");
 countdownEl.id = "countdown";
 countdownEl.textContent = "";
@@ -35,22 +40,6 @@ gameContainer.appendChild(countdownEl);
 const timerEl = document.createElement("div");
 timerEl.id = "level-timer";
 timerEl.textContent = "0.00s";
-Object.assign(timerEl.style, {
-  position: "absolute",
-  top: "20px",
-  left: "50%",
-  transform: "translateX(-50%)",
-  color: "#fff",
-  textShadow: "0 0 8px rgba(0, 0, 0, 0.8)",
-  fontFamily: "monospace",
-  fontSize: "48px",
-  fontWeight: "bold",
-  background: "rgba(0, 0, 0, 0.3)",
-  padding: "4px 16px",
-  borderRadius: "8px",
-  pointerEvents: "none",
-  zIndex: "100",
-});
 gameContainer.appendChild(timerEl);
 
 let levelStartTime = 0;
@@ -231,10 +220,15 @@ window.addEventListener("keydown", (e) => {
 });
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
+// antes de criar o carro, puxa as cores do perfil:
+const profile    = getCurrentProfile();
+const savedCols  = profile.carColors || {};
+
+// cria o carro já com as cores do perfil
 const textureLoader = new THREE.TextureLoader();
-const car = createCar(textureLoader);
-scene.add(car);
+const car = createCar(textureLoader, savedCols);
 car.castShadow = true;
+scene.add(car);
 
 // Bounding Sphere do carro (a partir do chassis)
 const baseGeom = car.children[0].geometry;

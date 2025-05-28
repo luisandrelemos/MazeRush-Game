@@ -932,17 +932,33 @@ body.minimap-expanded #game-container {
 
 /* ─── Contador ─── */
 #countdown {
-  position: absolute;
+  position: fixed;         /* fica sempre no viewport */
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(1);
   font-size: 6rem;
-  color: #fff;
   font-family: 'Orbitron', sans-serif;
   font-weight: 800;
-  z-index: 100;
+  color: #fff;
+  text-shadow: 0 0 10px #000;
+  z-index: 9999;           /* acima de tudo */
   opacity: 0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  text-shadow: 0 0 10px #000, 0 0 20px #000;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+#level-timer {
+  position: fixed;
+  top: 20px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 3rem;
+  font-family: monospace;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.4);
+  padding: 6px 14px;
+  border-radius: 6px;
+  z-index: 9999;
   pointer-events: none;
 }
 
@@ -1118,4 +1134,132 @@ body.minimap-expanded #game-container {
 #coin-counter img {
   width: 24px;
   height: 24px;
+}
+
+/* ------------------- PERSONALIZAR --------------------------*/
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 2) Container completo */
+#customize-page {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--verde-escuro);    /* ou a cor/gradiente que estiveres a usar */
+  z-index: 900;                        /* acima do resto */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* 3) Header fixo no topo */
+/* HEADER FIXO E CORRETO */
+#customize-page .levels-header {
+  position: fixed;         
+  top: 0;                 
+  left: 0;                   
+  width: 100vw !important; 
+  max-width: none !important;
+  margin: 0 !important;     
+  height: 60px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; 
+  background: var(--verde-médio);
+  box-sizing: border-box;
+  position: relative;
+  z-index: 910;
+}
+
+/* Botão “← Voltar” */
+#customize-page .levels-header .back-button {
+  background: linear-gradient(135deg, var(--verde-médio), var(--azul-claro));
+  color: var(--verde-escuro);
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
+  margin: 0;       
+  height: auto;
+  line-height: normal;
+}
+
+/* Título central absoluto */
+#customize-page .levels-header .levels-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  color: var(--quase-branco);
+  text-transform: uppercase;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* mete o botão de guardar no canto direito */
+#customize-page .levels-header #save-custom-btn {
+  margin-left: auto;
+}
+
+/* 4) Canvas container ocupa do topo+48px até ao fundo */
+#customize-container {
+  position: absolute;
+  top: 48px;   /* imediatamente abaixo do header */
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* 5) Faz o canvas encher 100% do container */
+#customize-container canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0; left: 0;
+  display: block;
+}
+
+#color-ui {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  background: rgba(0,0,0,0.6);
+  padding: 12px;
+  border-radius: 8px;
+  gap: 16px;
+  z-index: 1000;
+}
+#color-ui .picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+}
+#color-ui .picker input {
+  margin-top: 4px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
