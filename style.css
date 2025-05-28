@@ -1136,7 +1136,7 @@ body.minimap-expanded #game-container {
   height: 24px;
 }
 
-/* 1) Garante full‐screen e remove scroll */
+/* ------------------- PERSONALIZAR --------------------------*/
 html, body {
   width: 100%;
   height: 100%;
@@ -1211,6 +1211,10 @@ html, body {
   pointer-events: none;
 }
 
+/* mete o botão de guardar no canto direito */
+#customize-page .levels-header #save-custom-btn {
+  margin-left: auto;
+}
 
 /* 4) Canvas container ocupa do topo+48px até ao fundo */
 #customize-container {
