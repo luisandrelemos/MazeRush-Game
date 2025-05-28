@@ -7,7 +7,6 @@ export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
 
-
 export async function loadLevel(levelName, scene, textureLoader) {
   /* Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
@@ -107,16 +106,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
     map: texturaCeleiroVermelha,
     color: 0xffffff, // garante que a cor da textura não é alterada
   });
-
-  // === Chão do nível 6 ===
-  if (levelName === "level6" && lvl.floor?.texture) {
-    floorTexture = textureLoader.load(
-      `../assets/levels/${levelName}/${lvl.floor.texture}`
-    );
-    floorTexture.wrapS = THREE.RepeatWrapping;
-    floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set(10, 10); // ajusta os valores conforme o tamanho do chão
-  }
 
   lvl.map.forEach((row, z) =>
     row.forEach((cell, x) => {
@@ -582,6 +571,124 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         group.userData.levelObject = true;
         scene.add(group);
+      }
+
+      if (type === "vulcao") {
+        const vulcaoGroup = new THREE.Group();
+
+        // TEXTURA da lava escorrida
+        const texturaLava = textureLoader.load(
+          "../assets/levels/level-3/vulcao.png"
+        );
+        texturaLava.wrapS = THREE.RepeatWrapping;
+        texturaLava.wrapT = THREE.RepeatWrapping;
+        texturaLava.repeat.set(1, 2);
+
+        // --- BASE DO VULCÃO: cone truncado ---
+        const coneGeometry = new THREE.CylinderGeometry(0.8, 4, 4, 32); // topo menor que base
+        const coneMaterial = new THREE.MeshStandardMaterial({
+          map: texturaLava,
+          emissiveIntensity: 0.4,
+        });
+
+        const cone = new THREE.Mesh(coneGeometry, coneMaterial);
+        cone.position.y = 1;
+        cone.castShadow = cone.receiveShadow = true;
+        vulcaoGroup.add(cone);
+
+        // POSIÇÃO final
+        vulcaoGroup.position.set(
+          position.x * tileSize + offsetX,
+          0,
+          position.z * tileSize + offsetZ
+        );
+
+        // --- SISTEMA DE PARTÍCULAS: lava a ser expelida ---
+        const particleCount = 500;
+        const particleGeometry = new THREE.BufferGeometry();
+        const positions = [];
+        const velocities = [];
+
+        for (let i = 0; i < particleCount; i++) {
+          const x = (Math.random() - 0.5) * 1.2;
+          const y = Math.random() * 0.5;
+          const z = (Math.random() - 0.5) * 1.2;
+
+          positions.push(x, y, z);
+          velocities.push(
+            (Math.random() - 0.5) * 0.03, // vx
+            0.02 + Math.random() * 0.05, // vy (ascendente)
+            (Math.random() - 0.5) * 0.03 // vz
+          );
+        }
+
+        particleGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(positions, 3)
+        );
+
+        // Material das partículas (lava brilhante)
+        const particleMaterial = new THREE.PointsMaterial({
+          color: 0xff5500,
+          size: 0.2,
+          transparent: true,
+          opacity: 0.8,
+          depthWrite: false,
+        });
+
+        // Criar sistema de partículas
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.position.set(0, 3, 0); // topo do vulcão
+        vulcaoGroup.add(particles);
+
+        // Guardar para animar
+        particles.userData.velocities = velocities;
+        animatedObjects.push(particles); // importante: incluir no loop de animação
+        
+        const group = new THREE.Group();
+        // PORTÃO (círculo escuro)
+        const portao = new THREE.Mesh(
+          new THREE.CircleGeometry(1.2, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            side: THREE.DoubleSide,
+          })
+        );
+        const distanciaFrontal = 2.19;
+        portao.rotation.y = Math.PI;
+        portao.position.set(0, 1.2, -distanciaFrontal);
+        group.add(portao);
+
+        // MOLDURA do portão (aro branco)
+        const aroPortao = new THREE.Mesh(
+          new THREE.RingGeometry(1.3, 1.5, 32),
+          new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+          })
+        );
+        aroPortao.rotation.y = Math.PI;
+        aroPortao.position.set(0, 1.2, -distanciaFrontal - 0.01);
+        group.add(aroPortao);
+
+        // GLOW VERMELHO
+        const glowTexture = textureLoader.load("../assets/textures/glow.png");
+
+        const glowMaterial = new THREE.SpriteMaterial({
+          map: glowTexture,
+          color: 0xff3333, // glow vermelho
+          transparent: true,
+          opacity: 1,
+          depthWrite: false,
+        });
+
+        const glowSprite = new THREE.Sprite(glowMaterial);
+        glowSprite.scale.set(8, 8, 1);
+        glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4);
+        group.add(glowSprite);
+
+        vulcaoGroup.userData.levelObject = true;
+        scene.add(vulcaoGroup);
       }
     });
   }
