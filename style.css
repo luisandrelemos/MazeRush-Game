@@ -932,17 +932,33 @@ body.minimap-expanded #game-container {
 
 /* ─── Contador ─── */
 #countdown {
-  position: absolute;
+  position: fixed;         /* fica sempre no viewport */
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(1);
   font-size: 6rem;
-  color: #fff;
   font-family: 'Orbitron', sans-serif;
   font-weight: 800;
-  z-index: 100;
+  color: #fff;
+  text-shadow: 0 0 10px #000;
+  z-index: 9999;           /* acima de tudo */
   opacity: 0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  text-shadow: 0 0 10px #000, 0 0 20px #000;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+#level-timer {
+  position: fixed;
+  top: 20px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 3rem;
+  font-family: monospace;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.4);
+  padding: 6px 14px;
+  border-radius: 6px;
+  z-index: 9999;
   pointer-events: none;
 }
 
@@ -1133,11 +1149,14 @@ html, body {
 #customize-page {
   position: fixed;
   top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--verde-escuro); /* ou o gradiente que quiseres */
+  width: 100vw;
+  height: 100vh;
+  background: var(--verde-escuro);    /* ou a cor/gradiente que estiveres a usar */
+  z-index: 900;                        /* acima do resto */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   overflow: hidden;
-  z-index: 100;
 }
 
 /* 3) Header fixo no topo */
@@ -1156,7 +1175,8 @@ html, body {
   justify-content: flex-start; 
   background: var(--verde-médio);
   box-sizing: border-box;
-  z-index: 1000;
+  position: relative;
+  z-index: 910;
 }
 
 /* Botão “← Voltar” */

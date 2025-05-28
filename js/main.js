@@ -30,7 +30,7 @@ initCustomize(container);
 const scene = new THREE.Scene();
 let lastFrameTime = performance.now();
 
-/* ───────────────────────────  Timer Countdown  ─────────────────────────── */
+ /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
 const countdownEl = document.createElement("div");
 countdownEl.id = "countdown";
 countdownEl.textContent = "";
@@ -40,22 +40,6 @@ gameContainer.appendChild(countdownEl);
 const timerEl = document.createElement("div");
 timerEl.id = "level-timer";
 timerEl.textContent = "0.00s";
-Object.assign(timerEl.style, {
-  position: "absolute",
-  top: "20px",
-  left: "50%",
-  transform: "translateX(-50%)",
-  color: "#fff",
-  textShadow: "0 0 8px rgba(0, 0, 0, 0.8)",
-  fontFamily: "monospace",
-  fontSize: "48px",
-  fontWeight: "bold",
-  background: "rgba(0, 0, 0, 0.3)",
-  padding: "4px 16px",
-  borderRadius: "8px",
-  pointerEvents: "none",
-  zIndex: "100",
-});
 gameContainer.appendChild(timerEl);
 
 let levelStartTime = 0;
