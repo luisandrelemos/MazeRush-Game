@@ -3,6 +3,7 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js";
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
 import { createCar } from "../assets/models/CarModel.js";
+import { createCarB } from "../assets/models/CarModelB.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
 import { submitScore, fetchLeaderboard, saveCoins } from "./leaderboard.js";
@@ -220,13 +221,16 @@ window.addEventListener("keydown", (e) => {
 });
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
-// antes de criar o carro, puxa as cores do perfil:
-const profile    = getCurrentProfile();
-const savedCols  = profile.carColors || {};
+// pega perfil e modelo selecionado
+const profile       = getCurrentProfile();
+const savedCols     = profile.carColors  || {};
+const selModel      = profile.selectedModel || 0;
 
-// cria o carro já com as cores do perfil
+// cria o loader e o carro correto
 const textureLoader = new THREE.TextureLoader();
-const car = createCar(textureLoader, savedCols);
+const car = selModel === 1
+  ? createCarB(textureLoader, savedCols)
+  : createCar (textureLoader, savedCols);
 car.castShadow = true;
 scene.add(car);
 
