@@ -973,6 +973,34 @@ function animate(now) {
     coin.rotation.z += 2 * deltaTime;
   });
 
+  // Atualiza partículas do vulcão (lava a sair)
+  animatedObjects.forEach((obj) => {
+    if (obj.isPoints && obj.userData.velocities) {
+      const pos = obj.geometry.attributes.position.array;
+      const vel = obj.userData.velocities;
+
+      for (let i = 0; i < pos.length; i += 3) {
+        pos[i] += vel[i]; // x
+        pos[i + 1] += vel[i + 1]; // y
+        pos[i + 2] += vel[i + 2]; // z
+
+        // Reset se a partícula subir demais
+        if (pos[i + 1] > 8) {
+          // aumenta o teto de altura antes de resetar
+          pos[i] = (Math.random() - 0.5) * 1.2; // X: mais disperso (antes era 1.2)
+          pos[i + 1] = 0; // Y: volta à base do vulcão
+          pos[i + 2] = (Math.random() - 0.5) * 1.2; // Z: mais disperso
+
+          vel[i] = (Math.random() - 0.5) * 0.2; // velocidade lateral X
+          vel[i + 1] = 0.08 + Math.random() * 0.12; // mais impulso para cima
+          vel[i + 2] = (Math.random() - 0.5) * 0.2; // velocidade lateral Z
+        }
+      }
+
+      obj.geometry.attributes.position.needsUpdate = true;
+    }
+  });
+
   // ───── Atualiza câmaras ─────
   const camSmooth = 8; // velocidade de seguimento em unidades por segundo
   const rotSmooth = 5; // suavização de ângulo por segundo
@@ -1075,8 +1103,6 @@ function animate(now) {
   if (celeiroGroup && celeiroPosition) {
     updateBarnDirection(celeiroGroup, celeiroPosition, car.position);
   }
-
-  
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);
