@@ -1119,3 +1119,87 @@ body.minimap-expanded #game-container {
   width: 24px;
   height: 24px;
 }
+
+/* 1) Garante full‐screen e remove scroll */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 2) Container completo */
+#customize-page {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--verde-escuro); /* ou o gradiente que quiseres */
+  overflow: hidden;
+  z-index: 100;
+}
+
+/* 3) Header fixo no topo */
+/* HEADER FIXO E CORRETO */
+#customize-page .levels-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: var(--verde-médio);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+/* Botão “← Voltar” */
+#customize-page .levels-header .back-button {
+  background: var(--verde-claro);
+  color: var(--quase-branco);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 6px;
+  padding: 0 12px;
+  height: 28px;
+  line-height: 28px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Título central absoluto */
+#customize-page .levels-header .levels-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  color: var(--quase-branco);
+  text-transform: uppercase;
+  margin: 0;
+  pointer-events: none;
+}
+
+
+/* 4) Canvas container ocupa do topo+48px até ao fundo */
+#customize-container {
+  position: absolute;
+  top: 48px;   /* imediatamente abaixo do header */
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* 5) Faz o canvas encher 100% do container */
+#customize-container canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0; left: 0;
+  display: block;
+}
