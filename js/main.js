@@ -220,10 +220,15 @@ window.addEventListener("keydown", (e) => {
 });
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
+// antes de criar o carro, puxa as cores do perfil:
+const profile    = getCurrentProfile();
+const savedCols  = profile.carColors || {};
+
+// cria o carro já com as cores do perfil
 const textureLoader = new THREE.TextureLoader();
-const car = createCar(textureLoader);
-scene.add(car);
+const car = createCar(textureLoader, savedCols);
 car.castShadow = true;
+scene.add(car);
 
 // Bounding Sphere do carro (a partir do chassis)
 const baseGeom = car.children[0].geometry;

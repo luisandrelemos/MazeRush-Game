@@ -1229,3 +1229,33 @@ html, body {
   top: 0; left: 0;
   display: block;
 }
+
+#color-ui {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  background: rgba(0,0,0,0.6);
+  padding: 12px;
+  border-radius: 8px;
+  gap: 16px;
+  z-index: 1000;
+}
+#color-ui .picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+}
+#color-ui .picker input {
+  margin-top: 4px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}

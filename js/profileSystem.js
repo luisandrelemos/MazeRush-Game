@@ -13,9 +13,18 @@ function generateUUID() {
     );
 }
 
+// ─────────── Valores padrão de cores ───────────
+const DEFAULT_CAR_COLORS = {
+  primary:   "#603441",
+  secondary: "#ffffff",
+  structure: "#131313",
+  wheels:    "#666666"
+};
+
 // ─────────── Inicialização / garantia de dados ───────────
 function ensureData() {
   let all = JSON.parse(localStorage.getItem(PROFILES_KEY) || "null");
+
   if (!Array.isArray(all)) {
     all = [
       {
@@ -28,7 +37,8 @@ function ensureData() {
         soundVolume: 70,
         musicVolume: 60,
         coins: 0,
-        levelTimes: {}
+        levelTimes: {},
+        carColors: { ...DEFAULT_CAR_COLORS }
       },
       {
         id: "profile-2",
@@ -40,7 +50,8 @@ function ensureData() {
         soundVolume: 70,
         musicVolume: 60,
         coins: 0,
-        levelTimes: {}
+        levelTimes: {},
+        carColors: { ...DEFAULT_CAR_COLORS }
       },
       {
         id: "profile-3",
@@ -52,7 +63,8 @@ function ensureData() {
         soundVolume: 70,
         musicVolume: 60,
         coins: 0,
-        levelTimes: {}
+        levelTimes: {},
+        carColors: { ...DEFAULT_CAR_COLORS }
       }
     ];
   }
@@ -62,6 +74,7 @@ function ensureData() {
     if (!p.userId)         p.userId     = generateUUID();
     if (p.coins === undefined)    p.coins      = 0;
     if (!p.levelTimes)     p.levelTimes = {};
+    if (!p.carColors)      p.carColors  = { ...DEFAULT_CAR_COLORS };
     return p;
   });
 
