@@ -771,14 +771,12 @@ async function initLevel(idx) {
   levelComplete = false;
   controlsLocked = true;
   isInPreview = true;
-  wallMeshes.length = 0;
+  
 
   // carregar JSON e instanciar tudo
-  const data = await loadLevel(levelName, scene, textureLoader,wallMeshes);
+  const data = await loadLevel(levelName, scene, textureLoader);
   levelData = data;
-  wallMeshes = scene.children.filter(
-    (o) => o.userData.levelObject && o.geometry?.type === "BoxGeometry"
-  );
+  
   visitedCells = data.map.map((r) => r.map((_) => false));
 
   // Adiciona neve no nivel 2
