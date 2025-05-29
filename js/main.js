@@ -12,11 +12,20 @@ import { coinMeshes } from "./LevelLoader.js";
 import { fenceMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
 import { updateAudioSettings, updateMuteIcons } from "./audio.js";
-import { syncProfileFromFirestore, DEFAULT_CAR_MODEL_COLORS, getCurrentProfile, updateProfile, } from "./profileSystem.js";
+import {
+  syncProfileFromFirestore,
+  DEFAULT_CAR_MODEL_COLORS,
+  getCurrentProfile,
+  updateProfile,
+} from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
 import { initCustomize } from "./customize.js";
-import { celeiroGroup, celeiroPosition, updateBarnDirection, } from "./LevelLoader.js";
+import {
+  celeiroGroup,
+  celeiroPosition,
+  updateBarnDirection,
+} from "./LevelLoader.js";
 
 await syncProfileFromFirestore();
 
@@ -737,6 +746,15 @@ window.addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
+function clearLevelObjects() {
+  scene.children
+    .filter((obj) => obj.userData.levelObject)
+    .forEach((obj) => scene.remove(obj));
+
+  wallMeshes.length = 0;
+  coinMeshes.length = 0;
+  fenceMeshes.length = 0;
+}
 /* ───────────────────────  Carregar nível e arrancar  ─────────────────────── */
 async function initLevel(idx) {
   //carrega moedas do perfil ativo ───────────────────
@@ -765,6 +783,7 @@ async function initLevel(idx) {
   isInPreview = true;
 
   // carregar JSON e instanciar tudo
+  clearLevelObjects();
   const data = await loadLevel(levelName, scene, textureLoader);
   levelData = data;
 
