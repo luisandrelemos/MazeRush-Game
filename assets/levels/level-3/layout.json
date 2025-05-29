@@ -56,9 +56,42 @@
   "wallTexture": "wall.png",
 
   "objects": [
-  {
-    "type": "vulcao",
-    "position": { "x": 1, "z": 17 }
-  }
-]
+    {
+      "type": "vulcao",
+      "position": { "x": 1, "z": 17 }
+    },
+    { "type": "moeda", "position":{"x": 3, "z": 17}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 5, "z": 17}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 7, "z": 17}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 9, "z": 17}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 9, "z": 15}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 6, "z": 15}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 4, "z": 14}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 4, "z": 11}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 4, "z": 9}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 2, "z": 6}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 1, "z": 3}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 3, "z": 1}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 5, "z": 1}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 7, "z": 1}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 9, "z": 1}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 4, "z": 3}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 6, "z": 5}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 11, "z": 3}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 13, "z": 5}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 15, "z": 7}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 17, "z": 8}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 17, "z": 10}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 17, "z": 12}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 17, "z": 14}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 17, "z": 16}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 15, "z": 16}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 13, "z": 12}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 10, "z": 11}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 8, "z": 11}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 6, "z": 11}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 6, "z": 13}, "scale": 2 }
+
+
+  ]
 }

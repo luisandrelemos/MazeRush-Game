@@ -88,12 +88,18 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   // Textura das cercas
   const texturaMadeira = textureLoader.load("../assets/textures/cerca.jpg");
+  const texturaMetal = textureLoader.load("../assets/textures/cerca2.png");
   texturaMadeira.wrapS = THREE.RepeatWrapping;
   texturaMadeira.wrapT = THREE.RepeatWrapping;
   texturaMadeira.repeat.set(1, 1);
+  texturaMetal.wrapS = THREE.RepeatWrapping;
+  texturaMetal.wrapT = THREE.RepeatWrapping;
+  texturaMetal.repeat.set(1, 1);
+
+  const isLevel5 = levelName === "level-5";
 
   const madeiraMat = new THREE.MeshStandardMaterial({
-    map: texturaMadeira,
+    map: isLevel5 ? texturaMetal : texturaMadeira,
     color: 0xffffff,
   });
 
@@ -605,7 +611,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         vulcaoGroup.rotation.y = -Math.PI / 2;
 
-
         // --- SISTEMA DE PARTÍCULAS: lava a ser expelida ---
         const particleCount = 500;
         const particleGeometry = new THREE.BufferGeometry();
@@ -699,6 +704,134 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         vulcaoGroup.userData.levelObject = true;
         scene.add(vulcaoGroup);
+      }
+
+      if (type === "naveET") {
+        const naveGroup = new THREE.Group();
+
+        // Texturas (opcional - usa cores sólidas por agora)
+        const materialBase = new THREE.MeshStandardMaterial({
+          color: 0x888888, // cinzento médio
+          metalness: 0.9, // aspeto metálico
+          roughness: 0.2, // ligeiramente polido
+        });
+
+        const materialCabine = new THREE.MeshStandardMaterial({
+          color: 0x88faff,
+          metalness: 0.4,
+          roughness: 0.1,
+          transparent: true,
+          opacity: 0.85,
+        });
+
+        // --- BASE achatada (esfera escalada) ---
+        const base = new THREE.Mesh(
+          new THREE.SphereGeometry(3, 32, 32),
+          materialBase
+        );
+        base.scale.y = 0.2;
+        naveGroup.add(base);
+
+        // --- CABINE superior (meia esfera) ---
+        const cabine = new THREE.Mesh(
+          new THREE.SphereGeometry(1.5, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2),
+          materialCabine
+        );
+        cabine.position.y = 0.3;
+        naveGroup.add(cabine);
+
+        // --- BASE INFERIOR (cilindro achatado) ---
+        const baseInferior = new THREE.Mesh(
+          new THREE.CylinderGeometry(2, 2, 0.1, 32), // raio = 2.5, altura pequena
+          new THREE.MeshStandardMaterial({
+            color: 0xffff33,
+            metalness: 0.5,
+            roughness: 0.3,
+          })
+        );
+        baseInferior.position.y = -0.55; // mesmo por baixo da nave
+        naveGroup.add(baseInferior);
+
+        // --- POSIÇÃO final ---
+        naveGroup.position.set(
+          position.x * tileSize + offsetX,
+          4,
+          position.z * tileSize + offsetZ
+        );
+
+        // --- RAIO DE LUZ INVERTIDO (cone tronco, base maior no chão) ---
+        const raioLuz = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.5, 3.5, 6, 32), // raio topo, raio base, altura
+          new THREE.MeshStandardMaterial({
+            color: 0xffff99,
+            transparent: true,
+            opacity: 0.25,
+            emissive: 0xffff33,
+            emissiveIntensity: 0.4,
+            depthWrite: false,
+          })
+        );
+        raioLuz.position.y = -3.5; // metade da altura, começa na base da nave
+        naveGroup.add(raioLuz);
+
+        naveGroup.userData.levelObject = true;
+        scene.add(naveGroup);
+      }
+
+      if (type === "heliporto") {
+        const heliGroup = new THREE.Group();
+
+        // Base achatada (cilindro cinzento escuro)
+        const baseHeliporto = new THREE.Mesh(
+          new THREE.CylinderGeometry(3, 3, 0.05, 64), // raio, raio, altura, segmentos
+          new THREE.MeshStandardMaterial({
+            color: 0x333333,
+            metalness: 0.6,
+            roughness: 0.5,
+          })
+        );
+        baseHeliporto.position.y = 0.25; // ligeiramente acima do solo
+        heliGroup.add(baseHeliporto);
+
+        const hMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          emissive: 0xffff99,
+          emissiveIntensity: 1.2,
+          toneMapped: false, // <- garante brilho forte mesmo com HDR
+        });
+
+        const barraEsquerda = new THREE.Mesh(
+          new THREE.BoxGeometry(0.4, 0.2, 2.5),
+          hMaterial
+        );
+        barraEsquerda.position.set(-0.8, 0.3, 0);
+        heliGroup.add(barraEsquerda);
+
+        const barraDireita = new THREE.Mesh(
+          new THREE.BoxGeometry(0.4, 0.2, 2.5),
+          hMaterial
+        );
+        barraDireita.position.set(0.8, 0.3, 0);
+        heliGroup.add(barraDireita);
+
+        const barraMeio = new THREE.Mesh(
+          new THREE.BoxGeometry(1.6, 0.2, 0.4),
+          hMaterial
+        );
+        barraMeio.position.set(0, 0.3, 0);
+        heliGroup.add(barraMeio);
+
+        // Posição no mundo
+        heliGroup.position.set(
+          position.x * tileSize + offsetX,
+          0,
+          position.z * tileSize + offsetZ
+        );
+
+        heliGroup.userData.levelObject = true;
+        scene.add(heliGroup);
+        heliGroup.name = "heliporto"; // ou guarda num array se tiveres vários
+
       }
     });
   }
