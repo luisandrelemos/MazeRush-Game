@@ -83,7 +83,7 @@ function showLockOverlay(container, modelIdx) {
     pointerEvents: 'auto',
     zIndex: 1002
   });
-  lockBtn.addEventListener('click', () => {
+  lockBtn.addEventListener('click', async () => {
     const prof = getCurrentProfile();
     if ((prof.coins || 0) >= 100) {
       prof.coins -= 100;
@@ -92,11 +92,30 @@ function showLockOverlay(container, modelIdx) {
       updateProfile(prof);
       updateCustomizeCoinCounter();
       hideLockOverlay();
+
+      // 🔥 Atualiza na base de dados Firebase
+      import('./leaderboard.js').then(({ saveCoins }) => {
+        saveCoins(prof.userId, prof.coins);
+      });
     } else {
       alert("Moedas insuficientes!");
     }
-  });
+  })
   container.appendChild(lockBtn);
+}
+
+function disableColorSliders() {
+  ['primary', 'secondary', 'structure', 'wheels'].forEach(part => {
+    const input = document.getElementById(`color-${part}`);
+    if (input) input.disabled = true;
+  });
+}
+
+function enableColorSliders() {
+  ['primary', 'secondary', 'structure', 'wheels'].forEach(part => {
+    const input = document.getElementById(`color-${part}`);
+    if (input) input.disabled = false;
+  });
 }
 
 function hideLockOverlay() {
@@ -146,7 +165,9 @@ export function initCustomize(container) {
     const input = document.getElementById(`color-${part}`);
     if (!input) return;
     input.value = savedModels[currentModel][part];
+    input.disabled = !profile.unlockedCars.includes(currentModel);
     input.addEventListener('input', e => {
+      if (!profile.unlockedCars.includes(currentModel)) return;
       savedModels[currentModel][part] = e.target.value;
       car.traverse(mesh => {
         if (mesh.isMesh && mesh.userData.part === part) {
@@ -192,6 +213,10 @@ export function initCustomize(container) {
       const prof = getCurrentProfile();
       if (!prof.unlockedCars.includes(currentModel)) {
         showLockOverlay(container, currentModel);
+        disableColorSliders();
+      } else {
+        hideLockOverlay();
+        enableColorSliders();
       }
     });
   });
@@ -207,6 +232,10 @@ export function initCustomize(container) {
   }
   saveBtn.onclick = () => {
     const updated = getCurrentProfile();
+    if (!updated.unlockedCars.includes(currentModel)) {
+      alert("Não podes guardar um modelo que ainda não compraste!");
+      return;
+    }
     updated.carModels = savedModels;
     updated.selectedModel = currentModel;
     updateProfile(updated);
