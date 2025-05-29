@@ -16,7 +16,9 @@ function generateUUID() {
 // ─────────── Valores padrão de cores por modelo ───────────
 const DEFAULT_CAR_MODEL_COLORS = {
   0: { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" },
-  1: { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" }
+  1: { primary: "#4B5320", secondary: "#A9A9A9", structure: "#2F4F4F", wheels: "#333333" },
+  2: { primary: "#ff0000", secondary: "#111111", structure: "#333333", wheels: "#222222" },
+  3: { primary: "#0000ff", secondary: "#eeeeee", structure: "#555555", wheels: "#444444" }
 };
 
 // ─────────── Inicialização / garantia de dados ───────────
@@ -36,10 +38,9 @@ function ensureData() {
         musicVolume: 60,
         coins: 0,
         levelTimes: {},
-        // carModels armazena cores para cada modelo
         carModels: { ...DEFAULT_CAR_MODEL_COLORS },
-        // modelo selecionado por defeito
-        selectedModel: 0
+        selectedModel: 0,
+        unlockedCars: [0]
       },
       {
         id: "profile-2",
@@ -53,7 +54,8 @@ function ensureData() {
         coins: 0,
         levelTimes: {},
         carModels: { ...DEFAULT_CAR_MODEL_COLORS },
-        selectedModel: 0
+        selectedModel: 0,
+        unlockedCars: [0]
       },
       {
         id: "profile-3",
@@ -67,26 +69,25 @@ function ensureData() {
         coins: 0,
         levelTimes: {},
         carModels: { ...DEFAULT_CAR_MODEL_COLORS },
-        selectedModel: 0
+        selectedModel: 0,
+        unlockedCars: [0]
       }
     ];
   }
 
-  // Para perfis pré-existentes, inicializa campos novos se faltarem
+  // Atualiza perfis antigos com campos novos se necessário
   all = all.map(p => {
-    if (!p.userId)           p.userId       = generateUUID();
-    if (p.coins === undefined) p.coins        = 0;
-    if (!p.levelTimes)       p.levelTimes   = {};
-    if (!p.carModels)        p.carModels    = { ...DEFAULT_CAR_MODEL_COLORS };
+    if (!p.userId)              p.userId = generateUUID();
+    if (p.coins === undefined) p.coins = 0;
+    if (!p.levelTimes)         p.levelTimes = {};
+    if (!p.carModels)          p.carModels = { ...DEFAULT_CAR_MODEL_COLORS };
     else {
-      // garantir que tem ambos os modelos
-      for (let m = 0; m < 2; m++) {
-        if (!p.carModels[m]) {
-          p.carModels[m] = { ...DEFAULT_CAR_MODEL_COLORS[m] };
-        }
+      for (let i = 0; i < 4; i++) {
+        if (!p.carModels[i]) p.carModels[i] = { ...DEFAULT_CAR_MODEL_COLORS[i] };
       }
     }
     if (p.selectedModel === undefined) p.selectedModel = 0;
+    if (!Array.isArray(p.unlockedCars)) p.unlockedCars = [0];
     return p;
   });
 
