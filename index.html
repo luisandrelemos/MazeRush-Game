@@ -443,6 +443,13 @@
         }
       }
 
+      function generateUUID() {
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11)
+          .replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c/4)
+              .toString(16)
+          );
+      }
 
       // — Helpers de UI —
       function hideCommon() {
@@ -589,10 +596,34 @@
       window.deleteProfile = () => {
         const cur = getCurrentProfile();
         if (!confirm("Eliminar este perfil?")) return;
-        const all = getAllProfiles().filter((p) => p.id !== cur.id);
-        all.push({ ...cur, name: "", unlockedLevels: [] });
+
+        const all = getAllProfiles().filter(p => p.id !== cur.id);
+
+        // Criar novo perfil com novos IDs únicos
+        const newProfile = {
+          id: generateUUID(),
+          userId: generateUUID(),
+          name: "",
+          unlockedLevels: [],
+          soundEnabled: true,
+          musicEnabled: true,
+          soundVolume: 70,
+          musicVolume: 60,
+          coins: 0,
+          levelTimes: {},
+          carModels: {
+            0: { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" },
+            1: { primary: "#4B5320", secondary: "#A9A9A9", structure: "#2F4F4F", wheels: "#333333" },
+            2: { primary: "#ff0000", secondary: "#111111", structure: "#333333", wheels: "#222222" },
+            3: { primary: "#0000ff", secondary: "#eeeeee", structure: "#555555", wheels: "#444444" }
+          },
+          selectedModel: 0,
+          unlockedCars: [0]
+        };
+
+        all.push(newProfile);
         saveAllProfiles(all);
-        setActiveProfileId(all[0].id);
+        setActiveProfileId(newProfile.id);
         buildProfilesList();
         loadActiveProfileUI();
         closeEditPopup();
