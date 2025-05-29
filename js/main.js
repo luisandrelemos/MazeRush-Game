@@ -15,7 +15,7 @@ import { updateAudioSettings, updateMuteIcons } from "./audio.js";
 import { DEFAULT_CAR_MODEL_COLORS, getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
-import { initCustomize } from './customize.js';
+import { initCustomize } from "./customize.js";
 import {
   celeiroGroup,
   celeiroPosition,
@@ -26,14 +26,14 @@ const gameContainer = document.getElementById("game-container");
 window.magicParticles = [];
 
 // quando abrir o Personalizar:
-const container = document.getElementById('customize-container');
+const container = document.getElementById("customize-container");
 initCustomize(container);
 
 /* ───────────────────────────  Cena e câmaras  ─────────────────────────── */
 const scene = new THREE.Scene();
 let lastFrameTime = performance.now();
 
- /* ───────────────────────────  Timer Countdown  ─────────────────────────── */
+/* ───────────────────────────  Timer Countdown  ─────────────────────────── */
 const countdownEl = document.createElement("div");
 countdownEl.id = "countdown";
 countdownEl.textContent = "";
@@ -981,6 +981,10 @@ function animate(now) {
   coinMeshes.forEach((coin) => {
     coin.rotation.z += 2 * deltaTime;
   });
+  const heliporto = scene.getObjectByName("heliporto");
+  if (heliporto) {
+    heliporto.rotation.y += 0.02; // velocidade de rotação
+  }
 
   // Atualiza partículas do vulcão (lava a sair)
   animatedObjects.forEach((obj) => {
@@ -1123,7 +1127,7 @@ async function checkLevelComplete() {
   if (levelComplete || isInPreview || !levelData?.endPortal) return;
 
   const dist = car.position.distanceTo(levelData.endPortal.position);
-  if (dist < 2) {
+  if (dist < 1) {
     levelComplete = true;
     controlsLocked = true;
     isTimerRunning = false;
