@@ -3,12 +3,13 @@ import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/exampl
 
 export const animatedObjects = [];
 export const coinMeshes = [];
+export const fenceMeshes = [];
 export let igluTunnel = null;
 export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
 
-export async function loadLevel(levelName, scene, textureLoader) {
+export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
   /* Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
@@ -163,8 +164,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
               ? 0
               : Math.PI / 2;
           cercaGroup.position.set(tileCenterX, 0, tileCenterZ);
-
           scene.add(cercaGroup);
+          fenceMeshes.push(cercaGroup);
         }
       }
       //Paredes
@@ -831,7 +832,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
         heliGroup.userData.levelObject = true;
         scene.add(heliGroup);
         heliGroup.name = "heliporto"; // ou guarda num array se tiveres vários
-
       }
     });
   }
