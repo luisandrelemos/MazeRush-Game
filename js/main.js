@@ -488,7 +488,14 @@ function checkFenceCollision(car, fences) {
   return false;
 }
 
-
+function animateHelicopterRotors() {
+  scene.traverse((obj) => {
+    if (obj.name === "helicoptero" && obj.userData.rotorPrincipal) {
+      obj.userData.rotorPrincipal.rotation.y += 0.3; // rotor principal gira em Y
+      obj.userData.rotorCauda.rotation.z += 0.5; // rotor de cauda gira em Z
+    }
+  });
+}
 
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
@@ -771,12 +778,11 @@ async function initLevel(idx) {
   levelComplete = false;
   controlsLocked = true;
   isInPreview = true;
-  
 
   // carregar JSON e instanciar tudo
   const data = await loadLevel(levelName, scene, textureLoader);
   levelData = data;
-  
+
   visitedCells = data.map.map((r) => r.map((_) => false));
 
   // Adiciona neve no nivel 2
@@ -904,6 +910,7 @@ function animate(now) {
   const rawDt = (now - lastFrameTime) / 1000;
   const deltaTime = Math.min(rawDt, 0.05);
   lastFrameTime = now;
+  animateHelicopterRotors();
 
   if (isPaused || !levelData) return;
 
@@ -1143,6 +1150,8 @@ function animate(now) {
   if (celeiroGroup && celeiroPosition) {
     updateBarnDirection(celeiroGroup, celeiroPosition, car.position);
   }
+
+  
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);

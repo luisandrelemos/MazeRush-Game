@@ -63,7 +63,8 @@
     {
       "type": "heliporto",
       "position": { "x": 21, "z": 21 }
-    }
+    },
+    { "type": "helicoptero", "position":{"x": 1, "z": 2}}
   ]
 
 }
