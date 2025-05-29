@@ -3,43 +3,53 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.m
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
 import { createCar } from '../assets/models/CarModel.js';
 import { createCarB } from '../assets/models/CarModelB.js';
+import { createCarC } from '../assets/models/CarModelC.js';
+import { createCarD } from '../assets/models/CarModelD.js';
 import { getCurrentProfile, updateProfile } from './profileSystem.js';
 
 let scene, renderer, camera, car, controls, raf;
-let saved; // armazenará as cores carregadas do perfil
+let savedModels;       // cores por modelo de carro
+let currentModel = 0;  // 0 = Modelo A, 1 = B, 2 = C
+
+// ─── Valores padrão para cada modelo ────────────────────────────────────
+const DEFAULT_CAR_MODELS = [
+  { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" }, // A
+  { primary: "#4B5320", secondary: "#A9A9A9", structure: "#2F4F4F", wheels: "#333333" }, // B
+  { primary: "#ff0000", secondary: "#111111", structure: "#333333", wheels: "#222222" }, // C
+  { primary: "#0000ff", secondary: "#eeeeee", structure: "#555555", wheels: "#444444" }  // D — ajuste ao teu gosto
+];
 
 // ─── Atualiza o contador de moedas no badge ─────────────────────────────
 function updateCustomizeCoinCounter() {
-  const profile = getCurrentProfile();
+  const { coins = 0 } = getCurrentProfile();
   const coinEl = document.getElementById('coin-count-custom');
-  if (coinEl) coinEl.textContent = profile.coins || 0;
+  if (coinEl) coinEl.textContent = coins;
 }
 
 // ─── (Re)spawna o carro na cena de acordo com o tipo selecionado ─────────
 function spawnCar(type, loader) {
   if (car) scene.remove(car);
 
-  car = type === 1
-    ? createCarB(loader)
-    : createCar(loader);
+  if (type === 1) {
+    car = createCarB(loader);
+  } else if (type === 2) {
+    car = createCarC(loader);
+  } else if (type === 3) {
+    car = createCarD(loader);
+  } else {
+    car = createCar(loader);
+  }
 
   car.position.set(0, 0.2, 0);
 
-  // marcação das partes para recoloração
-  const [pM, sM, strM] = car.children;
-  pM.userData.part   = 'primary';
-  sM.userData.part   = 'secondary';
-  strM.userData.part = 'structure';
-  car.traverse(c => {
-    if (c.isMesh && /wheel/i.test(c.name)) {
-      c.userData.part = 'wheels';
-    }
-  });
-
-  // aplica as cores salvas
-  car.traverse(c => {
-    if (c.isMesh && c.userData.part && saved[c.userData.part]) {
-      c.material.color.set(saved[c.userData.part]);
+  // aplica as cores salvas para este modelo
+  car.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    let part = mesh.userData.part;
+    if (!part && /wheel/i.test(mesh.name)) part = 'wheels';
+    if (part) {
+      mesh.material.color.set(savedModels[type][part]);
+      mesh.userData.part = part;
     }
   });
 
@@ -50,11 +60,10 @@ export function initCustomize(container) {
   if (raf) cancelAnimationFrame(raf);
   container.innerHTML = '';
 
-  // ─── 0.1) Criar badge de moedas logo abaixo do botão “← Voltar” ───────
+  // ─── 0.1) Badge de moedas ────────────────────────────────────────────
   const header = document.querySelector('#customize-page .levels-header');
-  let coinBadge = document.getElementById('coin-badge-custom');
-  if (!coinBadge && header) {
-    coinBadge = document.createElement('div');
+  if (header && !document.getElementById('coin-badge-custom')) {
+    const coinBadge = document.createElement('div');
     coinBadge.id = 'coin-badge-custom';
     Object.assign(coinBadge.style, {
       display: 'inline-flex',
@@ -65,52 +74,81 @@ export function initCustomize(container) {
       fontWeight: 'bold',
       borderRadius: '16px',
       boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-      marginLeft: '8px',
-      width: 'fit-content'
+      marginLeft: '8px'
     });
     coinBadge.innerHTML = '💰 <span id="coin-count-custom">0</span>';
-    // ➔ posiciona logo abaixo do header
-    const backBtn = header.querySelector('.back-button');
-    backBtn.parentNode.insertBefore(coinBadge, backBtn.nextSibling);
+    header.querySelector('.back-button').after(coinBadge);
   }
-  // Atualiza o valor mostrado
   updateCustomizeCoinCounter();
 
-  // ─── 0.2) Selector de modelo de carro ─────────────────────────────────
-  let select = document.getElementById('car-model-select');
-  if (!select && header) {
-    select = document.createElement('select');
-    select.id = 'car-model-select';
-    Object.assign(select.style, {
-      marginLeft: '1rem',
-      padding: '4px 8px',
-      fontSize: '1rem'
-    });
-    [['Modelo A',0], ['Modelo B',1]].forEach(([label, idx]) => {
-      const o = document.createElement('option');
-      o.value = idx;
-      o.textContent = label;
-      select.appendChild(o);
-    });
-    header.appendChild(select);
+  // ─── 0.2) Carregar perfil e cores ────────────────────────────────────
+  const profile = getCurrentProfile();
+
+  // garantir que temos um array com pelo menos 3 modelos
+  if (Array.isArray(profile.carModels)) {
+    savedModels = profile.carModels.slice();
+  } else {
+    savedModels = DEFAULT_CAR_MODELS.slice();
+  }
+  while (savedModels.length < DEFAULT_CAR_MODELS.length) {
+    savedModels.push({ ...DEFAULT_CAR_MODELS[savedModels.length] });
   }
 
-  // ─── 1) Carregar cores do perfil ───────────────────────────────────────
-  const cur = getCurrentProfile();
-  saved = cur.carColors || {
-    primary:   '#603441',
-    secondary: '#ffffff',
-    structure: '#131313',
-    wheels:    '#666666'
-  };
-  document.getElementById('color-primary').value   = saved.primary;
-  document.getElementById('color-secondary').value = saved.secondary;
-  document.getElementById('color-structure').value = saved.structure;
-  document.getElementById('color-wheels').value    = saved.wheels;
+  currentModel = profile.selectedModel || 0;
 
-  // ─── 2) Botão “Guardar” ───────────────────────────────────────────────
+  // preencher inputs de cor e associar evento de mudança
+  ['primary', 'secondary', 'structure', 'wheels'].forEach(part => {
+    const input = document.getElementById(`color-${part}`);
+    if (!input) return;
+    input.value = savedModels[currentModel][part];
+    input.addEventListener('input', e => {
+      savedModels[currentModel][part] = e.target.value;
+      car.traverse(mesh => {
+        if (mesh.isMesh && mesh.userData.part === part) {
+          mesh.material.color.set(e.target.value);
+        }
+      });
+    });
+  });
+
+  // ─── 0.3) Botões de setas para trocar modelo ────────────────────────
+  const loader = new THREE.TextureLoader();
+  ['left', 'right'].forEach(dir => {
+    const arrow = document.createElement('div');
+    arrow.className = `customize-arrow ${dir}`;
+    arrow.textContent = dir === 'left' ? '◀' : '▶';
+    Object.assign(arrow.style, {
+      position: 'absolute',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      fontSize: '2.5rem',
+      color: '#fff',
+      background: 'rgba(0,0,0,0.5)',
+      padding: '12px',
+      borderRadius: '50%',
+      cursor: 'pointer',
+      userSelect: 'none',
+      zIndex: 1000,
+      [dir === 'left' ? 'left' : 'right']: '16px'
+    });
+    container.appendChild(arrow);
+    arrow.addEventListener('click', () => {
+      const totalModels = savedModels.length;
+      currentModel = dir === 'left'
+        ? (currentModel + totalModels - 1) % totalModels
+        : (currentModel + 1) % totalModels;
+
+      ['primary', 'secondary', 'structure', 'wheels'].forEach(part => {
+        document.getElementById(`color-${part}`).value = savedModels[currentModel][part];
+      });
+
+      spawnCar(currentModel, loader);
+    });
+  });
+
+  // ─── 1) Botão Guardar ────────────────────────────────────────────────
   let saveBtn = document.getElementById('save-custom-btn');
-  if (!saveBtn && header) {
+  if (header && !saveBtn) {
     saveBtn = document.createElement('button');
     saveBtn.id = 'save-custom-btn';
     saveBtn.className = 'back-button';
@@ -119,32 +157,24 @@ export function initCustomize(container) {
     header.appendChild(saveBtn);
   }
   saveBtn.onclick = () => {
-    const cur2 = getCurrentProfile();
-    // guarda também o modelo selecionado
-    const select = document.getElementById('car-model-select');
-    cur2.selectedModel = select ? parseInt(select.value) : 0;
-    cur2.carColors = {
-      primary:   document.getElementById('color-primary').value,
-      secondary: document.getElementById('color-secondary').value,
-      structure: document.getElementById('color-structure').value,
-      wheels:    document.getElementById('color-wheels').value,
-    };
-    updateProfile(cur2);
-    alert('Cores guardadas no perfil!');
+    const updated = getCurrentProfile();
+    updated.carModels     = savedModels;
+    updated.selectedModel = currentModel;
+    updateProfile(updated);
+    alert('Cores e modelo guardados no perfil!');
   };
 
-  // ─── 3) Renderer ─────────────────────────────────────────────────────
+  // ─── 2) Renderer ─────────────────────────────────────────────────────
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(container.clientWidth, container.clientHeight);
   container.appendChild(renderer.domElement);
 
-  // ─── 4) Cena + céu + neblina ─────────────────────────────────────────
+  // ─── 3) Cena, câmera, controles, luzes… ─────────────────────────────
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87ceeb);
-  scene.fog = new THREE.Fog(0x87ceeb, 10, 150);
+  scene.fog        = new THREE.Fog(0x87ceeb, 10, 150);
 
-  // ─── 5) Câmera ───────────────────────────────────────────────────────
   camera = new THREE.PerspectiveCamera(
     60,
     container.clientWidth / container.clientHeight,
@@ -154,7 +184,6 @@ export function initCustomize(container) {
   camera.position.set(-1.5, 1.5, -4);
   camera.lookAt(0, 0.1, 0);
 
-  // ─── 6) Controles ────────────────────────────────────────────────────
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0.1, 0);
   controls.enableDamping = true;
@@ -164,100 +193,68 @@ export function initCustomize(container) {
   controls.maxDistance = 8;
   controls.maxPolarAngle = Math.PI / 2.2;
 
-  // ─── 7) Iluminação ──────────────────────────────────────────────────
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-  dir.position.set(5, 10, 7);
-  scene.add(dir);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(5, 10, 7);
+  scene.add(dirLight);
 
-  // ─── 8) Montanhas low-poly em volta do mapa ─────────────────────────
+  // spawna o carro inicial
+  spawnCar(currentModel, loader);
+
+  // ─── 4) Montanhas, pista, areia… ────────────────────────────────────
   const hillMat = new THREE.MeshStandardMaterial({ color: 0x6aa84f });
-  const pistaL =  8,
-        pistaC = 200,
-        pMeio = pistaC/2,
-        margem= 20,
-        limite= pMeio + margem,
-        esp   = 10;
-  // Norte/Sul
+  const pistaL = 8, pistaC = 200, pMeio = pistaC/2, margem = 20, limite = pMeio + margem, esp = 10;
   for (let x = -limite; x <= limite; x += esp) {
     [-limite, limite].forEach(z => {
-      const h = 3 + Math.random()*4;
-      const hill = new THREE.Mesh(
-        new THREE.ConeGeometry(5, h, 4),
-        hillMat
-      );
-      hill.rotation.y = Math.random()*Math.PI;
-      hill.position.set(x, h/2, z);
+      const h = 3 + Math.random() * 4;
+      const hill = new THREE.Mesh(new THREE.ConeGeometry(5, h, 4), hillMat);
+      hill.rotation.y = Math.random() * Math.PI;
+      hill.position.set(x, h / 2, z);
       scene.add(hill);
     });
   }
-  // Leste/Oeste
-  for (let z = -limite+esp; z <= limite-esp; z += esp) {
+  for (let z = -limite + esp; z <= limite - esp; z += esp) {
     [-limite, limite].forEach(x => {
-      const h = 3 + Math.random()*4;
-      const hill = new THREE.Mesh(
-        new THREE.ConeGeometry(5, h, 4),
-        hillMat
-      );
-      hill.rotation.y = Math.random()*Math.PI;
-      hill.position.set(x, h/2, z);
+      const h = 3 + Math.random() * 4;
+      const hill = new THREE.Mesh(new THREE.ConeGeometry(5, h, 4), hillMat);
+      hill.rotation.y = Math.random() * Math.PI;
+      hill.position.set(x, h / 2, z);
       scene.add(hill);
     });
   }
 
-  // ─── 9) Plano de areia ───────────────────────────────────────────────
   const desertMat = new THREE.MeshStandardMaterial({ color: 0xD2B48C });
-  const desert = new THREE.Mesh(
-    new THREE.PlaneGeometry(200, 200),
-    desertMat
-  );
-  desert.rotation.x = -Math.PI/2;
+  const desert = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), desertMat);
+  desert.rotation.x = -Math.PI / 2;
   scene.add(desert);
 
-  // ─── 10) Asfalto da pista ────────────────────────────────────────────
   const roadMat = new THREE.MeshStandardMaterial({ color: 0x4a4a4a });
-  const road = new THREE.Mesh(
-    new THREE.PlaneGeometry(pistaL, pistaC),
-    roadMat
-  );
-  road.rotation.x = -Math.PI/2;
+  const road = new THREE.Mesh(new THREE.PlaneGeometry(pistaL, pistaC), roadMat);
+  road.rotation.x = -Math.PI / 2;
   road.position.y = 0.01;
   scene.add(road);
 
-  // ─── 11) Faixas brancas/vermelhas ───────────────────────────────────
   const whiteM = new THREE.MeshStandardMaterial({ color: 0xffffff });
   const redM   = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-  const fL = 0.5, oZ = 2;
   for (let z = -pMeio; z <= pMeio; z += 4) {
     [ -pistaL/2, +pistaL/2 ].forEach(x => {
-      const w = new THREE.Mesh(
-        new THREE.PlaneGeometry(fL, 2),
-        whiteM
-      );
-      w.rotation.x = -Math.PI/2;
-      w.position.set(x, 0.02, z);
+      const w = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 2), whiteM);
+      w.rotation.x = -Math.PI/2; w.position.set(x, 0.02, z);
       scene.add(w);
-
-      const r = new THREE.Mesh(
-        new THREE.PlaneGeometry(fL, 2),
-        redM
-      );
-      r.rotation.x = -Math.PI/2;
-      r.position.set(x, 0.02, z - oZ);
+      const r = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 2), redM);
+      r.rotation.x = -Math.PI/2; r.position.set(x, 0.02, z - 2);
       scene.add(r);
     });
   }
 
-  // ─── 12) Linha central ───────────────────────────────────────────────
   const centerStripe = new THREE.Mesh(
     new THREE.PlaneGeometry(0.3, pistaC),
     new THREE.MeshStandardMaterial({ color: 0xffa500 })
   );
-  centerStripe.rotation.x = -Math.PI/2;
+  centerStripe.rotation.x = -Math.PI / 2;
   centerStripe.position.y = 0.02;
   scene.add(centerStripe);
 
-  // ─── 13) Borda baixa da pista ────────────────────────────────────────
   const wallMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
   const wallGeo = new THREE.BoxGeometry(0.3, 0.2, pistaC);
   [ -pistaL/2 - 0.15, +pistaL/2 + 0.15 ].forEach(x => {
@@ -266,48 +263,18 @@ export function initCustomize(container) {
     scene.add(wall);
   });
 
-  // ─── 14) Carrega e spawna o carro inicial ─────────────────────────────
-  const loader = new THREE.TextureLoader();
-  spawnCar(+select.value, loader);
-
-  // troca de modelo ao selecionar
-  select.addEventListener('change', e => spawnCar(+e.target.value, loader));
-
-  // ─── 15) Conectar pickers de cor ─────────────────────────────────────
-  [
-    { id: 'color-primary',   part: 'primary'   },
-    { id: 'color-secondary', part: 'secondary' },
-    { id: 'color-structure', part: 'structure' },
-    { id: 'color-wheels',    part: 'wheels'    },
-  ].forEach(({id, part}) => {
-    const inp = document.getElementById(id);
-    if (!inp) return;
-    inp.addEventListener('input', e => {
-      car.traverse(c => {
-        if (c.isMesh && c.userData.part === part) {
-          c.material.color.set(e.target.value);
-        }
-      });
-    });
+  // ─── 5) Responsividade + Loop ─────────────────────────────────────────
+  window.addEventListener('resize', () => {
+    const w = container.clientWidth, h = container.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
   });
-
-  // ─── 16) Responsividade ───────────────────────────────────────────────
-  window.addEventListener('resize', onResize);
-
-  // ─── 17) Loop de renderização ────────────────────────────────────────
   (function animate() {
     raf = requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
   })();
-}
-
-function onResize() {
-  const w = renderer.domElement.parentElement.clientWidth;
-  const h = renderer.domElement.parentElement.clientHeight;
-  renderer.setSize(w, h);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
 }
 
 // ─── Função de compra (desconta moedas e atualiza badge) ────────────────
