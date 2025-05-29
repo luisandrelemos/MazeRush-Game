@@ -1,4 +1,6 @@
 // js/profileSystem.js
+import { db } from './firebase.js';
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 
 // ─────────── Constantes de Storage ───────────
 const PROFILES_KEY = "mazeRushProfiles";
@@ -127,12 +129,55 @@ export function getCurrentUserId() {
   return getCurrentProfile().userId;
 }
 
-export function updateProfile(updated) {
+export async function syncProfileFromFirestore() {
+  const all = ensureData();
+  const id  = getActiveProfileId();
+  const localProfile = all.find(p => p.id === id);
+  if (!localProfile || !localProfile.userId) return;
+
+  try {
+    const ref = doc(db, "users", localProfile.userId);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      // Atualiza o perfil local com dados da base de dados
+      const updated = { ...localProfile, ...data };
+      updateProfile(updated); // atualiza localStorage e Firestore
+    }
+  } catch (err) {
+    console.error("Erro ao sincronizar com Firestore:", err);
+  }
+}
+
+export async function updateProfile(updated) {
   if (!updated.userId) updated.userId = generateUUID();
+
+  // Atualizar localStorage
   const all = ensureData().map(p =>
     p.id === updated.id ? updated : p
   );
   saveAllProfiles(all);
+
+  // Atualizar na Firestore
+  try {
+    const userRef = doc(db, "users", updated.userId);
+    await setDoc(userRef, {
+      coins: updated.coins,
+      name: updated.name,
+      unlockedLevels: updated.unlockedLevels,
+      soundEnabled: updated.soundEnabled,
+      musicEnabled: updated.musicEnabled,
+      soundVolume: updated.soundVolume,
+      musicVolume: updated.musicVolume,
+      levelTimes: updated.levelTimes,
+      carModels: updated.carModels,
+      selectedModel: updated.selectedModel,
+      unlockedCars: updated.unlockedCars
+    });
+  } catch (err) {
+    console.error("Erro ao atualizar perfil na Firestore:", err);
+  }
 }
 
 export { DEFAULT_CAR_MODEL_COLORS };
