@@ -11,14 +11,21 @@ export function createCarD(textureLoader, colors = {}) {
 
   const car = new THREE.Group();
 
-  // BASE
+  // BASE com painéis laterais
   const base = new THREE.Mesh(
     new THREE.BoxGeometry(1.2, 0.25, 2.2),
-    new THREE.MeshStandardMaterial({ color: primary, metalness: 0.7, roughness: 0.4 })
+    new THREE.MeshStandardMaterial({ color: primary, metalness: 0.6, roughness: 0.4 })
   );
   base.position.y = 0.13;
   base.userData.part = "primary";
   car.add(base);
+
+  // PAINEL lateral decorativo
+  const stripeTex = textureLoader.load("/textures/icecream-stripe.png");
+  const stripeMat = new THREE.MeshBasicMaterial({ map: stripeTex, transparent: true });
+  const panel = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.4), stripeMat);
+  panel.position.set(0, 0.45, 1.101);
+  car.add(panel);
 
   // CAIXA DE GELADOS
   const box = new THREE.Mesh(
@@ -30,9 +37,7 @@ export function createCarD(textureLoader, colors = {}) {
   car.add(box);
 
   // GUARDA-SOL CENTRALIZADO
-  const poleX = 0;
-  const poleZ = 0.3;
-  const poleHeight = 0.6;
+  const poleX = 0, poleZ = 0.3, poleHeight = 0.6;
 
   const baseCone = new THREE.Mesh(
     new THREE.CylinderGeometry(0.08, 0.1, 0.05, 16),
@@ -55,6 +60,22 @@ export function createCarD(textureLoader, colors = {}) {
   umbrella.position.set(poleX, 1.2, poleZ);
   car.add(umbrella);
 
+  // CONE DE GELADO (ornamento no topo)
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.15, 0.25, 8),
+    new THREE.MeshStandardMaterial({ color: "#DEB887" })
+  );
+  cone.position.set(0, 1.4, 0.3);
+  cone.rotation.x = Math.PI;
+  car.add(cone);
+
+  const scoop = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 16, 16),
+    new THREE.MeshStandardMaterial({ color: "#ff69b4" })
+  );
+  scoop.position.set(0, 1.55, 0.3);
+  car.add(scoop);
+
   // VIDRO FRONTAL
   const glassTex = textureLoader.load("/textures/glass.jpg");
   const glassMat = new THREE.MeshStandardMaterial({
@@ -74,7 +95,7 @@ export function createCarD(textureLoader, colors = {}) {
   rearBumper.position.z = 1.15;
   car.add(rearBumper);
 
-  // LUZES FRONTAIS
+  // LUZES FRONTAIS com lente
   function createHeadlight(x, z) {
     const lens = new THREE.Mesh(
       new THREE.SphereGeometry(0.05),
@@ -102,14 +123,13 @@ export function createCarD(textureLoader, colors = {}) {
   tr.position.set(0.4, 0.2, 1.1);
   car.add(tl, tr);
 
-  // RODAS + HUB
+  // RODAS com HUB
   const wheelGeom = new THREE.CylinderGeometry(0.22, 0.22, 0.1, 32);
   const hubGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.12, 16);
   const tireTex = textureLoader.load("/textures/tire.jpg");
   const wheelMat = new THREE.MeshStandardMaterial({ map: tireTex, color: wheels });
   const hubMat = new THREE.MeshStandardMaterial({ color: "#999999" });
-  const wheelsArr = [];
-  const rotating = [];
+  const wheelsArr = [], rotating = [];
   const frontAxle = new THREE.Group();
 
   function createWheel(pos) {
@@ -140,7 +160,6 @@ export function createCarD(textureLoader, colors = {}) {
   frontAxle.position.z = -0.9;
   car.add(frontAxle);
 
-  // Dados para física/controle
   car.userData = {
     wheels: wheelsArr,
     rotatingWheels: rotating,
