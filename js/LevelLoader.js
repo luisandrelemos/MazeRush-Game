@@ -603,6 +603,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
           0,
           position.z * tileSize + offsetZ
         );
+        vulcaoGroup.rotation.y = -Math.PI / 2;
+
 
         // --- SISTEMA DE PARTÍCULAS: lava a ser expelida ---
         const particleCount = 500;
@@ -645,48 +647,55 @@ export async function loadLevel(levelName, scene, textureLoader) {
         // Guardar para animar
         particles.userData.velocities = velocities;
         animatedObjects.push(particles); // importante: incluir no loop de animação
-        
-        const group = new THREE.Group();
-        // PORTÃO (círculo escuro)
+
+        // --- PORTÃO (círculo escuro) ---
+        const distanciaFrontal = 2.6;
+        const inclinacao = Math.atan((4 - 0.8) / 4); // mesma inclinação da lateral do cone
+
         const portao = new THREE.Mesh(
-          new THREE.CircleGeometry(1.2, 32),
+          new THREE.CircleGeometry(1, 32),
           new THREE.MeshStandardMaterial({
             color: 0x111111,
             side: THREE.DoubleSide,
           })
         );
-        const distanciaFrontal = 2.19;
-        portao.rotation.y = Math.PI;
-        portao.position.set(0, 1.2, -distanciaFrontal);
-        group.add(portao);
+        portao.rotation.set(inclinacao, 0, 0);
+        portao.position.set(0, 0.8, -distanciaFrontal);
+        vulcaoGroup.add(portao);
 
-        // MOLDURA do portão (aro branco)
+        // --- MOLDURA do portão ---
         const aroPortao = new THREE.Mesh(
-          new THREE.RingGeometry(1.3, 1.5, 32),
+          new THREE.RingGeometry(1.1, 1.3, 32),
           new THREE.MeshStandardMaterial({
             color: 0xffffff,
             side: THREE.DoubleSide,
           })
         );
-        aroPortao.rotation.y = Math.PI;
-        aroPortao.position.set(0, 1.2, -distanciaFrontal - 0.01);
-        group.add(aroPortao);
+        aroPortao.rotation.set(inclinacao, 0, 0);
+        aroPortao.position.set(0, 0.8, -distanciaFrontal - 0.01);
+        vulcaoGroup.add(aroPortao);
 
-        // GLOW VERMELHO
+        // --- GLOW VERMELHO ---
         const glowTexture = textureLoader.load("../assets/textures/glow.png");
-
         const glowMaterial = new THREE.SpriteMaterial({
           map: glowTexture,
-          color: 0xff3333, // glow vermelho
+          color: 0xff3333,
           transparent: true,
           opacity: 1,
           depthWrite: false,
         });
-
         const glowSprite = new THREE.Sprite(glowMaterial);
-        glowSprite.scale.set(8, 8, 1);
-        glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4);
-        group.add(glowSprite);
+        glowSprite.scale.set(4, 4, 1);
+        glowSprite.rotation.set(inclinacao, Math.PI, 0);
+        glowSprite.position.set(0, 0.8, -distanciaFrontal - 0.4);
+        vulcaoGroup.add(glowSprite);
+
+        // --- POSIÇÃO FINAL ---
+        vulcaoGroup.position.set(
+          position.x * tileSize + offsetX,
+          0,
+          position.z * tileSize + offsetZ
+        );
 
         vulcaoGroup.userData.levelObject = true;
         scene.add(vulcaoGroup);
