@@ -1,5 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js";
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
+import { wallMeshes } from "./main.js"; 
 
 export const animatedObjects = [];
 export const coinMeshes = [];
@@ -9,7 +10,7 @@ export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
 
-export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
+export async function loadLevel(levelName, scene, textureLoader) {
   /* Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
@@ -182,6 +183,7 @@ export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
         wall.castShadow = wall.receiveShadow = true;
         wall.userData.levelObject = true;
         scene.add(wall);
+        wallMeshes.push(wall);
       }
     })
   );

@@ -258,8 +258,9 @@ const carSphere = baseGeom.boundingSphere.clone();
 carSphere.radius *= 0.5;
 
 /* ───────────────────────────  Estado do nível  ─────────────────────────── */
+
 let levelData = null;
-let wallMeshes = [];
+export let wallMeshes = [];
 let visitedCells = [];
 let animationStarted = false;
 let isInPreview = false;
@@ -487,8 +488,6 @@ function checkFenceCollision(car, fences) {
   }
   return false;
 }
-
-
 
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
@@ -771,12 +770,11 @@ async function initLevel(idx) {
   levelComplete = false;
   controlsLocked = true;
   isInPreview = true;
-  
 
   // carregar JSON e instanciar tudo
   const data = await loadLevel(levelName, scene, textureLoader);
   levelData = data;
-  
+
   visitedCells = data.map.map((r) => r.map((_) => false));
 
   // Adiciona neve no nivel 2
