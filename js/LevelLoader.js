@@ -9,6 +9,9 @@ export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
 
+
+
+
 export async function loadLevel(levelName, scene, textureLoader) {
   /* Ler JSON */
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
