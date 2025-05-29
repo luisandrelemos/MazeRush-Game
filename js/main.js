@@ -10,9 +10,14 @@ import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
 import { submitScore, fetchLeaderboard, saveCoins } from "./leaderboard.js";
 import { coinMeshes } from "./LevelLoader.js";
+import { fenceMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
 import { updateAudioSettings, updateMuteIcons } from "./audio.js";
-import { DEFAULT_CAR_MODEL_COLORS, getCurrentProfile, updateProfile } from "./profileSystem.js";
+import {
+  DEFAULT_CAR_MODEL_COLORS,
+  getCurrentProfile,
+  updateProfile,
+} from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
 import { initCustomize } from "./customize.js";
@@ -224,11 +229,12 @@ window.addEventListener("keydown", (e) => {
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
 // pega perfil e modelo selecionado
-const profile   = getCurrentProfile();
-const selModel  = profile.selectedModel || 0;
-const savedCols = (profile.carModels && profile.carModels[selModel])
-  ? profile.carModels[selModel]
-  : (DEFAULT_CAR_MODEL_COLORS[selModel] || {});
+const profile = getCurrentProfile();
+const selModel = profile.selectedModel || 0;
+const savedCols =
+  profile.carModels && profile.carModels[selModel]
+    ? profile.carModels[selModel]
+    : DEFAULT_CAR_MODEL_COLORS[selModel] || {};
 
 // cria o loader e o carro correto, passando savedCols
 const textureLoader = new THREE.TextureLoader();
@@ -462,6 +468,27 @@ async function checkCoinCollection(car, coins) {
     }
   }
 }
+
+/* ────────────────────────────  Colisão com a cerca ─────────────────── */
+function checkFenceCollision(car, fences) {
+  const worldSphere = carSphere.clone().applyMatrix4(car.matrixWorld);
+
+  for (const fence of fences) {
+    const fenceBox = new THREE.Box3().setFromObject(fence);
+    if (worldSphere.intersectsBox(fenceBox)) {
+      const pushDir = new THREE.Vector3()
+        .subVectors(car.position, fence.position)
+        .setY(0)
+        .normalize();
+      car.position.add(pushDir.multiplyScalar(worldSphere.radius * 0.5));
+      car.userData.velocity = 0;
+      return true;
+    }
+  }
+  return false;
+}
+
+
 
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
@@ -744,13 +771,12 @@ async function initLevel(idx) {
   levelComplete = false;
   controlsLocked = true;
   isInPreview = true;
+  
 
   // carregar JSON e instanciar tudo
   const data = await loadLevel(levelName, scene, textureLoader);
   levelData = data;
-  wallMeshes = scene.children.filter(
-    (o) => o.userData.levelObject && o.geometry?.type === "BoxGeometry"
-  );
+  
   visitedCells = data.map.map((r) => r.map((_) => false));
 
   // Adiciona neve no nivel 2
@@ -965,6 +991,7 @@ function animate(now) {
 
     checkCollisionAndReact(car, wallMeshes);
     checkCoinCollection(car, coinMeshes);
+    checkFenceCollision(car, fenceMeshes);
 
     // animação das rodas
     const wheelDir = d.velocity >= 0 ? 1 : -1;
@@ -1300,6 +1327,9 @@ function showCountdown(seconds = 3) {
 /* ───────────────────────  Inicialização do mapa nos 3s  ───────────────────────── */
 function startMapPreviewSequence() {
   if (!levelData) return;
+  // Guardar intensidade original e aumentar a luz ambiente para o preview
+  const originalAmbientIntensity = ambientLight.intensity;
+  ambientLight.intensity = -0.5;
 
   isInPreview = true;
 
@@ -1338,6 +1368,9 @@ function startMapPreviewSequence() {
   previewText.style.opacity = 1;
 
   setTimeout(() => {
+    // Restaurar intensidade da luz ambiente
+    ambientLight.intensity = originalAmbientIntensity;
+
     previewText.style.opacity = 0;
     scene.fog = new THREE.Fog("#000000", 30, 80);
     document.getElementById("minimap-container").style.display = "block";
