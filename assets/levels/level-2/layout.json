@@ -55,6 +55,23 @@
     {
       "type": "iglu",
       "position": { "x": 13, "z": 13 }
-    }
+    },
+    { "type": "moeda", "position":{"x": 1, "z": 4}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 3, "z": 7}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 5, "z": 8}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 6, "z": 11}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 9, "z": 11}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 11, "z": 13}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 13, "z": 3}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 13, "z": 7}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 13, "z": 10}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 3, "z": 1}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 4, "z": 3}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 5, "z": 5}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 5, "z": 1}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 8, "z": 3}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 11, "z": 5}, "scale": 2 },
+    { "type": "moeda", "position":{"x": 11, "z": 3}, "scale": 2 }
+
   ]
 }
