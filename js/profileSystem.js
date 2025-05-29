@@ -13,12 +13,10 @@ function generateUUID() {
     );
 }
 
-// ─────────── Valores padrão de cores ───────────
-const DEFAULT_CAR_COLORS = {
-  primary:   "#603441",
-  secondary: "#ffffff",
-  structure: "#131313",
-  wheels:    "#666666"
+// ─────────── Valores padrão de cores por modelo ───────────
+const DEFAULT_CAR_MODEL_COLORS = {
+  0: { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" },
+  1: { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" }
 };
 
 // ─────────── Inicialização / garantia de dados ───────────
@@ -38,7 +36,10 @@ function ensureData() {
         musicVolume: 60,
         coins: 0,
         levelTimes: {},
-        carColors: { ...DEFAULT_CAR_COLORS }
+        // carModels armazena cores para cada modelo
+        carModels: { ...DEFAULT_CAR_MODEL_COLORS },
+        // modelo selecionado por defeito
+        selectedModel: 0
       },
       {
         id: "profile-2",
@@ -51,7 +52,8 @@ function ensureData() {
         musicVolume: 60,
         coins: 0,
         levelTimes: {},
-        carColors: { ...DEFAULT_CAR_COLORS }
+        carModels: { ...DEFAULT_CAR_MODEL_COLORS },
+        selectedModel: 0
       },
       {
         id: "profile-3",
@@ -64,17 +66,27 @@ function ensureData() {
         musicVolume: 60,
         coins: 0,
         levelTimes: {},
-        carColors: { ...DEFAULT_CAR_COLORS }
+        carModels: { ...DEFAULT_CAR_MODEL_COLORS },
+        selectedModel: 0
       }
     ];
   }
 
   // Para perfis pré-existentes, inicializa campos novos se faltarem
   all = all.map(p => {
-    if (!p.userId)         p.userId     = generateUUID();
-    if (p.coins === undefined)    p.coins      = 0;
-    if (!p.levelTimes)     p.levelTimes = {};
-    if (!p.carColors)      p.carColors  = { ...DEFAULT_CAR_COLORS };
+    if (!p.userId)           p.userId       = generateUUID();
+    if (p.coins === undefined) p.coins        = 0;
+    if (!p.levelTimes)       p.levelTimes   = {};
+    if (!p.carModels)        p.carModels    = { ...DEFAULT_CAR_MODEL_COLORS };
+    else {
+      // garantir que tem ambos os modelos
+      for (let m = 0; m < 2; m++) {
+        if (!p.carModels[m]) {
+          p.carModels[m] = { ...DEFAULT_CAR_MODEL_COLORS[m] };
+        }
+      }
+    }
+    if (p.selectedModel === undefined) p.selectedModel = 0;
     return p;
   });
 
@@ -121,3 +133,5 @@ export function updateProfile(updated) {
   );
   saveAllProfiles(all);
 }
+
+export { DEFAULT_CAR_MODEL_COLORS };

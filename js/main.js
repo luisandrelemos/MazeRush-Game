@@ -4,13 +4,15 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.m
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
 import { createCar } from "../assets/models/CarModel.js";
 import { createCarB } from "../assets/models/CarModelB.js";
+import { createCarC } from "../assets/models/CarModelC.js";
+import { createCarD } from "../assets/models/CarModelD.js";
 import { loadLevel } from "./LevelLoader.js";
 import { unlockLevel } from "./unlockSystem.js";
 import { submitScore, fetchLeaderboard, saveCoins } from "./leaderboard.js";
 import { coinMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
 import { updateAudioSettings, updateMuteIcons } from "./audio.js";
-import { getCurrentProfile, updateProfile } from "./profileSystem.js";
+import { DEFAULT_CAR_MODEL_COLORS, getCurrentProfile, updateProfile } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
 import { initCustomize } from './customize.js';
@@ -222,19 +224,28 @@ window.addEventListener("keydown", (e) => {
 
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
 // pega perfil e modelo selecionado
-const profile       = getCurrentProfile();
-const savedCols     = profile.carColors  || {};
-const selModel      = profile.selectedModel || 0;
+const profile   = getCurrentProfile();
+const selModel  = profile.selectedModel || 0;
+const savedCols = (profile.carModels && profile.carModels[selModel])
+  ? profile.carModels[selModel]
+  : (DEFAULT_CAR_MODEL_COLORS[selModel] || {});
 
-// cria o loader e o carro correto
+// cria o loader e o carro correto, passando savedCols
 const textureLoader = new THREE.TextureLoader();
-const car = selModel === 1
-  ? createCarB(textureLoader, savedCols)
-  : createCar (textureLoader, savedCols);
+let car;
+if (selModel === 3) {
+  // Adiciona suporte para o modelo CarD
+  car = createCarD(textureLoader, savedCols);
+} else if (selModel === 2) {
+  car = createCarC(textureLoader, savedCols);
+} else if (selModel === 1) {
+  car = createCarB(textureLoader, savedCols);
+} else {
+  car = createCar(textureLoader, savedCols);
+}
 car.castShadow = true;
 scene.add(car);
 
-// Bounding Sphere do carro (a partir do chassis)
 const baseGeom = car.children[0].geometry;
 baseGeom.computeBoundingSphere();
 const carSphere = baseGeom.boundingSphere.clone();
