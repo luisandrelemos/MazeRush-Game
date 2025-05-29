@@ -8,25 +8,23 @@ import { createCarD } from '../assets/models/CarModelD.js';
 import { getCurrentProfile, updateProfile } from './profileSystem.js';
 
 let scene, renderer, camera, car, controls, raf;
-let savedModels;       // cores por modelo de carro
-let currentModel = 0;  // 0 = Modelo A, 1 = B, 2 = C
+let savedModels;
+let currentModel = 0;
+let lockOverlay, lockBtn;
 
-// ─── Valores padrão para cada modelo ────────────────────────────────────
 const DEFAULT_CAR_MODELS = [
-  { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" }, // A
-  { primary: "#4B5320", secondary: "#A9A9A9", structure: "#2F4F4F", wheels: "#333333" }, // B
-  { primary: "#ff0000", secondary: "#111111", structure: "#333333", wheels: "#222222" }, // C
-  { primary: "#0000ff", secondary: "#eeeeee", structure: "#555555", wheels: "#444444" }  // D — ajuste ao teu gosto
+  { primary: "#603441", secondary: "#ffffff", structure: "#131313", wheels: "#666666" },
+  { primary: "#4B5320", secondary: "#A9A9A9", structure: "#2F4F4F", wheels: "#333333" },
+  { primary: "#ff0000", secondary: "#111111", structure: "#333333", wheels: "#222222" },
+  { primary: "#0000ff", secondary: "#eeeeee", structure: "#555555", wheels: "#444444" }
 ];
 
-// ─── Atualiza o contador de moedas no badge ─────────────────────────────
 function updateCustomizeCoinCounter() {
   const { coins = 0 } = getCurrentProfile();
   const coinEl = document.getElementById('coin-count-custom');
   if (coinEl) coinEl.textContent = coins;
 }
 
-// ─── (Re)spawna o carro na cena de acordo com o tipo selecionado ─────────
 function spawnCar(type, loader) {
   if (car) scene.remove(car);
 
@@ -42,7 +40,6 @@ function spawnCar(type, loader) {
 
   car.position.set(0, 0.2, 0);
 
-  // aplica as cores salvas para este modelo
   car.traverse(mesh => {
     if (!mesh.isMesh) return;
     let part = mesh.userData.part;
@@ -56,11 +53,61 @@ function spawnCar(type, loader) {
   scene.add(car);
 }
 
+function showLockOverlay(container, modelIdx) {
+  hideLockOverlay();
+
+  lockOverlay = document.createElement('div');
+  Object.assign(lockOverlay.style, {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.5)',
+    zIndex: 900,
+    pointerEvents: 'none'
+  });
+  container.appendChild(lockOverlay);
+
+  lockBtn = document.createElement('button');
+  lockBtn.textContent = '🔒 Comprar por 100 💰';
+  Object.assign(lockBtn.style, {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    padding: '12px 20px',
+    fontSize: '1rem',
+    background: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    pointerEvents: 'auto',
+    zIndex: 1002
+  });
+  lockBtn.addEventListener('click', () => {
+    const prof = getCurrentProfile();
+    if ((prof.coins || 0) >= 100) {
+      prof.coins -= 100;
+      prof.unlockedCars = prof.unlockedCars || [];
+      prof.unlockedCars.push(modelIdx);
+      updateProfile(prof);
+      updateCustomizeCoinCounter();
+      hideLockOverlay();
+    } else {
+      alert("Moedas insuficientes!");
+    }
+  });
+  container.appendChild(lockBtn);
+}
+
+function hideLockOverlay() {
+  if (lockOverlay) { lockOverlay.remove(); lockOverlay = null; }
+  if (lockBtn) { lockBtn.remove(); lockBtn = null; }
+}
+
 export function initCustomize(container) {
   if (raf) cancelAnimationFrame(raf);
   container.innerHTML = '';
 
-  // ─── 0.1) Badge de moedas ────────────────────────────────────────────
   const header = document.querySelector('#customize-page .levels-header');
   if (header && !document.getElementById('coin-badge-custom')) {
     const coinBadge = document.createElement('div');
@@ -81,10 +128,9 @@ export function initCustomize(container) {
   }
   updateCustomizeCoinCounter();
 
-  // ─── 0.2) Carregar perfil e cores ────────────────────────────────────
   const profile = getCurrentProfile();
+  profile.unlockedCars = profile.unlockedCars || [0];
 
-  // garantir que temos um array com pelo menos 3 modelos
   if (Array.isArray(profile.carModels)) {
     savedModels = profile.carModels.slice();
   } else {
@@ -96,7 +142,6 @@ export function initCustomize(container) {
 
   currentModel = profile.selectedModel || 0;
 
-  // preencher inputs de cor e associar evento de mudança
   ['primary', 'secondary', 'structure', 'wheels'].forEach(part => {
     const input = document.getElementById(`color-${part}`);
     if (!input) return;
@@ -111,7 +156,6 @@ export function initCustomize(container) {
     });
   });
 
-  // ─── 0.3) Botões de setas para trocar modelo ────────────────────────
   const loader = new THREE.TextureLoader();
   ['left', 'right'].forEach(dir => {
     const arrow = document.createElement('div');
@@ -133,20 +177,25 @@ export function initCustomize(container) {
     });
     container.appendChild(arrow);
     arrow.addEventListener('click', () => {
-      const totalModels = savedModels.length;
+      hideLockOverlay();
+      const total = savedModels.length;
       currentModel = dir === 'left'
-        ? (currentModel + totalModels - 1) % totalModels
-        : (currentModel + 1) % totalModels;
+        ? (currentModel + total - 1) % total
+        : (currentModel + 1) % total;
 
       ['primary', 'secondary', 'structure', 'wheels'].forEach(part => {
         document.getElementById(`color-${part}`).value = savedModels[currentModel][part];
       });
 
       spawnCar(currentModel, loader);
+
+      const prof = getCurrentProfile();
+      if (!prof.unlockedCars.includes(currentModel)) {
+        showLockOverlay(container, currentModel);
+      }
     });
   });
 
-  // ─── 1) Botão Guardar ────────────────────────────────────────────────
   let saveBtn = document.getElementById('save-custom-btn');
   if (header && !saveBtn) {
     saveBtn = document.createElement('button');
@@ -158,29 +207,22 @@ export function initCustomize(container) {
   }
   saveBtn.onclick = () => {
     const updated = getCurrentProfile();
-    updated.carModels     = savedModels;
+    updated.carModels = savedModels;
     updated.selectedModel = currentModel;
     updateProfile(updated);
     alert('Cores e modelo guardados no perfil!');
   };
 
-  // ─── 2) Renderer ─────────────────────────────────────────────────────
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(container.clientWidth, container.clientHeight);
   container.appendChild(renderer.domElement);
 
-  // ─── 3) Cena, câmera, controles, luzes… ─────────────────────────────
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87ceeb);
-  scene.fog        = new THREE.Fog(0x87ceeb, 10, 150);
+  scene.fog = new THREE.Fog(0x87ceeb, 10, 150);
 
-  camera = new THREE.PerspectiveCamera(
-    60,
-    container.clientWidth / container.clientHeight,
-    0.1,
-    200
-  );
+  camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 200);
   camera.position.set(-1.5, 1.5, -4);
   camera.lookAt(0, 0.1, 0);
 
@@ -198,8 +240,10 @@ export function initCustomize(container) {
   dirLight.position.set(5, 10, 7);
   scene.add(dirLight);
 
-  // spawna o carro inicial
   spawnCar(currentModel, loader);
+  if (!profile.unlockedCars.includes(currentModel)) {
+    showLockOverlay(container, currentModel);
+  }
 
   // ─── 4) Montanhas, pista, areia… ────────────────────────────────────
   const hillMat = new THREE.MeshStandardMaterial({ color: 0x6aa84f });
@@ -264,10 +308,10 @@ export function initCustomize(container) {
   });
 
   // ─── 5) Responsividade + Loop ─────────────────────────────────────────
-  window.addEventListener('resize', () => {
+ window.addEventListener('resize', () => {
     const w = container.clientWidth, h = container.clientHeight;
     renderer.setSize(w, h);
-    camera.aspect = w/h;
+    camera.aspect = w / h;
     camera.updateProjectionMatrix();
   });
   (function animate() {
@@ -277,7 +321,6 @@ export function initCustomize(container) {
   })();
 }
 
-// ─── Função de compra (desconta moedas e atualiza badge) ────────────────
 export function buyItem(cost) {
   const prof = getCurrentProfile();
   if ((prof.coins || 0) >= cost) {
