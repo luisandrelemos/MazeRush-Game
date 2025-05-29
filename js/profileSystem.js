@@ -1,4 +1,6 @@
 // js/profileSystem.js
+import { db } from './firebase.js';
+import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 
 // ─────────── Constantes de Storage ───────────
 const PROFILES_KEY = "mazeRushProfiles";
@@ -26,12 +28,13 @@ function ensureData() {
   let all = JSON.parse(localStorage.getItem(PROFILES_KEY) || "null");
 
   if (!Array.isArray(all)) {
-    all = [
-      {
-        id: "profile-1",
+    // Criar 3 perfis com id e userId únicos
+    all = [1, 2, 3].map((_, index) => {
+      return {
+        id: generateUUID(),
         userId: generateUUID(),
-        name: "Jogador",
-        unlockedLevels: ["level-1"],
+        name: index === 0 ? "Jogador" : "",
+        unlockedLevels: index === 0 ? ["level-1"] : [],
         soundEnabled: true,
         musicEnabled: true,
         soundVolume: 70,
@@ -41,42 +44,13 @@ function ensureData() {
         carModels: { ...DEFAULT_CAR_MODEL_COLORS },
         selectedModel: 0,
         unlockedCars: [0]
-      },
-      {
-        id: "profile-2",
-        userId: generateUUID(),
-        name: "",
-        unlockedLevels: [],
-        soundEnabled: true,
-        musicEnabled: true,
-        soundVolume: 70,
-        musicVolume: 60,
-        coins: 0,
-        levelTimes: {},
-        carModels: { ...DEFAULT_CAR_MODEL_COLORS },
-        selectedModel: 0,
-        unlockedCars: [0]
-      },
-      {
-        id: "profile-3",
-        userId: generateUUID(),
-        name: "",
-        unlockedLevels: [],
-        soundEnabled: true,
-        musicEnabled: true,
-        soundVolume: 70,
-        musicVolume: 60,
-        coins: 0,
-        levelTimes: {},
-        carModels: { ...DEFAULT_CAR_MODEL_COLORS },
-        selectedModel: 0,
-        unlockedCars: [0]
-      }
-    ];
+      };
+    });
   }
 
   // Atualiza perfis antigos com campos novos se necessário
   all = all.map(p => {
+    if (!p.id)                  p.id = generateUUID();
     if (!p.userId)              p.userId = generateUUID();
     if (p.coins === undefined) p.coins = 0;
     if (!p.levelTimes)         p.levelTimes = {};
@@ -96,6 +70,14 @@ function ensureData() {
     localStorage.setItem(ACTIVE_KEY, all[0].id);
   }
   return all;
+}
+
+// ─────────── Atualização local apenas ───────────
+function updateProfileLocalOnly(updated) {
+  if (!updated.userId) updated.userId = generateUUID();
+  if (!updated.id)     updated.id     = generateUUID();
+  const all = ensureData().map(p => p.id === updated.id ? updated : p);
+  saveAllProfiles(all);
 }
 
 // ─────────── API Pública ───────────
@@ -127,12 +109,55 @@ export function getCurrentUserId() {
   return getCurrentProfile().userId;
 }
 
-export function updateProfile(updated) {
+export async function syncProfileFromFirestore() {
+  const all = ensureData();
+  const id  = getActiveProfileId();
+  const localProfile = all.find(p => p.id === id);
+  if (!localProfile || !localProfile.userId) return;
+
+  try {
+    const ref = doc(db, "users", localProfile.userId);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      const updated = { ...localProfile, ...data };
+      updateProfileLocalOnly(updated);
+    }
+  } catch (err) {
+    console.error("Erro ao sincronizar com Firestore:", err);
+  }
+}
+
+export async function updateProfile(updated) {
   if (!updated.userId) updated.userId = generateUUID();
+  if (!updated.id)     updated.id     = generateUUID();
+
+  // Atualizar localStorage
   const all = ensureData().map(p =>
     p.id === updated.id ? updated : p
   );
   saveAllProfiles(all);
+
+  // Atualizar na Firestore
+  try {
+    const userRef = doc(db, "users", updated.userId);
+    await setDoc(userRef, {
+      coins: updated.coins,
+      name: updated.name,
+      unlockedLevels: updated.unlockedLevels,
+      soundEnabled: updated.soundEnabled,
+      musicEnabled: updated.musicEnabled,
+      soundVolume: updated.soundVolume,
+      musicVolume: updated.musicVolume,
+      levelTimes: updated.levelTimes,
+      carModels: updated.carModels,
+      selectedModel: updated.selectedModel,
+      unlockedCars: updated.unlockedCars
+    });
+  } catch (err) {
+    console.error("Erro ao atualizar perfil na Firestore:", err);
+  }
 }
 
 export { DEFAULT_CAR_MODEL_COLORS };

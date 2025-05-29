@@ -1,7 +1,6 @@
 // js/main.js
 /* ───────────────────────────  Import  ─────────────────────────── */
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js";
 import { createCar } from "../assets/models/CarModel.js";
 import { createCarB } from "../assets/models/CarModelB.js";
 import { createCarC } from "../assets/models/CarModelC.js";
@@ -13,19 +12,13 @@ import { coinMeshes } from "./LevelLoader.js";
 import { fenceMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
 import { updateAudioSettings, updateMuteIcons } from "./audio.js";
-import {
-  DEFAULT_CAR_MODEL_COLORS,
-  getCurrentProfile,
-  updateProfile,
-} from "./profileSystem.js";
+import { syncProfileFromFirestore, DEFAULT_CAR_MODEL_COLORS, getCurrentProfile, updateProfile, } from "./profileSystem.js";
 import { igluTunnel, igluPosition } from "./LevelLoader.js";
 import { updateTunnelDirection } from "./LevelLoader.js";
 import { initCustomize } from "./customize.js";
-import {
-  celeiroGroup,
-  celeiroPosition,
-  updateBarnDirection,
-} from "./LevelLoader.js";
+import { celeiroGroup, celeiroPosition, updateBarnDirection, } from "./LevelLoader.js";
+
+await syncProfileFromFirestore();
 
 const gameContainer = document.getElementById("game-container");
 window.magicParticles = [];
