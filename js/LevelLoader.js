@@ -312,6 +312,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         coinGroup.add(glowSprite);
 
         coinGroup.userData.glow = glowSprite;
+        coinGroup.userData.levelObject = true;
 
         scene.add(coinGroup);
         coinMeshes.push(coinGroup);
