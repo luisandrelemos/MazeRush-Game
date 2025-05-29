@@ -488,15 +488,6 @@ function checkFenceCollision(car, fences) {
   return false;
 }
 
-function animateHelicopterRotors() {
-  scene.traverse((obj) => {
-    if (obj.name === "helicoptero" && obj.userData.rotorPrincipal) {
-      obj.userData.rotorPrincipal.rotation.y += 0.3; // rotor principal gira em Y
-      obj.userData.rotorCauda.rotation.z += 0.5; // rotor de cauda gira em Z
-    }
-  });
-}
-
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
 
 const keysPressed = {};
@@ -910,7 +901,6 @@ function animate(now) {
   const rawDt = (now - lastFrameTime) / 1000;
   const deltaTime = Math.min(rawDt, 0.05);
   lastFrameTime = now;
-  animateHelicopterRotors();
 
   if (isPaused || !levelData) return;
 
@@ -1019,6 +1009,17 @@ function animate(now) {
   if (heliporto) {
     heliporto.rotation.y += 0.02; // velocidade de rotação
   }
+
+  scene.traverse((obj) => {
+    if (
+      obj.name === "helicoptero" &&
+      obj.userData.rotorPrincipal &&
+      obj.userData.rotorCauda
+    ) {
+      obj.userData.rotorPrincipal.rotation.y += 0.4;
+      obj.userData.rotorCauda.rotation.x += 0.8;
+    }
+  });
 
   // Atualiza partículas do vulcão (lava a sair)
   animatedObjects.forEach((obj) => {
@@ -1150,8 +1151,6 @@ function animate(now) {
   if (celeiroGroup && celeiroPosition) {
     updateBarnDirection(celeiroGroup, celeiroPosition, car.position);
   }
-
-  
 
   // ───── Render + fim de nível ─────
   renderer.render(scene, activeCamera);

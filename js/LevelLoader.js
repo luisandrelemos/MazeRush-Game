@@ -837,7 +837,7 @@ export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
       if (type === "helicoptero") {
         const heliGroup = new THREE.Group();
 
-        // Corpo principal: esfera azul
+        // Corpo principal: esfera cinzenta
         const corpo = new THREE.Mesh(
           new THREE.SphereGeometry(0.7, 32, 32),
           new THREE.MeshStandardMaterial({ color: 0x888888 })
@@ -845,16 +845,16 @@ export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
         corpo.castShadow = true;
         heliGroup.add(corpo);
 
-        // Cauda: paralelepípedo
+        // Cauda
         const cauda = new THREE.Mesh(
           new THREE.BoxGeometry(0.1, 0.1, 2),
           new THREE.MeshStandardMaterial({ color: 0x888888 })
         );
         cauda.position.set(0, 0, 1.6);
         cauda.castShadow = true;
-        corpo.add(cauda); // filho da esfera
+        corpo.add(cauda);
 
-        // Rotor principal: barra preta horizontal
+        // Rotor principal
         const rotorPrincipal = new THREE.Mesh(
           new THREE.BoxGeometry(0.1, 0.05, 4),
           new THREE.MeshStandardMaterial({ color: 0x222222 })
@@ -863,7 +863,7 @@ export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
         rotorPrincipal.castShadow = true;
         corpo.add(rotorPrincipal);
 
-        // Rotor de cauda: barra preta vertical
+        // Rotor de cauda
         const rotorCauda = new THREE.Mesh(
           new THREE.BoxGeometry(0.05, 0.6, 0.05),
           new THREE.MeshStandardMaterial({ color: 0x222222 })
@@ -872,11 +872,11 @@ export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
         rotorCauda.castShadow = true;
         corpo.add(rotorCauda);
 
-        // Guardar referência para animação
-        corpo.userData.rotorPrincipal = rotorPrincipal;
-        corpo.userData.rotorCauda = rotorCauda;
+        // Guardar os rotores diretamente no grupo principal
+        heliGroup.userData.rotorPrincipal = rotorPrincipal;
+        heliGroup.userData.rotorCauda = rotorCauda;
 
-        // Patins de aterragem (2 barras)
+        // Patins
         const patimEsq = new THREE.Mesh(
           new THREE.BoxGeometry(0.2, 0.1, 2),
           new THREE.MeshStandardMaterial({ color: 0x333333 })
@@ -893,16 +893,17 @@ export async function loadLevel(levelName, scene, textureLoader, wallMeshes) {
         patimDir.castShadow = true;
         heliGroup.add(patimDir);
 
-        // Posição no mundo
+        // Posição
         heliGroup.position.set(
           position.x * tileSize + offsetX,
           2,
           position.z * tileSize + offsetZ
         );
 
-        heliGroup.userData.levelObject = true;
-        scene.add(heliGroup);
         heliGroup.name = "helicoptero";
+        heliGroup.userData.levelObject = true;
+
+        scene.add(heliGroup);
       }
     });
   }
