@@ -1011,6 +1011,17 @@ function animate(now) {
     heliporto.rotation.y += 0.02; // velocidade de rotação
   }
 
+  scene.traverse((obj) => {
+    if (
+      obj.name === "helicoptero" &&
+      obj.userData.rotorPrincipal &&
+      obj.userData.rotorCauda
+    ) {
+      obj.userData.rotorPrincipal.rotation.y += 0.4;
+      obj.userData.rotorCauda.rotation.x += 0.8;
+    }
+  });
+
   // Atualiza partículas do vulcão (lava a sair)
   animatedObjects.forEach((obj) => {
     if (obj.isPoints && obj.userData.velocities) {

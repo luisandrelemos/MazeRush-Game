@@ -833,7 +833,79 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         heliGroup.userData.levelObject = true;
         scene.add(heliGroup);
-        heliGroup.name = "heliporto"; // ou guarda num array se tiveres vários
+        heliGroup.name = "heliporto";
+      }
+
+      if (type === "helicoptero") {
+        const heliGroup = new THREE.Group();
+
+        // Corpo principal: esfera cinzenta
+        const corpo = new THREE.Mesh(
+          new THREE.SphereGeometry(0.7, 32, 32),
+          new THREE.MeshStandardMaterial({ color: 0x888888 })
+        );
+        corpo.castShadow = true;
+        heliGroup.add(corpo);
+
+        // Cauda
+        const cauda = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, 0.1, 2),
+          new THREE.MeshStandardMaterial({ color: 0x888888 })
+        );
+        cauda.position.set(0, 0, 1.6);
+        cauda.castShadow = true;
+        corpo.add(cauda);
+
+        // Rotor principal
+        const rotorPrincipal = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, 0.05, 4),
+          new THREE.MeshStandardMaterial({ color: 0x222222 })
+        );
+        rotorPrincipal.position.y = 0.8;
+        rotorPrincipal.castShadow = true;
+        corpo.add(rotorPrincipal);
+
+        // Rotor de cauda
+        const rotorCauda = new THREE.Mesh(
+          new THREE.BoxGeometry(0.05, 0.6, 0.05),
+          new THREE.MeshStandardMaterial({ color: 0x222222 })
+        );
+        rotorCauda.position.set(0, 0.3, 2.4);
+        rotorCauda.castShadow = true;
+        corpo.add(rotorCauda);
+
+        // Guardar os rotores diretamente no grupo principal
+        heliGroup.userData.rotorPrincipal = rotorPrincipal;
+        heliGroup.userData.rotorCauda = rotorCauda;
+
+        // Patins
+        const patimEsq = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.1, 2),
+          new THREE.MeshStandardMaterial({ color: 0x333333 })
+        );
+        patimEsq.position.set(-0.4, -0.6, 0);
+        patimEsq.castShadow = true;
+        heliGroup.add(patimEsq);
+
+        const patimDir = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.1, 2),
+          new THREE.MeshStandardMaterial({ color: 0x333333 })
+        );
+        patimDir.position.set(0.4, -0.6, 0);
+        patimDir.castShadow = true;
+        heliGroup.add(patimDir);
+
+        // Posição
+        heliGroup.position.set(
+          position.x * tileSize + offsetX,
+          2,
+          position.z * tileSize + offsetZ
+        );
+
+        heliGroup.name = "helicoptero";
+        heliGroup.userData.levelObject = true;
+
+        scene.add(heliGroup);
       }
     });
   }
