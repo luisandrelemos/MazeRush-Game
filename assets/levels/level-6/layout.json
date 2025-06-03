@@ -76,6 +76,7 @@
   "texture": "floor.png"
 },
 
-"wallTexture": "parede_quinta.png"
+"wallTexture": "parede_quinta.png",
+"skyTexture":  "sky.jpg"
 
 }

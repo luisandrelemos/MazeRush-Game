@@ -11,7 +11,7 @@ import { submitScore, fetchLeaderboard, saveCoins } from "./leaderboard.js";
 import { coinMeshes } from "./LevelLoader.js";
 import { fenceMeshes } from "./LevelLoader.js";
 import { animatedObjects } from "./LevelLoader.js";
-import { updateAudioSettings, updateMuteIcons } from "./audio.js";
+import { updateAudioSettings, updateMuteIcons, coinSound} from "./audio.js";
 import {
   syncProfileFromFirestore,
   DEFAULT_CAR_MODEL_COLORS,
@@ -448,12 +448,18 @@ function checkCollisionAndReact(car, walls) {
 }
 
 /* ────────────────────────────  Colisão com a moeda  ─────────────────── */
-
 async function checkCoinCollection(car, coins) {
   for (let i = coins.length - 1; i >= 0; i--) {
     const coin = coins[i];
     const distance = car.position.distanceTo(coin.position);
     if (distance < 1.2) {
+      // Tocar o som de recolha (se estiver ativado)
+      const profile = getCurrentProfile();
+      if (profile.soundEnabled) {
+        coinSound.currentTime = 0;
+        coinSound.play().catch(() => {});
+      }
+
       // Remover brilho se existir
       if (coin.userData.glow) coin.remove(coin.userData.glow);
 
@@ -464,7 +470,6 @@ async function checkCoinCollection(car, coins) {
       coinCount++;
       updateCoinCounter();
 
-      const profile = getCurrentProfile();
       profile.coins = (profile.coins || 0) + 1;
       updateProfile(profile);
       await saveCoins(profile.userId, profile.coins);
@@ -781,6 +786,7 @@ async function initLevel(idx) {
   levelComplete = false;
   controlsLocked = true;
   isInPreview = true;
+  scene.background = null;  
 
   // carregar JSON e instanciar tudo
   clearLevelObjects();

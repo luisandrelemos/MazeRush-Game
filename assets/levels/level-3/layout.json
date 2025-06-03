@@ -54,6 +54,7 @@
   },
 
   "wallTexture": "wall.png",
+  "skyTexture":  "vulcansky.jpg",
 
   "objects": [
     {
