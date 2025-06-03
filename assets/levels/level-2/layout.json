@@ -50,6 +50,7 @@
   },
 
   "wallTexture": "wall.png",
+  "skyTexture":  "snowsky.jpg",
 
   "objects": [
     {

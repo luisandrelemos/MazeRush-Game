@@ -14,6 +14,14 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
 
+  if (lvl.skyTexture) {
+  const skyTex = textureLoader.load(
+    `../assets/levels/${levelName}/${lvl.skyTexture}`
+  );
+  skyTex.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = skyTex;
+}
+
   /* Limpar restos do nível anterior */
   scene.children
     .filter((o) => o.userData.levelObject)

@@ -3,6 +3,7 @@ import { getCurrentProfile } from './profileSystem.js';
 
 const music      = new Audio('assets/sounds/background-music.wav');
 const clickSound = new Audio('assets/sounds/click.wav');
+const coinSound  = new Audio('assets/sounds/coinsplash.wav');
 
 music.loop = true;
 music.volume = 0;
@@ -42,6 +43,9 @@ export function updateAudioSettings() {
 
   // Efeito de clique
   clickSound.volume = cur.soundVolume / 100;
+
+  // Efeito de moeda
+  coinSound.volume = cur.soundVolume / 100;
 }
 
 /**
@@ -56,3 +60,6 @@ export function updateMuteIcons() {
   btnSound.textContent = cur.soundEnabled ? '🔊' : '🔇';
   btnMusic.textContent = cur.musicEnabled ? '🎵' : '🚫🎵';
 }
+
+// Exportar o objeto coinSound para podermos reproduzir no main.js
+export { coinSound };

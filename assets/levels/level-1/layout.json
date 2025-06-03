@@ -57,5 +57,6 @@
     "texture": "floor.png"
   },
   
-  "wallTexture": "wall.png"
+  "wallTexture": "wall.png",
+  "skyTexture": "sky1.jpg"
 }

@@ -58,6 +58,7 @@
   },
 
   "wallTexture": "wall.png",
+  "skyTexture":  "helisky.jpg",
 
   "objects": [
     {
