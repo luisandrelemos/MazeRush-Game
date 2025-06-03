@@ -15,7 +15,6 @@
     <!-- === CONTAINER DO MENU PRINCIPAL === -->
     <div id="main-page" class="mazerush-menu">
       <h1 class="mazerush-title">MazeRush</h1>
-      <!-- Aqui mostramos o nome do perfil activo -->
       <div class="current-profile">
         <span id="profile-name-main">Jogador</span>
       </div>
@@ -149,7 +148,6 @@
         Escolha um nome para a tabela de classificação.
       </p>
 
-      <!-- Botões juntos dentro da mesma div -->
       <div class="profile-buttons" style="justify-content: center; gap: 1rem">
         <button id="btn-export">Exportar progresso</button>
         <button id="confirm-profile" onclick="confirmEdit()">Ok</button>
@@ -247,7 +245,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- povoado dinamicamente -->
                 </tbody>
               </table>
             </div>
@@ -256,7 +253,7 @@
           <!-- coluna 2: preview + big “Melhor Pessoal” + botão -->
           <aside class="detail-info">
             <h2 id="detail-title">Nível X</h2>
-            <div id="detail-map"><!-- mini-mapa/canvas aqui --></div>
+            <div id="detail-map"></div>
             <div class="best-line">Melhor Pessoal: <span id="detail-best">–</span></div>
             <button id="detail-play">▶ Jogar</button>
           </aside>
@@ -746,14 +743,12 @@
             }
           }
 
-          // Opcional: põe uma borda fina ao redor do canvas
           ctx.strokeStyle = "#444";
           ctx.lineWidth = 1;
           ctx.strokeRect(0, 0, W, H);
 
         } catch (err) {
           console.warn("Erro em drawLevelThumbnail:", err);
-          // Se der errado, pinta um fundo cinza e escreve “Sem prévia”
           const ctx = canvas.getContext("2d");
           ctx.fillStyle = "#333";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -794,7 +789,7 @@
         });
 
         // 2) carrega o teu “Melhor Pessoal” direto da Firestore
-        detailBest.textContent = "–";  // valor default
+        detailBest.textContent = "–";
         try {
           const userId = getCurrentUserId();
           const personalRef = doc(db, "levels", levelId, "leaderboard", userId);
@@ -813,11 +808,9 @@
         const canvas = document.createElement("canvas");
         canvas.width  = 180;
         canvas.height = 180;
-        // Adiciona ao <div id="detail-map">
         detailMapDiv.append(canvas);
 
         // Chama a função que desenha o layout.json exatamente naquele canvas
-        // (não precisa dar await; a função já faz fetch sequencialmente)
         drawLevelThumbnail(n, canvas);
 
         // botão jogar

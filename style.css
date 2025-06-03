@@ -328,13 +328,13 @@ body {
   text-align: center;
 }
 
-/* Mapa quadrado: agora com display:flex para centralizar o canvas */
+/* Mapa quadrado */
 #detail-map {
-  flex: 0 0 180px;           /* mantém sempre 180×180 px */
-  display: flex;             /* ativa flexbox */
-  align-items: center;       /* centraliza verticalmente */
-  justify-content: center;   /* centraliza horizontalmente */
-  background: transparent;   /* sem fundo escuro */
+  flex: 0 0 180px;         
+  display: flex;           
+  align-items: center;       
+  justify-content: center;  
+  background: transparent;  
   border-radius: 4px;
   margin-bottom: 1rem;
 }
@@ -608,7 +608,6 @@ body {
   z-index: 10010;
 }
 
-/* quando removerem .hidden no JS, basta também definir opacity/visibility */
 #token-export:not(.hidden),
 #token-import:not(.hidden) {
   opacity: 1;
@@ -616,7 +615,6 @@ body {
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* opcional: animação de entrada ligeiramente mais “crescer” */
 #token-export:not(.hidden),
 #token-import:not(.hidden) {
   transform: translate(-50%, -50%) scale(1.02);
@@ -625,7 +623,6 @@ body {
 #token-import:not(.hidden):hover {
   transform: translate(-50%, -50%) scale(1);
 }
-
 
 /* ─── Campo de Texto ──────────────────────────────────────────────────────── */
 #nickname {
@@ -917,7 +914,6 @@ body {
 
 /* quando o minimapa está expanded, adicionamos blur no jogo */
 body.minimap-expanded #game-container {
-  /* blur mínimo: ajusta para 1px ou 2px conforme quiseres */
   filter: blur(2px);
 }
 
@@ -941,7 +937,7 @@ body.minimap-expanded #game-container {
 
 /* ─── Contador ─── */
 #countdown {
-  position: fixed;         /* fica sempre no viewport */
+  position: fixed;        
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(1);
   font-size: 6rem;
@@ -1160,8 +1156,8 @@ html, body {
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
-  background: var(--verde-escuro);    /* ou a cor/gradiente que estiveres a usar */
-  z-index: 900;                        /* acima do resto */
+  background: var(--verde-escuro);  
+  z-index: 900;                   
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -1169,7 +1165,6 @@ html, body {
 }
 
 /* 3) Header fixo no topo */
-/* HEADER FIXO E CORRETO */
 #customize-page .levels-header {
   position: fixed;         
   top: 0;                 
@@ -1228,7 +1223,7 @@ html, body {
 /* 4) Canvas container ocupa do topo+48px até ao fundo */
 #customize-container {
   position: absolute;
-  top: 48px;   /* imediatamente abaixo do header */
+  top: 48px;   
   bottom: 0;
   left: 0;
   right: 0;
