@@ -107,10 +107,16 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   const isLevel5 = levelName === "level-5";
 
-  const madeiraMat = new THREE.MeshStandardMaterial({
-    map: isLevel5 ? texturaMetal : texturaMadeira,
-    color: 0xffffff,
-  });
+  const madeiraMat = isLevel5
+    ? new THREE.MeshBasicMaterial({
+        color: 0xff0000, 
+        emissive: 0xff0000, // cor do brilho
+        emissiveIntensity: 2, // intensidade do brilho
+      })
+    : new THREE.MeshStandardMaterial({
+        map: texturaMadeira,
+        color: 0xffffff,
+      });
 
   const texturaCeleiroVermelha = textureLoader.load(
     "../assets/textures/textura_celeiro_vermelha.jpg"
@@ -134,36 +140,53 @@ export async function loadLevel(levelName, scene, textureLoader) {
           const tileCenterZ = z * lvl.tileSize + offsetZ;
 
           const cercaGroup = new THREE.Group();
-          //Dimensões
+
+          // Dimensões
           const largura = lvl.tileSize;
           const altura = lvl.wallHeight / 3;
           const espessura = 0.25;
 
-          // Tábuas horizontais
           const numTabuasHorizontais = 2;
+
+          // Tábuas horizontais
           for (let i = 0; i < numTabuasHorizontais; i++) {
             const y = i === 0 ? altura * 0.25 : altura * 0.75;
-            const tabua = new THREE.Mesh(
-              new THREE.BoxGeometry(largura * 0.95, espessura, espessura),
-              madeiraMat
-            );
+
+            const tabua = isLevel5
+              ? new THREE.Mesh(
+                  new THREE.CylinderGeometry(0.05, 0.05, largura * 0.95, 16),
+                  madeiraMat
+                )
+              : new THREE.Mesh(
+                  new THREE.BoxGeometry(largura * 0.95, espessura, espessura),
+                  madeiraMat
+                );
+
+            tabua.rotation.z = isLevel5 ? Math.PI / 2 : 0; // rodar cilindro horizontal
             tabua.position.set(0, y, 0);
             cercaGroup.add(tabua);
           }
 
-          // Estacas verticais (mais densas)
-          const estacaAltura = altura;
-          const estacaLargura = espessura;
-          const numEstacas = 5;
-          for (let i = 0; i < numEstacas; i++) {
-            const estacaX = -largura / 2 + (i / (numEstacas - 1)) * largura;
+          // Estacas verticais (apenas se não for o nível 5)
+          if (!isLevel5) {
+            const estacaAltura = altura;
+            const estacaLargura = espessura;
+            const numEstacas = 5;
 
-            const estaca = new THREE.Mesh(
-              new THREE.BoxGeometry(estacaLargura, estacaAltura, estacaLargura),
-              madeiraMat
-            );
-            estaca.position.set(estacaX, estacaAltura / 2, 0);
-            cercaGroup.add(estaca);
+            for (let i = 0; i < numEstacas; i++) {
+              const estacaX = -largura / 2 + (i / (numEstacas - 1)) * largura;
+
+              const estaca = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                  estacaLargura,
+                  estacaAltura,
+                  estacaLargura
+                ),
+                madeiraMat
+              );
+              estaca.position.set(estacaX, estacaAltura / 2, 0);
+              cercaGroup.add(estaca);
+            }
           }
 
           // Orientação e posição
@@ -850,11 +873,33 @@ export async function loadLevel(levelName, scene, textureLoader) {
         // Corpo principal: esfera cinzenta
         const corpo = new THREE.Mesh(
           new THREE.SphereGeometry(0.9, 32, 32),
-          new THREE.MeshStandardMaterial({ color: 0x888888 })
+          new THREE.MeshStandardMaterial({ color: 0xffffff })
         );
-        corpo.position.set(0, 0.3, -0.4); // mais alto e mais à frente
+        corpo.position.set(0, 2, -0.4); 
         corpo.castShadow = true;
         heliGroup.add(corpo);
+
+        const faixaMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffff33,
+        });
+
+        const numFaixas = 3;
+        const raioInicial = 0.8;
+        const diminuicao = 0.05; // quanto o raio diminui por faixa
+
+        for (let i = 0; i < numFaixas; i++) {
+          const raio = raioInicial + i * diminuicao;
+
+          const faixa = new THREE.Mesh(
+            new THREE.TorusGeometry(raio, 0.015, 16, 100),
+            faixaMaterial
+          );
+
+          faixa.rotation.x = Math.PI / 2;
+          faixa.position.set(0, 1.6 + i * 0.15, -0.4); // desfasamento vertical
+
+          heliGroup.add(faixa);
+        }
 
         // Grupo da cauda
         const caudaGroup = new THREE.Group();
@@ -862,27 +907,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
         // Corpo da cauda (cilindro)
         const corpoCauda = new THREE.Mesh(
           new THREE.CylinderGeometry(0.12, 0.12, 2, 16),
-          new THREE.MeshStandardMaterial({ color: 0x888888 })
+          new THREE.MeshStandardMaterial({ color: 0xffffff })
         );
         corpoCauda.rotation.x = Math.PI / 2; // deitar cilindro no eixo Z
         corpoCauda.castShadow = true;
         caudaGroup.add(corpoCauda);
-
-        // Esfera frontal (ponta arredondada)
-        const pontaFrente = new THREE.Mesh(
-          new THREE.SphereGeometry(0.05, 16, 16),
-          new THREE.MeshStandardMaterial({ color: 0x888888 })
-        );
-        pontaFrente.position.set(0, 0, -1); // metade do comprimento
-        caudaGroup.add(pontaFrente);
-
-        // Esfera traseira (ponta arredondada)
-        const pontaTras = new THREE.Mesh(
-          new THREE.SphereGeometry(0.05, 16, 16),
-          new THREE.MeshStandardMaterial({ color: 0x888888 })
-        );
-        pontaTras.position.set(0, 0, 1);
-        caudaGroup.add(pontaTras);
 
         // Posicionar a cauda inteira
         caudaGroup.position.set(0, 0, 1.6);
@@ -894,26 +923,10 @@ export async function loadLevel(levelName, scene, textureLoader) {
         // Corpo da cauda (cilindro vertical)
         const corpoCaudaSec = new THREE.Mesh(
           new THREE.CylinderGeometry(0.12, 0.12, 0.4, 16),
-          new THREE.MeshStandardMaterial({ color: 0x888888 })
+          new THREE.MeshStandardMaterial({ color: 0xffffff })
         );
         corpoCaudaSec.castShadow = true;
         caudaSecGroup.add(corpoCaudaSec);
-
-        // Esfera no topo
-        const topo = new THREE.Mesh(
-          new THREE.SphereGeometry(0.04, 16, 16),
-          new THREE.MeshStandardMaterial({ color: 0x888888 })
-        );
-        topo.position.y = 0.2; // metade da altura
-        caudaSecGroup.add(topo);
-
-        // Esfera na base
-        const base = new THREE.Mesh(
-          new THREE.SphereGeometry(0.04, 16, 16),
-          new THREE.MeshStandardMaterial({ color: 0x888888 })
-        );
-        base.position.y = -0.2;
-        caudaSecGroup.add(base);
 
         // Posicionar o grupo
         caudaSecGroup.position.set(0, 0.2, 2.4);
@@ -924,7 +937,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           new THREE.BoxGeometry(0.1, 0.05, 4),
           new THREE.MeshStandardMaterial({ color: 0x222222 })
         );
-        rotorPrincipal.position.y = 0.8;
+        rotorPrincipal.position.y = 0.9;
         rotorPrincipal.castShadow = true;
         corpo.add(rotorPrincipal);
 
@@ -933,7 +946,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           new THREE.BoxGeometry(0.05, 0.6, 0.05),
           new THREE.MeshStandardMaterial({ color: 0x222222 })
         );
-        rotorCauda.position.set(0, 0.3, 2.4);
+        rotorCauda.position.set(0.1, 0.3, 2.4);
         rotorCauda.castShadow = true;
         corpo.add(rotorCauda);
 
@@ -996,7 +1009,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           patimGroup.add(tras);
 
           // Posição do patim completo
-          patimGroup.position.set(x, -0.8, -0.4);
+          patimGroup.position.set(x, 0.9, -0.4);
           patimGroup.castShadow = true;
           heliGroup.add(patimGroup);
         });
@@ -1006,9 +1019,9 @@ export async function loadLevel(levelName, scene, textureLoader) {
         const largura = 0.05;
 
         // Novo valor para abaixar os suportes no eixo Y
-        const offsetYSuporte = -0.8;
+        const offsetYSuporte = 0.9;
 
-        const centroCorpo = new THREE.Vector3(0, 0.3, -0.4); // centro da esfera
+        const centroCorpo = new THREE.Vector3(0, 2, -0.4); // centro da esfera
 
         const suportesInfo = [
           { pos: new THREE.Vector3(-0.6, offsetYSuporte, -1.0) },
