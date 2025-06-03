@@ -1,5 +1,5 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js";
-import { wallMeshes } from "./main.js"; 
+import { wallMeshes } from "./main.js";
 
 export const animatedObjects = [];
 export const coinMeshes = [];
@@ -8,9 +8,6 @@ export let igluTunnel = null;
 export let igluPosition = null;
 export let celeiroGroup = null;
 export let celeiroPosition = null;
-
-
-
 
 export async function loadLevel(levelName, scene, textureLoader) {
   /* Ler JSON */
@@ -312,6 +309,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         coinGroup.add(glowSprite);
 
         coinGroup.userData.glow = glowSprite;
+        coinGroup.userData.levelObject = true;
 
         scene.add(coinGroup);
         coinMeshes.push(coinGroup);
@@ -843,20 +841,75 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         // Corpo principal: esfera cinzenta
         const corpo = new THREE.Mesh(
-          new THREE.SphereGeometry(0.7, 32, 32),
+          new THREE.SphereGeometry(0.9, 32, 32),
           new THREE.MeshStandardMaterial({ color: 0x888888 })
         );
+        corpo.position.set(0, 0.3, -0.4); // mais alto e mais à frente
         corpo.castShadow = true;
         heliGroup.add(corpo);
 
-        // Cauda
-        const cauda = new THREE.Mesh(
-          new THREE.BoxGeometry(0.1, 0.1, 2),
+        // Grupo da cauda
+        const caudaGroup = new THREE.Group();
+
+        // Corpo da cauda (cilindro)
+        const corpoCauda = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.12, 2, 16),
           new THREE.MeshStandardMaterial({ color: 0x888888 })
         );
-        cauda.position.set(0, 0, 1.6);
-        cauda.castShadow = true;
-        corpo.add(cauda);
+        corpoCauda.rotation.x = Math.PI / 2; // deitar cilindro no eixo Z
+        corpoCauda.castShadow = true;
+        caudaGroup.add(corpoCauda);
+
+        // Esfera frontal (ponta arredondada)
+        const pontaFrente = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05, 16, 16),
+          new THREE.MeshStandardMaterial({ color: 0x888888 })
+        );
+        pontaFrente.position.set(0, 0, -1); // metade do comprimento
+        caudaGroup.add(pontaFrente);
+
+        // Esfera traseira (ponta arredondada)
+        const pontaTras = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05, 16, 16),
+          new THREE.MeshStandardMaterial({ color: 0x888888 })
+        );
+        pontaTras.position.set(0, 0, 1);
+        caudaGroup.add(pontaTras);
+
+        // Posicionar a cauda inteira
+        caudaGroup.position.set(0, 0, 1.6);
+        corpo.add(caudaGroup);
+
+        // Grupo da cauda secundária
+        const caudaSecGroup = new THREE.Group();
+
+        // Corpo da cauda (cilindro vertical)
+        const corpoCaudaSec = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.12, 0.4, 16),
+          new THREE.MeshStandardMaterial({ color: 0x888888 })
+        );
+        corpoCaudaSec.castShadow = true;
+        caudaSecGroup.add(corpoCaudaSec);
+
+        // Esfera no topo
+        const topo = new THREE.Mesh(
+          new THREE.SphereGeometry(0.04, 16, 16),
+          new THREE.MeshStandardMaterial({ color: 0x888888 })
+        );
+        topo.position.y = 0.2; // metade da altura
+        caudaSecGroup.add(topo);
+
+        // Esfera na base
+        const base = new THREE.Mesh(
+          new THREE.SphereGeometry(0.04, 16, 16),
+          new THREE.MeshStandardMaterial({ color: 0x888888 })
+        );
+        base.position.y = -0.2;
+        caudaSecGroup.add(base);
+
+        // Posicionar o grupo
+        caudaSecGroup.position.set(0, 0.2, 2.4);
+        corpo.add(caudaSecGroup);
 
         // Rotor principal
         const rotorPrincipal = new THREE.Mesh(
@@ -876,28 +929,112 @@ export async function loadLevel(levelName, scene, textureLoader) {
         rotorCauda.castShadow = true;
         corpo.add(rotorCauda);
 
-        // Guardar os rotores diretamente no grupo principal
+        // Guardar rotores
         heliGroup.userData.rotorPrincipal = rotorPrincipal;
         heliGroup.userData.rotorCauda = rotorCauda;
 
-        // Patins
-        const patimEsq = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.1, 2),
-          new THREE.MeshStandardMaterial({ color: 0x333333 })
-        );
-        patimEsq.position.set(-0.4, -0.6, 0);
-        patimEsq.castShadow = true;
-        heliGroup.add(patimEsq);
+        // Patins (horizontais, como esquis)
+        const patimMaterial = new THREE.MeshStandardMaterial({
+          color: 0x333333,
+        });
+        const patimComprimento = 2;
+        const patimEspessura = 0.05;
+        const patimAltura = 0.05;
+        const curvaComprimento = 0.4;
 
-        const patimDir = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.1, 2),
-          new THREE.MeshStandardMaterial({ color: 0x333333 })
-        );
-        patimDir.position.set(0.4, -0.6, 0);
-        patimDir.castShadow = true;
-        heliGroup.add(patimDir);
+        // Criação dos dois patins
+        [-0.6, 0.6].forEach((x) => {
+          const patimGroup = new THREE.Group();
 
-        // Posição
+          // Parte reta central
+          const base = new THREE.Mesh(
+            new THREE.BoxGeometry(
+              patimEspessura,
+              patimAltura,
+              patimComprimento - 2 * curvaComprimento
+            ),
+            patimMaterial
+          );
+          base.position.z = 0;
+          patimGroup.add(base);
+
+          // Valores ajustados
+          const deslocamentoZ = patimComprimento / 2 - curvaComprimento * 0.6;
+
+          // Curva frontal
+          const frente = new THREE.Mesh(
+            new THREE.BoxGeometry(
+              patimEspessura,
+              patimAltura,
+              curvaComprimento
+            ),
+            patimMaterial
+          );
+          frente.position.set(0, 0.05, -deslocamentoZ); // ← sobe no eixo Y com 0.05
+          frente.rotation.x = Math.PI / 8;
+          patimGroup.add(frente);
+
+          // Curva traseira
+          const tras = new THREE.Mesh(
+            new THREE.BoxGeometry(
+              patimEspessura,
+              patimAltura,
+              curvaComprimento
+            ),
+            patimMaterial
+          );
+          tras.position.set(0, 0.05, deslocamentoZ); // ← mesmo ajuste no Y
+          tras.rotation.x = -Math.PI / 8;
+          patimGroup.add(tras);
+
+          // Posição do patim completo
+          patimGroup.position.set(x, -0.8, -0.4);
+          patimGroup.castShadow = true;
+          heliGroup.add(patimGroup);
+        });
+
+        // Suportes verticais (ligam corpo aos patins)
+        const alturaSuporte = 0.7;
+        const largura = 0.05;
+
+        // Novo valor para abaixar os suportes no eixo Y
+        const offsetYSuporte = -0.8;
+
+        const centroCorpo = new THREE.Vector3(0, 0.3, -0.4); // centro da esfera
+
+        const suportesInfo = [
+          { pos: new THREE.Vector3(-0.6, offsetYSuporte, -1.0) },
+          { pos: new THREE.Vector3(-0.6, offsetYSuporte, 0.2) },
+          { pos: new THREE.Vector3(0.6, offsetYSuporte, -1.0) },
+          { pos: new THREE.Vector3(0.6, offsetYSuporte, 0.2) },
+        ];
+
+        for (const info of suportesInfo) {
+          const { pos } = info;
+
+          const dirTotal = new THREE.Vector3()
+            .subVectors(centroCorpo, pos)
+            .normalize();
+          const dirBase = new THREE.Vector3(0, 1, 0);
+          const dirSuave = dirBase.lerp(dirTotal, 0.3).normalize();
+
+          const suporte = new THREE.Mesh(
+            new THREE.BoxGeometry(largura, alturaSuporte, largura),
+            new THREE.MeshStandardMaterial({ color: 0x333333 })
+          );
+          suporte.position.y = alturaSuporte / 2;
+
+          const suporteGroup = new THREE.Group();
+          suporteGroup.add(suporte);
+          suporteGroup.position.copy(pos);
+          suporteGroup.lookAt(pos.clone().add(dirSuave));
+          suporteGroup.rotateX(Math.PI / 2);
+
+          suporte.castShadow = true;
+          heliGroup.add(suporteGroup);
+        }
+
+        // Posição global do helicóptero
         heliGroup.position.set(
           position.x * tileSize + offsetX,
           2,
@@ -906,7 +1043,6 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         heliGroup.name = "helicoptero";
         heliGroup.userData.levelObject = true;
-
         scene.add(heliGroup);
       }
     });
