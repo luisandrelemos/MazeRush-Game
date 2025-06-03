@@ -417,6 +417,7 @@
       const detailBest    = document.getElementById("detail-best");
       const detailTable   = document.getElementById("detail-table").querySelector("tbody");
       const detailPlay    = document.getElementById("detail-play");
+      const detailMapDiv = document.getElementById("detail-map"); 
 
       // — Painéis de token —
       const tokenExportPanel = document.getElementById("token-export");
@@ -684,21 +685,20 @@
         nameMain.textContent = cur.name ? `Olá, ${cur.name}!` : "Olá, Perfil!";
 
         levelsCt.innerHTML = "";
-        const labels = [
-          "Nível 1","Nível 2","Nível 3",
-          "Nível 4","Nível 5","Nível 6"
-        ];
-        labels.forEach((lbl,i) => {
-          const n  = i+1;
+        const labels = ["Nível 1","Nível 2","Nível 3","Nível 4","Nível 5","Nível 6"];
+        labels.forEach((lbl, i) => {
+          const n  = i + 1;
           const id = `level-${n}`;
           const card = document.createElement("div");
           card.className = "level-card";
           card.setAttribute("data-level", n);
 
+          // ─── Somente o <span> com o texto “Nível X” (sem nenhum canvas) ───
           const span = document.createElement("span");
           span.textContent = lbl;
           card.append(span);
 
+          // ─── Lógica de destravar ou bloquear ───
           if (cur.unlockedLevels.includes(id)) {
             card.classList.add("clickable");
             card.addEventListener("click", () => openLevelDetail(n));
@@ -712,6 +712,56 @@
 
           levelsCt.append(card);
         });
+      }
+
+      async function drawLevelThumbnail(levelNumber, canvas) {
+        try {
+          // 1) Carrega o layout.json do nível
+          const resp = await fetch(`./assets/levels/level-${levelNumber}/layout.json`);
+          if (!resp.ok) throw new Error("Não encontrou layout.json para level-" + levelNumber);
+          const data = await resp.json();
+
+          const map = data.map;
+          const rows = map.length;
+          const cols = map[0].length;
+
+          const ctx = canvas.getContext("2d");
+          const W = canvas.width;
+          const H = canvas.height;
+          ctx.clearRect(0, 0, W, H);
+
+          // Cada célula terá W/cols × H/rows pixels
+          const cellW = W / cols;
+          const cellH = H / rows;
+
+          // Cores vindas do JSON (se não existir, usa default)
+          const colorWall  = data.colors.wall  || "#0F223D";
+          const colorFloor = data.colors.floor || "#D3CA79";
+
+          // Desenha retângulo para cada célula
+          for (let z = 0; z < rows; z++) {
+            for (let x = 0; x < cols; x++) {
+              ctx.fillStyle = (map[z][x] === 1) ? colorWall : colorFloor;
+              ctx.fillRect(x * cellW, z * cellH, cellW, cellH);
+            }
+          }
+
+          // Opcional: põe uma borda fina ao redor do canvas
+          ctx.strokeStyle = "#444";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(0, 0, W, H);
+
+        } catch (err) {
+          console.warn("Erro em drawLevelThumbnail:", err);
+          // Se der errado, pinta um fundo cinza e escreve “Sem prévia”
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#333";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#fff";
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Sem prévia", canvas.width/2, canvas.height/2);
+        }
       }
 
       // abre o detalhe de nível
@@ -755,6 +805,20 @@
         } catch (err) {
           console.warn("Falha ao buscar melhor pessoal:", err);
         }
+
+        // Limpa qualquer conteúdo anterior no #detail-map
+        detailMapDiv.innerHTML = "";
+
+        // Cria o <canvas> com 180×180 px (para caber no seu CSS #detail-map)
+        const canvas = document.createElement("canvas");
+        canvas.width  = 180;
+        canvas.height = 180;
+        // Adiciona ao <div id="detail-map">
+        detailMapDiv.append(canvas);
+
+        // Chama a função que desenha o layout.json exatamente naquele canvas
+        // (não precisa dar await; a função já faz fetch sequencialmente)
+        drawLevelThumbnail(n, canvas);
 
         // botão jogar
         detailPlay.onclick = () => {

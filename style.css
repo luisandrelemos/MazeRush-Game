@@ -314,9 +314,12 @@ body {
 .detail-info {
   flex: 0 0 300px;
   background: rgba(255,255,255,0.08);
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   padding: 1.5rem;
 }
+
+/* Título do nível (já centralizado) */
 .detail-info h2 {
   margin: 0 0 1rem;
   font-family: 'Orbitron', sans-serif;
@@ -324,13 +327,18 @@ body {
   color: var(--quase-branco);
   text-align: center;
 }
-/* mapa reduzido */
+
+/* Mapa quadrado: agora com display:flex para centralizar o canvas */
 #detail-map {
-  flex: 0 0 180px;
-  background: #222;
+  flex: 0 0 180px;           /* mantém sempre 180×180 px */
+  display: flex;             /* ativa flexbox */
+  align-items: center;       /* centraliza verticalmente */
+  justify-content: center;   /* centraliza horizontalmente */
+  background: transparent;   /* sem fundo escuro */
   border-radius: 4px;
   margin-bottom: 1rem;
 }
+
 /* linha do melhor pessoal, em destaque */
 .best-line {
   font-family: 'Orbitron', sans-serif;
@@ -339,6 +347,7 @@ body {
   text-align: center;
   margin: 0 0 1.5rem;
 }
+
 /* botão ▶ Jogar grande */
 #detail-play {
   padding: 0.75rem;
