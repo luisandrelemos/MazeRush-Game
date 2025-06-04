@@ -62,7 +62,6 @@ const modal = document.getElementById("level-complete-modal");
 const nextBtn = document.getElementById("next-level-btn");
 const retryBtn = document.getElementById("retry-btn");
 const menuBtn = document.getElementById("menu-btn");
-const settingsBtn = document.getElementById("settings-btn");
 
 // ─────────────────────────  Retry ─────────────────────────
 retryBtn.onclick = async () => {
@@ -284,7 +283,7 @@ function easeInOutCubic(t) {
 }
 
 /* ──────────────────────  Efeitos visuais (fumo, salto)  ───────────────────── */
-//fumo
+// Fumo
 function createSmoke(textureLoader, position) {
   const tex = textureLoader.load("./assets/textures/smoke.png");
   const mat = new THREE.SpriteMaterial({
@@ -309,7 +308,7 @@ function createSmoke(textureLoader, position) {
   }
   requestAnimationFrame(anim);
 }
-//salto
+// Fumo ao saltar
 function createJumpDust(textureLoader, pos, count = 12, spread = 0.5) {
   const tex = textureLoader.load("./assets/textures/smoke.png");
   const parts = [];
@@ -380,6 +379,7 @@ function rotateCar180(car, dir = "right") {
   }
   requestAnimationFrame(anim);
 }
+
 /* ──────────────────────  Salto ───────────────────── */
 let isJumping = false;
 function jumpCar(car) {
@@ -781,7 +781,7 @@ async function initLevel(idx) {
 
   visitedCells = data.map.map((r) => r.map((_) => false));
 
-  // Adiciona neve no nivel 2
+  // Luzez do nivel 2 alteradas por causa do tema
   if (currentLevelIndex === 2) {
     createSnow(scene);
 
@@ -789,13 +789,13 @@ async function initLevel(idx) {
     ambientLight.color.set(0xb0e0ff); // azul claro (tom frio)
     ambientLight.intensity = 0.3;
 
-    directionalLight.color.set(0xe0f8ff); // luz gélida
+    directionalLight.color.set(0xe0f8ff); 
     directionalLight.intensity = 0.8;
 
-    directionalLight.position.set(20, 50, 20); // (opcional: ângulo da luz)
+    directionalLight.position.set(20, 50, 20); 
   }
 
-  //  posicionar carro no início
+  //  posicionar carro na posicao inicial
   car.position.copy(data.startPos);
   car.pos;
   car.userData.velocity = 0;
@@ -991,8 +991,11 @@ function animate(now) {
       .multiplyScalar(dist);
     car.position.add(dir);
 
+    // ───── Colisao com paredes ─────
     checkCollisionAndReact(car, wallMeshes);
+    // ───── Colisao com moedas ─────
     checkCoinCollection(car, coinMeshes);
+    // ───── Colisao com cercas ─────
     checkFenceCollision(car, fenceMeshes);
 
     // animação das rodas
@@ -1002,14 +1005,11 @@ function animate(now) {
     });
   }
 
-  // Rotação do paralelepípedo
-  animatedObjects.forEach((obj) => {
-    obj.rotation.y += 1.2 * deltaTime;
-  });
-  // Rotação da moeda
+  // ───── Rotacao das moedas ─────
   coinMeshes.forEach((coin) => {
     coin.rotation.z += 2 * deltaTime;
   });
+  // ───── Rotacao do heliporto ─────
   const heliporto = scene.getObjectByName("heliporto");
   if (heliporto) {
     heliporto.rotation.y += 0.02; // velocidade de rotação
@@ -1026,7 +1026,7 @@ function animate(now) {
     }
   });
 
-  // Atualiza partículas do vulcão (lava a sair)
+  // ───── Animacao das particulas de lava ─────
   animatedObjects.forEach((obj) => {
     if (obj.isPoints && obj.userData.velocities) {
       const pos = obj.geometry.attributes.position.array;
@@ -1040,7 +1040,7 @@ function animate(now) {
         // Reset se a partícula subir demais
         if (pos[i + 1] > 8) {
           // aumenta o teto de altura antes de resetar
-          pos[i] = (Math.random() - 0.5) * 1.2; // X: mais disperso (antes era 1.2)
+          pos[i] = (Math.random() - 0.5) * 1.2; // X: mais disperso 
           pos[i + 1] = 0; // Y: volta à base do vulcão
           pos[i + 2] = (Math.random() - 0.5) * 1.2; // Z: mais disperso
 
@@ -1165,7 +1165,8 @@ function animate(now) {
 /* ───────────────────────────  checkLevelComplete ────────────────────── */
 async function checkLevelComplete() {
   if (levelComplete || isInPreview || !levelData?.endPortal) return;
-
+  
+  // Chegada ao portal
   const dist = car.position.distanceTo(levelData.endPortal.position);
   if (dist < 1) {
     levelComplete = true;
