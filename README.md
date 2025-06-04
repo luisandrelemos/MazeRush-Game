@@ -66,4 +66,16 @@
 
 ---
 
+## 📄 Licença
+
+Este projeto foi desenvolvido no contexto académico da **UTAD** – Licenciatura em Engenharia Informática, unidade curricular **Computação Gráfica (2024/2025)**.
+
+---
+
+## 💬 Contacto
+
+Para sugestões ou contribuições, contacta os autores ou abre uma _issue_ neste repositório.
+
+---
+
 🎉 Diverte-te a jogar e partilha o teu melhor tempo com os teus amigos!
