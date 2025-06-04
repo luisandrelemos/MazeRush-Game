@@ -107,21 +107,12 @@ async function levelExists(idx) {
   }
 }
 /* ────────────────────────────  Cameras ───────────── */
-// ▼ Câmaras principais
-const cameraPerspective = new THREE.PerspectiveCamera(
-  75,
-  innerWidth / innerHeight,
-  0.1,
-  1000
-);
-const cameraFollow = new THREE.PerspectiveCamera(
-  75,
-  innerWidth / innerHeight,
-  0.1,
-  1000
-);
+// Câmara Perspetiva “Livre/Topo”:
+const cameraPerspective = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+const cameraFollow      = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
 const zoomTopView = 0.8;
 const zoomPreview = 1.1;
+// Câmara Ortográfica Top-Down:
 let orthoSizeTopView = 10;
 let orthoSizePreview = 10;
 const cameraOrtho = new THREE.OrthographicCamera(
@@ -132,12 +123,8 @@ const cameraOrtho = new THREE.OrthographicCamera(
   0.1,
   1000
 );
-const transitionCamera = new THREE.PerspectiveCamera(
-  75,
-  innerWidth / innerHeight,
-  0.1,
-  1000
-);
+// Câmara de transição (usada para animação de preview):
+const transitionCamera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
 
 /* ───────────  HUD: Obtém o elemento do velocímetro  ─────────────────────── */
 const speedEl = document.getElementById("speedometer");
@@ -497,7 +484,6 @@ function checkFenceCollision(car, fences) {
 }
 
 /* ──────────────────────  Entrada de teclado / rato  ──────────────────────── */
-
 const keysPressed = {};
 document.addEventListener("keydown", (e) => {
   if (isPaused || modal.classList.contains("show") || isInPreview) return;
