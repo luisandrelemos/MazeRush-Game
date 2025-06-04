@@ -424,7 +424,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         telhadoTopo.position.set(0, 3.05, 0.4); // alinhado com o topo do corpo
         celeiroGroup.add(telhadoTopo);
 
-        // Inclinação teclado esquerdo
+        // Inclinação telhado esquerdo
         const telhadoEsq = new THREE.Mesh(
           new THREE.BoxGeometry(1, 0.05, 3.2), // largura entre -1.6 e -0.8
           telhadoMat

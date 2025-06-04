@@ -207,14 +207,6 @@ function updateCoinCounter() {
   if (coinEl) coinEl.textContent = coinCount;
 }
 
-window.addEventListener("keydown", (e) => {
-  if (e.key === "m") {
-    // Pressionar "m" adiciona 1 moeda
-    coinCount++;
-    updateCoinCounter();
-  }
-});
-
 /* ───────────────────────────  Jogador (carro)  ─────────────────────────── */
 // pega perfil e modelo selecionado
 const profile = getCurrentProfile();
