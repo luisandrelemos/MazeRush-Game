@@ -10,7 +10,7 @@ export let celeiroGroup = null;
 export let celeiroPosition = null;
 
 export async function loadLevel(levelName, scene, textureLoader) {
-  /* Ler JSON */
+  // Carrega o ficheiro layout.json do nível
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
 
@@ -23,7 +23,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   scene.background = skyTex;
 }
 
-  /* ─────────────────────────── Limpar restos dos niveis anteriores ─────────────────────────── */
+  /* ─────────────────────────── Remove objetos do nível anterior ─────────────────────────── */
   scene.children
     .filter((o) => o.userData.levelObject)
     .forEach((o) => scene.remove(o));
@@ -31,7 +31,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const mapW = lvl.map[0].length;
   const mapH = lvl.map.length;
 
-  /*  ─────────────────────────── Textura para o chao de todos os niveis  ─────────────────────────── */
+  /*  ─────────────────────────── Carrega e configura textura do chão (se existir)  ─────────────────────────── */
   let floorTexture;
   if (lvl.floor?.texture) {
     floorTexture = textureLoader.load(
@@ -43,7 +43,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     floorTexture.repeat.set(20, 20); // Controla a repetição manualmente — isto evita distorção
   }
 
-  // Aplica a textura do chao 
+  // Cria material para o chão (com ou sem textura)
   const floorMat = floorTexture
     ? new THREE.MeshStandardMaterial({
         map: floorTexture,
@@ -52,6 +52,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
       })
     : new THREE.MeshStandardMaterial({ color: lvl.colors?.floor ?? "#888" });
 
+  // Cria plano horizontal do chão e adiciona à cena
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(mapW * lvl.tileSize, mapH * lvl.tileSize),
     floorMat
@@ -61,7 +62,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   scene.add(floor);
 
 
-  /*  ─────────────────────────── Paredes internas do labirinto  ─────────────────────────── */
+  /*  ─────────────────────────── Carrega textura das paredes (se existir)  ─────────────────────────── */
   const wallTexture = lvl.wallTexture
     ? textureLoader.load(`../assets/levels/${levelName}/${lvl.wallTexture}`)
     : null;
@@ -73,7 +74,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     wallTexture.anisotropy = 16; // Para maior nitidez nos ângulos
   }
 
-  /*  ─────────────────────────── Textura das paredes internas do labirinto ─────────────────────────── */
+  /*  ─────────────────────────── Cria material das paredes (com ou sem textura) ─────────────────────────── */
   const wallMat = wallTexture
     ? new THREE.MeshStandardMaterial({
       // Se existir uma textura para a parede, aplica-a como mapa de cor
@@ -113,7 +114,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   const isLevel5 = levelName === "level-5";
 
-  //  Aplica Textura nivel 5 e 6
+  // Define material para cercas ou lasers (nível 5 e 6)
   const madeiraMat = isLevel5
   // Lasers nivel 5
     ? new THREE.MeshBasicMaterial({
@@ -183,13 +184,15 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
           // Estacas verticais (apenas se não for o nível 5)
           if (!isLevel5) {
-            const estacaAltura = altura;
-            const estacaLargura = espessura;
-            const numEstacas = 5;
+            const estacaAltura = altura; // Altura das estacas
+            const estacaLargura = espessura; // Largura das estacas
+            const numEstacas = 5; // Número total de estacas na cerca
 
+            // Distribui estacas uniformemente ao longo da largura
             for (let i = 0; i < numEstacas; i++) {
               const estacaX = -largura / 2 + (i / (numEstacas - 1)) * largura;
 
+              // Cria cada estaca como um paralelepípedo vertical
               const estaca = new THREE.Mesh(
                 new THREE.BoxGeometry(
                   estacaLargura,
@@ -198,7 +201,10 @@ export async function loadLevel(levelName, scene, textureLoader) {
                 ),
                 madeiraMat
               );
+
+              // Posiciona a estaca ao longo do eixo X e eleva-a pela metade da altura
               estaca.position.set(estacaX, estacaAltura / 2, 0);
+              // Adiciona a estaca ao grupo da cerca
               cercaGroup.add(estaca);
             }
           }
@@ -215,18 +221,28 @@ export async function loadLevel(levelName, scene, textureLoader) {
       }
       //Paredes do labirinto
       if (cell === 1) {
+        // Define a geometria da parede (um cubo com altura e largura do tile)
         const wall = new THREE.Mesh(
           new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize),
-          wallMat
+          wallMat // Aplica o material definido anteriormente (com ou sem textura)
         );
+        // Posiciona a parede na grelha, centrada verticalmente
         wall.position.set(
           x * lvl.tileSize + offsetX,
           height / 2,
           z * lvl.tileSize + offsetZ
         );
+
+        // Permite que a parede projete e receba sombras
         wall.castShadow = wall.receiveShadow = true;
+
+        // Marca a parede como parte do nível (para futura limpeza)
         wall.userData.levelObject = true;
+
+        // Adiciona a parede à cena
         scene.add(wall);
+
+        // Guarda a referência para futura interação ou colisão
         wallMeshes.push(wall);
       }
     })
@@ -236,17 +252,19 @@ export async function loadLevel(levelName, scene, textureLoader) {
   function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
     if (!objects) return;
 
-    // Bordas exteriores do mapa
+    // Cria bordas exteriores à volta do mapa se a espessura estiver definida
     if (lvl.borderThickness && lvl.borderThickness > 0) {
-      const bt = lvl.borderThickness;
-      const w = mapW * lvl.tileSize;
-      const h = mapH * lvl.tileSize;
+      const bt = lvl.borderThickness; // Espessura das bordas
+      const w = mapW * lvl.tileSize; // Largura total do mapa
+      const h = mapH * lvl.tileSize; // Altura total do mapa
 
+      // Calcula posições laterais e verticais das bordas
       const leftX = offsetX - lvl.tileSize / 2 - bt / 2;
       const rightX = offsetX + w - lvl.tileSize / 2 + bt / 2;
       const topZ = offsetZ - lvl.tileSize / 2 - bt / 2;
       const bottomZ = offsetZ + h - lvl.tileSize / 2 + bt / 2;
 
+      // Função auxiliar para criar uma borda com tamanho e posição
       const makeBorder = (sizeX, sizeZ, x, z) => {
         const mesh = new THREE.Mesh(
           new THREE.BoxGeometry(sizeX, lvl.wallHeight, sizeZ),
@@ -258,10 +276,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
         scene.add(mesh);
       };
 
-      makeBorder(w, bt, (leftX + rightX) / 2, topZ);
-      makeBorder(w, bt, (leftX + rightX) / 2, bottomZ);
-      makeBorder(bt, h, leftX, (topZ + bottomZ) / 2);
-      makeBorder(bt, h, rightX, (topZ + bottomZ) / 2);
+      // Cria as 4 bordas (topo, fundo, esquerda, direita)
+      makeBorder(w, bt, (leftX + rightX) / 2, topZ); // Borda superior
+      makeBorder(w, bt, (leftX + rightX) / 2, bottomZ); // Borda inferior
+      makeBorder(bt, h, leftX, (topZ + bottomZ) / 2); // Borda esquerda
+      makeBorder(bt, h, rightX, (topZ + bottomZ) / 2); // Borda direita
     }
 
     objects.forEach((obj) => {
@@ -270,10 +289,10 @@ export async function loadLevel(levelName, scene, textureLoader) {
       /* ─────────────────────────── Todos os niveis  ─────────────────────────── */
       if (type === "moeda") {
 
-        const radius = 0.5;
-        const thickness = 0.15;
+        const radius = 0.5; // Raio da moeda
+        const thickness = 0.15; // Espessura da moeda
 
-        // Parte interior (dentro)
+        // // Parte interior da moeda (mais pequena e dourada)
         const innerGeometry = new THREE.CylinderGeometry(
           radius * 0.9,
           radius * 0.9,
@@ -286,7 +305,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         });
         const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
 
-        // Borda exterior
+        //Parte exterior (ligeiramente maior, cor diferente)
         const outerGeometry = new THREE.CylinderGeometry(
           radius,
           radius,
@@ -299,7 +318,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         });
         const outerMesh = new THREE.Mesh(outerGeometry, outerMaterial);
 
-        // Agrupar os dois (inner e outer)
+        // Junta ambas as partes num grupo (moeda completa)
         const coinGroup = new THREE.Group();
         coinGroup.add(outerMesh);
         coinGroup.add(innerMesh);
@@ -308,14 +327,13 @@ export async function loadLevel(levelName, scene, textureLoader) {
         coinGroup.rotation.x = Math.PI / 2;
 
         // Subir para não ficar enterrada
-        
         coinGroup.position.set(
           position.x * tileSize + offsetX,
           1,
           position.z * tileSize + offsetZ
         );
 
-        // Criar brilho debaixo da moeda
+        // Adiciona um brilho por baixo da moeda (efeito visual atrativo)
         const glowTex = textureLoader.load("../assets/textures/glow.png");
         const glowMat = new THREE.SpriteMaterial({
           map: glowTex,
@@ -326,34 +344,36 @@ export async function loadLevel(levelName, scene, textureLoader) {
         });
 
         const glowSprite = new THREE.Sprite(glowMat);
-        glowSprite.scale.set(2, 2, 1);
-        glowSprite.position.set(0, -0.05, 0.8);
+        glowSprite.scale.set(2, 2, 1); // Tamanho do brilho
+        glowSprite.position.set(0, -0.05, 0.8); // Posiciona o brilho ligeiramente abaixo
 
-        coinGroup.add(glowSprite);
+        coinGroup.add(glowSprite);// Adiciona o brilho ao grupo da moeda
 
-        coinGroup.userData.glow = glowSprite;
-        coinGroup.userData.levelObject = true;
+        coinGroup.userData.glow = glowSprite; // Guarda referência ao brilho
+        coinGroup.userData.levelObject = true; // Marca como parte do nível
 
-        scene.add(coinGroup);
-        coinMeshes.push(coinGroup);
+        scene.add(coinGroup);  // Adiciona à cena
+        coinMeshes.push(coinGroup); // Guarda no array para interação futura
       }
 
       /*  ─────────────────────────── Nivel 2  ───────────────────────────*/
       if (type === "iglu") {
+        // Calcula a posição final do iglu no mapa (centro da tile)
         igluPosition = new THREE.Vector3(
           position.x * tileSize + offsetX,
           0,
           position.z * tileSize + offsetZ
         );
-        // Chama a funcao para criar o iglo visto que é mais complexo
+        // Cria o iglu completo (cúpula, túnel, luzes) através da função dedicada
         igluTunnel = createIglu(igluPosition, scene, igluTexture);
       }
 
       /*  ─────────────────────────── Nivel 6  ─────────────────────────── */
       if (type === "celeiro") {
+        // Grupo principal do celeiro (para agrupar todas as partes)
         celeiroGroup = new THREE.Group();
 
-        // Forma do celeiro (perfil lateral)
+        // Forma lateral do celeiro (perfil em 2D)
         const barnShape = new THREE.Shape();
         barnShape.moveTo(-2, 0);
         barnShape.lineTo(-2, 1.6);
@@ -365,7 +385,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         barnShape.lineTo(2, 0);
         barnShape.lineTo(-2, 0);
 
-        // Extrusão para dar volume
+        // Extrusão para transformar o perfil 2D num volume 3D (tipo prisma)
         const extrudeSettings = {
           depth: 3,
           bevelEnabled: false,
@@ -390,10 +410,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
         celeiroGroup.position.copy(celeiroPosition);
         celeiroGroup.rotation.y = obj.rotation || 0;
 
+        // ───── Telhado ─────
+
         // Material para o telhado
         const telhadoMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
 
-        // Topo reto (horizontal)
+        // Parte superior plana do telhado
         const telhadoTopo = new THREE.Mesh(
           new THREE.BoxGeometry(1.7, 0.05, 3.2), // largura = topo reto, profundidade igual ao celeiro
           telhadoMat
@@ -416,7 +438,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         telhadoDir.position.x = 1.2;
         celeiroGroup.add(telhadoDir);
 
-        // Porta com aro branco 
+        // ───── Porta com moldura branca ─────
         const larguraPorta = 1.5;
         const alturaPorta = 1.5;
         const espessuraPorta = 0.05;
@@ -527,34 +549,34 @@ export async function loadLevel(levelName, scene, textureLoader) {
       }
       /*  ─────────────────────────── Nivel 1  ─────────────────────────── */
       if (type === "arvore") {
-        const group = new THREE.Group();
+        const group = new THREE.Group(); // Grupo para juntar tronco, copa e portal
 
         // Textura
-        const texturaTronco = textureLoader.load("../assets/textures/bark.png");
+        const texturaTronco = textureLoader.load("../assets/textures/bark.png"); // Textura do tronco
         const texturaFolhas = textureLoader.load(
-          "../assets/textures/leaves.png"
+          "../assets/textures/leaves.png" // Textura das folhas
         );
 
         // Tronco
         const tronco = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.5, 2.5, 8, 30),
+          new THREE.CylinderGeometry(1.5, 2.5, 8, 30), // Cilindro com topo mais fino que a base
           new THREE.MeshStandardMaterial({
             map: texturaTronco,
           })
         );
-        tronco.position.y = 1.5;
+        tronco.position.y = 1.5; // Eleva o tronco para assentar no chão
         group.add(tronco);
 
         // Copa (folhas) (esfera)
         const copa = new THREE.Mesh(
-          new THREE.SphereGeometry(4, 32, 32),
+          new THREE.SphereGeometry(4, 32, 32), // Esfera grande para a copa
           new THREE.MeshStandardMaterial({
             map: texturaFolhas,
             emissive: 0x228b22,
             emissiveIntensity: 0.4,
           })
         );
-        copa.position.y = 8.5;
+        copa.position.y = 8.5; // Coloca a copa no topo do tronco
         group.add(copa);
 
         // Posicao final
@@ -564,22 +586,22 @@ export async function loadLevel(levelName, scene, textureLoader) {
           position.z * tileSize + offsetZ
         );
 
-        // portal fim de nivel (círculo escuro)
+          // ───── Portal escuro (fim de nível) ─────
         const porta = new THREE.Mesh(
-          new THREE.CircleGeometry(1.2, 32),
+          new THREE.CircleGeometry(1.2, 32), // Círculo preto na base da árvore
           new THREE.MeshStandardMaterial({
             color: 0x111111,
-            side: THREE.DoubleSide,
+            side: THREE.DoubleSide, // Visível dos dois lados
           })
         );
-        const distanciaFrontal = 2.19; 
-        porta.rotation.y = Math.PI; 
-        porta.position.set(0, 1.2, -distanciaFrontal);
+        const distanciaFrontal = 2.19; // Distância à frente da árvore
+        porta.rotation.y = Math.PI;  // Virar para o jogador
+        porta.position.set(0, 1.2, -distanciaFrontal); // Colocada em frente à árvore
         group.add(porta);
 
-        // Moldura da porta (aro)
+        // ───── Moldura branca (aro da porta) ─────
         const aro = new THREE.Mesh(
-          new THREE.RingGeometry(1.3, 1.5, 32),
+          new THREE.RingGeometry(1.3, 1.5, 32), // Aro circular branco à volta da porta
           new THREE.MeshStandardMaterial({
             color: 0xffffff,
             side: THREE.DoubleSide,
@@ -589,20 +611,20 @@ export async function loadLevel(levelName, scene, textureLoader) {
         aro.position.set(0, 1.2, -distanciaFrontal - 0.01); 
         group.add(aro);
 
-        // Textura de brilho
+        // ───── Efeito de brilho (glow) ─────
         const glowTexture = textureLoader.load("../assets/textures/glow.png");
 
         const glowMaterial = new THREE.SpriteMaterial({
           map: glowTexture,
-          color: 0x00ff99, 
+          color: 0x00ff99,  // Brilho verde-claro
           transparent: true,
           opacity: 1,
-          depthWrite: false,
+          depthWrite: false, // Não interfere com a profundidade da cena
         });
 
         const glowSprite = new THREE.Sprite(glowMaterial);
-        glowSprite.scale.set(8, 8, 1); 
-        glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4); 
+        glowSprite.scale.set(8, 8, 1);  // Tamanho do brilho
+        glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4);  // Atrás do aro
         group.add(glowSprite);
 
         group.userData.levelObject = true;
@@ -736,9 +758,9 @@ export async function loadLevel(levelName, scene, textureLoader) {
       }
       /*  ─────────────────────────── Nivel 4  ─────────────────────────── */
       if (type === "naveET") {
-        const naveGroup = new THREE.Group();
+        const naveGroup = new THREE.Group(); // Agrupamento do cone, partículas e portal
 
-        // Texturas 
+        // ───── Textura da lava ─────
         const materialBase = new THREE.MeshStandardMaterial({
           color: 0x888888, // cinzento médio
           metalness: 0.9, // aspeto metálico
