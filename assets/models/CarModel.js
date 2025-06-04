@@ -31,7 +31,7 @@ export function createCar(textureLoader, colors = {}) {
   car.add(cockpit);
 
   // VIDROS (fixo)
-  const glassTex = textureLoader.load("/textures/glass.jpg");
+  const glassTex = textureLoader.load("assets/textures/glass.jpg");
   const glassMat = new THREE.MeshStandardMaterial({
     map: glassTex, metalness: 1.0, roughness: 0.05,
     transparent: true, opacity: 0.8
@@ -70,7 +70,7 @@ export function createCar(textureLoader, colors = {}) {
 
   // RODAS (wheels)
   const wheelGeom = new THREE.CylinderGeometry(0.22,0.22,0.12,32);
-  const tireTex  = textureLoader.load("/textures/tire.jpg");
+  const tireTex  = textureLoader.load("assets/textures/tire.jpg");
   const wheelMat = new THREE.MeshStandardMaterial({ map: tireTex, color: wheels });
   const wheelsArr = [];
   const rotating = [];
