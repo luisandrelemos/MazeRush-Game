@@ -53,7 +53,6 @@
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
   ],
   "objects": [
-  { "type": "paralelepipedo", "position": { "x": 3,  "z": 2 },  "dimensions": { "width": 0.3, "height": 1, "depth": 0.5 }, "color": "#A62C2C" },
   { "type": "moeda", "position":{"x": 7, "z": 5}, "scale": 2 },
   { "type": "moeda", "position":{"x": 21, "z": 3}, "scale": 2 },
   { "type": "moeda", "position":{"x": 10, "z": 8}, "scale": 2 },

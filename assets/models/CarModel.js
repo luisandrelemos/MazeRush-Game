@@ -70,8 +70,7 @@ export function createCar(textureLoader, colors = {}) {
 
   // RODAS (wheels)
   const wheelGeom = new THREE.CylinderGeometry(0.22,0.22,0.12,32);
-  const tireTex  = textureLoader.load("assets/textures/tire.jpg");
-  const wheelMat = new THREE.MeshStandardMaterial({ map: tireTex, color: wheels });
+  const wheelMat = new THREE.MeshStandardMaterial({color: wheels });
   const wheelsArr = [];
   const rotating = [];
   const frontAxle = new THREE.Group();

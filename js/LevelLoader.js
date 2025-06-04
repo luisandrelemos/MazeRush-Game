@@ -252,33 +252,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
     objects.forEach((obj) => {
       const { type, position, dimensions, color } = obj;
-
-      if (type === "paralelepipedo") {
-        const geometry = new THREE.BoxGeometry(
-          dimensions.width * tileSize,
-          dimensions.height,
-          dimensions.depth * tileSize
-        );
-
-        const material = new THREE.MeshStandardMaterial({
-          color: color || 0x888888,
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-
-        mesh.position.set(
-          position.x * tileSize + offsetX,
-          dimensions.height / 2,
-          position.z * tileSize + offsetZ
-        );
-
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        mesh.userData.levelObject = true;
-
-        scene.add(mesh);
-        animatedObjects.push(mesh);
-      }
-
+      
       if (type === "moeda") {
         const radius = 0.5;
         const thickness = 0.15;
