@@ -875,7 +875,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           new THREE.SphereGeometry(0.9, 32, 32),
           new THREE.MeshStandardMaterial({ color: 0xffffff })
         );
-        corpo.position.set(0, 2, -0.4); 
+        corpo.position.set(0, 0, -0.4); 
         corpo.castShadow = true;
         heliGroup.add(corpo);
 
@@ -896,7 +896,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           );
 
           faixa.rotation.x = Math.PI / 2;
-          faixa.position.set(0, 1.6 + i * 0.15, -0.4); // desfasamento vertical
+          faixa.position.set(0, -0.4 + i * 0.15, -0.4); // desfasamento vertical
 
           heliGroup.add(faixa);
         }
@@ -1009,7 +1009,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           patimGroup.add(tras);
 
           // Posição do patim completo
-          patimGroup.position.set(x, 0.9, -0.4);
+          patimGroup.position.set(x, -0.9, -0.4);
           patimGroup.castShadow = true;
           heliGroup.add(patimGroup);
         });
@@ -1019,7 +1019,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         const largura = 0.05;
 
         // Novo valor para abaixar os suportes no eixo Y
-        const offsetYSuporte = 0.9;
+        const offsetYSuporte = -0.9;
 
         const centroCorpo = new THREE.Vector3(0, 2, -0.4); // centro da esfera
 
