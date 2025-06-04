@@ -147,6 +147,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
       let height = lvl.wallHeight;
 
       if (cell === 1 || cell === 2) {
+
         // Cercas caso haja "2" na matriz / altura das cercas diferente das paredes 
         if (cell === 2) {
           const tileCenterX = x * lvl.tileSize + offsetX;
@@ -164,7 +165,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
           // Tábuas horizontais
           for (let i = 0; i < numTabuasHorizontais; i++) {
-            const y = i === 0 ? altura * 0.25 : altura * 0.75;
+            const y = (i + 1) * (altura / (numTabuasHorizontais + 1));
 
             // Dimensoes diferentes para o nivel 5 (lasers), usamos as cercas sem tabuas verticais 
             const tabua = isLevel5
