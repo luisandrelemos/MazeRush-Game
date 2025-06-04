@@ -1,6 +1,6 @@
 # 🚗 MazeRush
 
-**MazeRush** é um jogo 3D de corrida dentro de labirintos! Controla um carro personalizado, ultrapassa obstáculos e chega ao portal final antes que o tempo acabe ⏱️.
+**MazeRush** é um jogo 3D de corrida dentro de labirintos! Controla um carro personalizado, ultrapassa obstáculos e chega ao portal final no melhor tempo possível⏱️.
 
 ![MazeRush](MazeRush.png)
 
@@ -11,7 +11,7 @@
 1. **Seleciona o teu perfil**
 2. **Escolhe um nível desbloqueado**
 3. **Decora o labirinto e... corre!**
-4. Recolhe moedas 💰, evita obstáculos 🚧 e chega à meta 🌀 antes que o tempo termine.
+4. Recolhe moedas 💰, evita obstáculos 🚧 e chega à meta 🌀 no teu melhor tempo possível.
 
 ---
 
