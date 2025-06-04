@@ -14,6 +14,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const res = await fetch(`../assets/levels/${levelName}/layout.json`);
   const lvl = await res.json();
 
+  /* ─── Textura do Ceu ─── */
   if (lvl.skyTexture) {
   const skyTex = textureLoader.load(
     `../assets/levels/${levelName}/${lvl.skyTexture}`
@@ -22,7 +23,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   scene.background = skyTex;
 }
 
-  /* Limpar restos do nível anterior */
+  /* ─── Limpar restos dos niveis anteriores ─── */
   scene.children
     .filter((o) => o.userData.levelObject)
     .forEach((o) => scene.remove(o));
@@ -30,55 +31,19 @@ export async function loadLevel(levelName, scene, textureLoader) {
   const mapW = lvl.map[0].length;
   const mapH = lvl.map.length;
 
-  //Textura do chao
+  /* ─── Textura para o chao de todos os niveis ─── */
   let floorTexture;
   if (lvl.floor?.texture) {
     floorTexture = textureLoader.load(
       `../assets/levels/${levelName}/${lvl.floor.texture}`
     );
-    floorTexture.wrapS = THREE.RepeatWrapping;
-    floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.anisotropy = 16; // para qualidade máxima
-
-    // Controla a repetição manualmente — isto evita distorção
-    floorTexture.repeat.set(20, 20); // ajusta se necessário
+    floorTexture.wrapS = THREE.RepeatWrapping; // Define que a textura será repetida horizontalmente
+    floorTexture.wrapT = THREE.RepeatWrapping; // Define que a textura será repetida verticalmente
+    floorTexture.anisotropy = 16; // Melhorar a qualidade da textura em ângulos inclinados
+    floorTexture.repeat.set(20, 20); // Controla a repetição manualmente — isto evita distorção
   }
 
-  /* Paredes internas do labirinto */
-  const wallTexture = lvl.wallTexture
-    ? textureLoader.load(`../assets/levels/${levelName}/${lvl.wallTexture}`)
-    : null;
-
-  if (wallTexture) {
-    wallTexture.wrapS = THREE.RepeatWrapping;
-    wallTexture.wrapT = THREE.RepeatWrapping;
-    wallTexture.repeat.set(1, 1); // Repete a textura 1x1 por parede (ajusta mais tarde)
-    wallTexture.anisotropy = 16; // para maior nitidez nos ângulos
-  }
-
-  const wallMat = wallTexture
-    ? new THREE.MeshStandardMaterial({
-        map: wallTexture,
-        metalness: 0.3,
-        roughness: 0.6,
-        opacity: 0.9,
-      })
-    : new THREE.MeshStandardMaterial({
-        color: lvl.colors?.wall ?? "#000000",
-        roughness: 0.5,
-        metalness: 0.4,
-        opacity: 0.9,
-      });
-
-  const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
-  const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
-
-  // Textura do iglu
-  const igluTexture = textureLoader.load(
-    `../assets/levels/level-2/textureiglu.jpg`
-  );
-  igluTexture.wrapS = igluTexture.wrapT = THREE.RepeatWrapping;
-
+  // Aplica a textura do chao 
   const floorMat = floorTexture
     ? new THREE.MeshStandardMaterial({
         map: floorTexture,
@@ -95,9 +60,50 @@ export async function loadLevel(levelName, scene, textureLoader) {
   floor.userData.levelObject = true;
   scene.add(floor);
 
-  // Textura das cercas
-  const texturaMadeira = textureLoader.load("../assets/textures/cerca.jpg");
-  const texturaMetal = textureLoader.load("../assets/textures/cerca2.png");
+
+  /* ─── Paredes internas do labirinto ─── */
+  const wallTexture = lvl.wallTexture
+    ? textureLoader.load(`../assets/levels/${levelName}/${lvl.wallTexture}`)
+    : null;
+
+  if (wallTexture) {
+    wallTexture.wrapS = THREE.RepeatWrapping;
+    wallTexture.wrapT = THREE.RepeatWrapping;
+    wallTexture.repeat.set(1, 1); // Repete a textura 1x1 por parede
+    wallTexture.anisotropy = 16; // Para maior nitidez nos ângulos
+  }
+
+  /* ─── Textura das paredes internas do labirinto ─── */
+  const wallMat = wallTexture
+    ? new THREE.MeshStandardMaterial({
+      // Se existir uma textura para a parede, aplica-a como mapa de cor
+        map: wallTexture,
+        metalness: 0.3, // Define o grau de metalização
+        roughness: 0.6, // Define a rugosidade
+        opacity: 0.9, // Define ligeira transparência
+      })
+    : new THREE.MeshStandardMaterial({
+      // Se não existir uma textura, aplica uma cor base 
+        color: lvl.colors?.wall ?? "#000000",
+        roughness: 0.5, // Define o grau de metalização
+        metalness: 0.4, // Define a rugosidade
+        opacity: 0.9, // Define ligeira transparência
+      });
+
+  // Calcula o desvio em X para centralizar o mapa horizontalmente
+  const offsetX = -(mapW * lvl.tileSize) / 2 + lvl.tileSize / 2;
+  // Calcula o desvio em Z para centralizar o mapa na profundidade (eixo Z)
+  const offsetZ = -(mapH * lvl.tileSize) / 2 + lvl.tileSize / 2;
+
+  /* ─── Textura do Iglo nivel 2 ─── */
+  const igluTexture = textureLoader.load(
+    `../assets/levels/level-2/textureiglu.jpg`
+  );
+  igluTexture.wrapS = igluTexture.wrapT = THREE.RepeatWrapping;
+
+  /* ─── Textura das Cercas nivel 5 e 6 ─── */
+  const texturaMadeira = textureLoader.load("../assets/textures/cerca.jpg"); // Cercas nivel 6
+  const texturaMetal = textureLoader.load("../assets/textures/cerca2.png"); // Cercas nivel 5
   texturaMadeira.wrapS = THREE.RepeatWrapping;
   texturaMadeira.wrapT = THREE.RepeatWrapping;
   texturaMadeira.repeat.set(1, 1);
@@ -107,51 +113,59 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
   const isLevel5 = levelName === "level-5";
 
+  /* ─── Aplica Textura nivel 5 e 6 ─── */
   const madeiraMat = isLevel5
+  // Lasers nivel 5
     ? new THREE.MeshBasicMaterial({
         color: 0xff0000, 
         emissive: 0xff0000, // cor do brilho
         emissiveIntensity: 2, // intensidade do brilho
       })
+    // Cerca nivel 6
     : new THREE.MeshStandardMaterial({
         map: texturaMadeira,
         color: 0xffffff,
       });
 
+
+  /* ─── Textura Celeiro nivel 6 ─── */
   const texturaCeleiroVermelha = textureLoader.load(
     "../assets/textures/textura_celeiro_vermelha.jpg"
   );
+
   texturaCeleiroVermelha.wrapS = THREE.RepeatWrapping;
   texturaCeleiroVermelha.wrapT = THREE.RepeatWrapping;
-  texturaCeleiroVermelha.repeat.set(2, 1); // aumenta para ver mais "tábuas"
+  texturaCeleiroVermelha.repeat.set(2, 1); 
   const materialCeleiro = new THREE.MeshStandardMaterial({
     map: texturaCeleiroVermelha,
-    color: 0xffffff, // garante que a cor da textura não é alterada
+    color: 0xffffff, 
   });
-
+   /* ─── Matriz do labirinto ─── */
   lvl.map.forEach((row, z) =>
     row.forEach((cell, x) => {
       let height = lvl.wallHeight;
 
       if (cell === 1 || cell === 2) {
-        // Cercas caso haja "2" na matriz
+        // Cercas caso haja "2" na matriz / altura das cercas diferente das paredes 
         if (cell === 2) {
           const tileCenterX = x * lvl.tileSize + offsetX;
           const tileCenterZ = z * lvl.tileSize + offsetZ;
 
           const cercaGroup = new THREE.Group();
 
-          // Dimensões
+          // Dimensões das cercas
           const largura = lvl.tileSize;
           const altura = lvl.wallHeight / 3;
           const espessura = 0.25;
 
+          // Numero de tabuas horizontais
           const numTabuasHorizontais = 2;
 
           // Tábuas horizontais
           for (let i = 0; i < numTabuasHorizontais; i++) {
             const y = i === 0 ? altura * 0.25 : altura * 0.75;
 
+            // Dimensoes diferentes para o nivel 5 (lasers), usamos as cercas sem tabuas verticais 
             const tabua = isLevel5
               ? new THREE.Mesh(
                   new THREE.CylinderGeometry(0.05, 0.05, largura * 0.95, 16),
@@ -199,7 +213,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           fenceMeshes.push(cercaGroup);
         }
       }
-      //Paredes
+      //Paredes do labirinto
       if (cell === 1) {
         const wall = new THREE.Mesh(
           new THREE.BoxGeometry(lvl.tileSize, height, lvl.tileSize),
@@ -218,11 +232,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
     })
   );
 
-  // Criação dos objetos customizados (layout.json)
+  /* ─── Objetos costumizados (layout.json) ─── */
   function loadCustomObjects(objects, tileSize, offsetX, offsetZ, Scene) {
     if (!objects) return;
 
-    /* Bordas exteriores */
+    // Bordas exteriores do mapa
     if (lvl.borderThickness && lvl.borderThickness > 0) {
       const bt = lvl.borderThickness;
       const w = mapW * lvl.tileSize;
@@ -252,8 +266,10 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
     objects.forEach((obj) => {
       const { type, position, dimensions, color } = obj;
-      
+      // Le o type no layout.json 
+      /* ─── Todos os niveis ─── */
       if (type === "moeda") {
+
         const radius = 0.5;
         const thickness = 0.15;
 
@@ -264,6 +280,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           thickness,
           32
         );
+        // Textura da parte interior (dentro)
         const innerMaterial = new THREE.MeshStandardMaterial({
           color: 0xffd700,
         });
@@ -276,24 +293,25 @@ export async function loadLevel(levelName, scene, textureLoader) {
           thickness * 1.1,
           32
         );
+        // Textura da parte exterior (fora)
         const outerMaterial = new THREE.MeshStandardMaterial({
           color: 0xfff066,
         });
         const outerMesh = new THREE.Mesh(outerGeometry, outerMaterial);
 
-        // Agrupar os dois
+        // Agrupar os dois (inner e outer)
         const coinGroup = new THREE.Group();
         coinGroup.add(outerMesh);
         coinGroup.add(innerMesh);
 
-        // Rodar para deitar a moeda no chão (eixo X)
+        // Rodar a moeda (eixo X)
         coinGroup.rotation.x = Math.PI / 2;
 
-        // Subir um pouco para não ficar enterrada
-        const yLift = 1;
+        // Subir para não ficar enterrada
+        
         coinGroup.position.set(
           position.x * tileSize + offsetX,
-          yLift,
+          1,
           position.z * tileSize + offsetZ
         );
 
@@ -320,15 +338,18 @@ export async function loadLevel(levelName, scene, textureLoader) {
         coinMeshes.push(coinGroup);
       }
 
+      /* ─── Nivel 2 ─── */
       if (type === "iglu") {
         igluPosition = new THREE.Vector3(
           position.x * tileSize + offsetX,
           0,
           position.z * tileSize + offsetZ
         );
+        // Chama a funcao para criar o iglo visto que é mais complexo
         igluTunnel = createIglu(igluPosition, scene, igluTexture);
       }
 
+      /* ─── Nivel 6 ─── */
       if (type === "celeiro") {
         celeiroGroup = new THREE.Group();
 
@@ -374,13 +395,13 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         // Topo reto (horizontal)
         const telhadoTopo = new THREE.Mesh(
-          new THREE.BoxGeometry(1.7, 0.05, 3.2), // largura = topo reto (-0.8 a 0.8), profundidade igual ao celeiro
+          new THREE.BoxGeometry(1.7, 0.05, 3.2), // largura = topo reto, profundidade igual ao celeiro
           telhadoMat
         );
         telhadoTopo.position.set(0, 3.05, 0.4); // alinhado com o topo do corpo
         celeiroGroup.add(telhadoTopo);
 
-        // Inclinação esquerda
+        // Inclinação teclado esquerdo
         const telhadoEsq = new THREE.Mesh(
           new THREE.BoxGeometry(1, 0.05, 3.2), // largura entre -1.6 e -0.8
           telhadoMat
@@ -389,13 +410,13 @@ export async function loadLevel(levelName, scene, textureLoader) {
         telhadoEsq.position.set(-1.2, 2.7, 0.4); // centro entre os pontos inclinados
         celeiroGroup.add(telhadoEsq);
 
-        // Inclinação direita
+        // Inclinação telhado direito
         const telhadoDir = telhadoEsq.clone();
         telhadoDir.rotation.z = -Math.atan(0.7 / 0.8);
         telhadoDir.position.x = 1.2;
         celeiroGroup.add(telhadoDir);
 
-        // === PORTA com aro branco ===
+        // Porta com aro branco 
         const larguraPorta = 1.5;
         const alturaPorta = 1.5;
         const espessuraPorta = 0.05;
@@ -433,7 +454,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         horizontalBase.position.y = molduraEspessura / 2;
         celeiroGroup.add(horizontalBase);
 
-        // Cruz em X (2 travessões diagonais)
+        // Cruz em X 
         const cruzMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
 
         const diagonal1 = new THREE.Mesh(
@@ -448,11 +469,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
         diagonal2.rotation.z = -Math.PI / 4;
         celeiroGroup.add(diagonal2);
 
-        // === JANELA circular acima da porta ===
+        // Janela circular acima da porta 
         const raioExterior = 0.3;
         const raioInterior = 0.22;
 
-        // Aro branco (fino, tipo moldura)
+        // Aro branco (moldura)
         const aroJanela = new THREE.Mesh(
           new THREE.RingGeometry(raioInterior, raioExterior, 32),
           new THREE.MeshStandardMaterial({
@@ -476,7 +497,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         interiorJanela.position.set(0, 2.35, 2.05); // ligeiramente atrás do aro
         celeiroGroup.add(interiorJanela);
 
-        // === FARDO DE PALHA JUNTO AO CELEIRO ===
+        // fardos de palhas ao lado do celeiro 
         const texturaPalha = textureLoader.load("../assets/textures/palha.jpg");
 
         texturaPalha.wrapS = THREE.RepeatWrapping;
@@ -488,14 +509,14 @@ export async function loadLevel(levelName, scene, textureLoader) {
           color: 0xffffff,
         });
 
-        // Fardo inferior (maior, assente no chão)
+        // Fardo inferior 
         const geometriaFardo1 = new THREE.CylinderGeometry(0.7, 0.8, 1.2, 32); // raio = 0.7
         const fardo1 = new THREE.Mesh(geometriaFardo1, materialFardo);
         fardo1.position.set(2, 0.8, 2.8); // y = raio (0.7) para assentar no chão
         fardo1.castShadow = fardo1.receiveShadow = true;
         celeiroGroup.add(fardo1);
 
-        // Fardo superior (mais pequeno, empilhado)
+        // Fardo superior 
         const geometriaFardo2 = new THREE.CylinderGeometry(0.6, 0.6, 0.8, 32); // raio = 0.6
         const fardo2 = new THREE.Mesh(geometriaFardo2, materialFardo);
         fardo2.position.set(2, 1.8, 2.8); // y = base + raio do fardo2 = 0.7 + 0.6
@@ -504,17 +525,17 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         scene.add(celeiroGroup);
       }
-
+      /* ─── Nivel 1 ─── */
       if (type === "arvore") {
         const group = new THREE.Group();
 
-        // TEXTURAS
+        // Textura
         const texturaTronco = textureLoader.load("../assets/textures/bark.png");
         const texturaFolhas = textureLoader.load(
           "../assets/textures/leaves.png"
         );
 
-        // TRONCO
+        // Tronco
         const tronco = new THREE.Mesh(
           new THREE.CylinderGeometry(1.5, 2.5, 8, 30),
           new THREE.MeshStandardMaterial({
@@ -524,7 +545,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         tronco.position.y = 1.5;
         group.add(tronco);
 
-        // COPA (folhas)
+        // Copa (folhas) (esfera)
         const copa = new THREE.Mesh(
           new THREE.SphereGeometry(4, 32, 32),
           new THREE.MeshStandardMaterial({
@@ -536,14 +557,14 @@ export async function loadLevel(levelName, scene, textureLoader) {
         copa.position.y = 8.5;
         group.add(copa);
 
-        // POSIÇÃO final
+        // Posicao final
         group.position.set(
           position.x * tileSize + offsetX,
           0,
           position.z * tileSize + offsetZ
         );
 
-        // PORTA (círculo escuro)
+        // portal fim de nivel (círculo escuro)
         const porta = new THREE.Mesh(
           new THREE.CircleGeometry(1.2, 32),
           new THREE.MeshStandardMaterial({
@@ -551,12 +572,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
             side: THREE.DoubleSide,
           })
         );
-        const distanciaFrontal = 2.19; // raio + margem
-        porta.rotation.y = Math.PI; // gira 180 graus
+        const distanciaFrontal = 2.19; 
+        porta.rotation.y = Math.PI; 
         porta.position.set(0, 1.2, -distanciaFrontal);
         group.add(porta);
 
-        // MOLDURA da porta (aro)
+        // Moldura da porta (aro)
         const aro = new THREE.Mesh(
           new THREE.RingGeometry(1.3, 1.5, 32),
           new THREE.MeshStandardMaterial({
@@ -565,33 +586,33 @@ export async function loadLevel(levelName, scene, textureLoader) {
           })
         );
         aro.rotation.y = Math.PI;
-        aro.position.set(0, 1.2, -distanciaFrontal - 0.01); // ligeiramente mais à frente
+        aro.position.set(0, 1.2, -distanciaFrontal - 0.01); 
         group.add(aro);
 
-        // TEXTURA de brilho
+        // Textura de brilho
         const glowTexture = textureLoader.load("../assets/textures/glow.png");
 
         const glowMaterial = new THREE.SpriteMaterial({
           map: glowTexture,
-          color: 0x00ff99, // tom mágico verde-azulado
+          color: 0x00ff99, 
           transparent: true,
           opacity: 1,
           depthWrite: false,
         });
 
         const glowSprite = new THREE.Sprite(glowMaterial);
-        glowSprite.scale.set(8, 8, 1); // tamanho do brilho
-        glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4); // mesmo centro da porta
+        glowSprite.scale.set(8, 8, 1); 
+        glowSprite.position.set(0, 1.2, -distanciaFrontal - 0.4); 
         group.add(glowSprite);
 
         group.userData.levelObject = true;
         scene.add(group);
       }
-
+      /* ─── Nivel 3 ─── */
       if (type === "vulcao") {
         const vulcaoGroup = new THREE.Group();
 
-        // TEXTURA da lava escorrida
+        // Textura da lava 
         const texturaLava = textureLoader.load(
           "../assets/levels/level-3/vulcao.png"
         );
@@ -599,7 +620,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         texturaLava.wrapT = THREE.RepeatWrapping;
         texturaLava.repeat.set(1, 2);
 
-        // --- BASE DO VULCÃO: cone truncado ---
+        /* ─── Base do cone: cone com ponta achatada ─── */
         const coneGeometry = new THREE.CylinderGeometry(0.8, 4, 4, 32); // topo menor que base
         const coneMaterial = new THREE.MeshStandardMaterial({
           map: texturaLava,
@@ -611,7 +632,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         cone.castShadow = cone.receiveShadow = true;
         vulcaoGroup.add(cone);
 
-        // POSIÇÃO final
+        // Posicao final
         vulcaoGroup.position.set(
           position.x * tileSize + offsetX,
           0,
@@ -619,7 +640,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         );
         vulcaoGroup.rotation.y = -Math.PI / 2;
 
-        // --- SISTEMA DE PARTÍCULAS: lava a ser expelida ---
+        /* ─── Particulas de lava ─── */
         const particleCount = 500;
         const particleGeometry = new THREE.BufferGeometry();
         const positions = [];
@@ -654,16 +675,16 @@ export async function loadLevel(levelName, scene, textureLoader) {
 
         // Criar sistema de partículas
         const particles = new THREE.Points(particleGeometry, particleMaterial);
-        particles.position.set(0, 3, 0); // topo do vulcão
+        particles.position.set(0, 3, 0); 
         vulcaoGroup.add(particles);
 
         // Guardar para animar
         particles.userData.velocities = velocities;
-        animatedObjects.push(particles); // importante: incluir no loop de animação
+        animatedObjects.push(particles); 
 
-        // --- PORTÃO (círculo escuro) ---
+        /* ─── Portal fim de nivel ─── */ 
         const distanciaFrontal = 2.6;
-        const inclinacao = Math.atan((4 - 0.8) / 4); // mesma inclinação da lateral do cone
+        const inclinacao = Math.atan((4 - 0.8) / 4); 
 
         const portao = new THREE.Mesh(
           new THREE.CircleGeometry(1, 32),
@@ -676,7 +697,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         portao.position.set(0, 0.8, -distanciaFrontal);
         vulcaoGroup.add(portao);
 
-        // --- MOLDURA do portão ---
+        // aro do portal 
         const aroPortao = new THREE.Mesh(
           new THREE.RingGeometry(1.1, 1.3, 32),
           new THREE.MeshStandardMaterial({
@@ -688,7 +709,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         aroPortao.position.set(0, 0.8, -distanciaFrontal - 0.01);
         vulcaoGroup.add(aroPortao);
 
-        // --- GLOW VERMELHO ---
+        // Brilho (glow) do portal
         const glowTexture = textureLoader.load("../assets/textures/glow.png");
         const glowMaterial = new THREE.SpriteMaterial({
           map: glowTexture,
@@ -703,7 +724,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         glowSprite.position.set(0, 0.8, -distanciaFrontal - 0.4);
         vulcaoGroup.add(glowSprite);
 
-        // --- POSIÇÃO FINAL ---
+        // Posicao final
         vulcaoGroup.position.set(
           position.x * tileSize + offsetX,
           0,
@@ -713,11 +734,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
         vulcaoGroup.userData.levelObject = true;
         scene.add(vulcaoGroup);
       }
-
+      /* ─── Nivel 4 ─── */
       if (type === "naveET") {
         const naveGroup = new THREE.Group();
 
-        // Texturas (opcional - usa cores sólidas por agora)
+        // Texturas 
         const materialBase = new THREE.MeshStandardMaterial({
           color: 0x888888, // cinzento médio
           metalness: 0.9, // aspeto metálico
@@ -732,7 +753,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           opacity: 0.85,
         });
 
-        // --- BASE achatada (esfera escalada) ---
+        /* ─── Base (Esfera achatada) ─── */
         const base = new THREE.Mesh(
           new THREE.SphereGeometry(3, 32, 32),
           materialBase
@@ -740,7 +761,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         base.scale.y = 0.2;
         naveGroup.add(base);
 
-        // --- CABINE superior (meia esfera) ---
+        /* ─── Cabine superior (meia esfera) ─── */
         const cabine = new THREE.Mesh(
           new THREE.SphereGeometry(1.5, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2),
           materialCabine
@@ -748,26 +769,26 @@ export async function loadLevel(levelName, scene, textureLoader) {
         cabine.position.y = 0.3;
         naveGroup.add(cabine);
 
-        // --- BASE INFERIOR (cilindro achatado) ---
+        /* ─── Base inferior onde sai o raio de luz (cilindro achatado) ─── */
         const baseInferior = new THREE.Mesh(
-          new THREE.CylinderGeometry(2, 2, 0.1, 32), // raio = 2.5, altura pequena
+          new THREE.CylinderGeometry(2, 2, 0.1, 32), 
           new THREE.MeshStandardMaterial({
             color: 0xffff33,
             metalness: 0.5,
             roughness: 0.3,
           })
         );
-        baseInferior.position.y = -0.55; // mesmo por baixo da nave
+        baseInferior.position.y = -0.55; 
         naveGroup.add(baseInferior);
 
-        // --- POSIÇÃO final ---
+        // Posicao final
         naveGroup.position.set(
           position.x * tileSize + offsetX,
           4,
           position.z * tileSize + offsetZ
         );
 
-        // --- RAIO DE LUZ INVERTIDO (cone tronco, base maior no chão) ---
+        /* ─── Raio de luz (cone) ─── */
         const raioLuz = new THREE.Mesh(
           new THREE.CylinderGeometry(1.5, 3.5, 6, 32), // raio topo, raio base, altura
           new THREE.MeshStandardMaterial({
@@ -779,17 +800,17 @@ export async function loadLevel(levelName, scene, textureLoader) {
             depthWrite: false,
           })
         );
-        raioLuz.position.y = -3.5; // metade da altura, começa na base da nave
+        raioLuz.position.y = -3.5; 
         naveGroup.add(raioLuz);
 
         naveGroup.userData.levelObject = true;
         scene.add(naveGroup);
       }
-
+      /* ─── Nivel 6 ─── */
       if (type === "heliporto") {
         const heliGroup = new THREE.Group();
 
-        // Base achatada (cilindro cinzento escuro)
+        /* ─── Base (cilindro achatado) ─── */
         const baseHeliporto = new THREE.Mesh(
           new THREE.CylinderGeometry(3, 3, 0.05, 64), // raio, raio, altura, segmentos
           new THREE.MeshStandardMaterial({
@@ -798,16 +819,18 @@ export async function loadLevel(levelName, scene, textureLoader) {
             roughness: 0.5,
           })
         );
-        baseHeliporto.position.y = 0.25; // ligeiramente acima do solo
+        baseHeliporto.position.y = 0.25;
         heliGroup.add(baseHeliporto);
 
+        //Textura do H
         const hMaterial = new THREE.MeshStandardMaterial({
           color: 0xffffff,
           emissive: 0xffff99,
           emissiveIntensity: 1.2,
-          toneMapped: false, // <- garante brilho forte mesmo com HDR
+          toneMapped: false,
         });
 
+        /* ─── 'H' do heliporto ─── */
         const barraEsquerda = new THREE.Mesh(
           new THREE.BoxGeometry(0.4, 0.2, 2.5),
           hMaterial
@@ -829,7 +852,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         barraMeio.position.set(0, 0.3, 0);
         heliGroup.add(barraMeio);
 
-        // Posição no mundo
+        // Posição do heliporto
         heliGroup.position.set(
           position.x * tileSize + offsetX,
           0,
@@ -840,11 +863,11 @@ export async function loadLevel(levelName, scene, textureLoader) {
         scene.add(heliGroup);
         heliGroup.name = "heliporto";
       }
-
+      /* ─── Nivel 6 ─── */
       if (type === "helicoptero") {
         const heliGroup = new THREE.Group();
 
-        // Corpo principal: esfera cinzenta
+        /* ─── Corpo (esfera) ─── */
         const corpo = new THREE.Mesh(
           new THREE.SphereGeometry(0.9, 32, 32),
           new THREE.MeshStandardMaterial({ color: 0xffffff })
@@ -852,14 +875,14 @@ export async function loadLevel(levelName, scene, textureLoader) {
         corpo.position.set(0, 0, -0.4); 
         corpo.castShadow = true;
         heliGroup.add(corpo);
-
+        /* ─── Faixas á volta da esfera ─── */
         const faixaMaterial = new THREE.MeshStandardMaterial({
           color: 0xffff33,
         });
 
         const numFaixas = 3;
         const raioInicial = 0.8;
-        const diminuicao = 0.05; // quanto o raio diminui por faixa
+        const diminuicao = 0.05; 
 
         for (let i = 0; i < numFaixas; i++) {
           const raio = raioInicial + i * diminuicao;
@@ -870,11 +893,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
           );
 
           faixa.rotation.x = Math.PI / 2;
-          faixa.position.set(0, -0.4 + i * 0.15, -0.4); // desfasamento vertical
+          faixa.position.set(0, -0.4 + i * 0.15, -0.4); // espaco entre cada faixa
 
           heliGroup.add(faixa);
         }
 
+        /* ─── Cauda principal  ─── */
         // Grupo da cauda
         const caudaGroup = new THREE.Group();
 
@@ -883,7 +907,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           new THREE.CylinderGeometry(0.12, 0.12, 2, 16),
           new THREE.MeshStandardMaterial({ color: 0xffffff })
         );
-        corpoCauda.rotation.x = Math.PI / 2; // deitar cilindro no eixo Z
+        corpoCauda.rotation.x = Math.PI / 2; 
         corpoCauda.castShadow = true;
         caudaGroup.add(corpoCauda);
 
@@ -891,6 +915,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         caudaGroup.position.set(0, 0, 1.6);
         corpo.add(caudaGroup);
 
+        /* ─── Cauda secundaria  ─── */
         // Grupo da cauda secundária
         const caudaSecGroup = new THREE.Group();
 
@@ -906,6 +931,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         caudaSecGroup.position.set(0, 0.2, 2.4);
         corpo.add(caudaSecGroup);
 
+        /* ─── Helice principal  ─── */
         // Rotor principal
         const rotorPrincipal = new THREE.Mesh(
           new THREE.BoxGeometry(0.1, 0.05, 4),
@@ -915,6 +941,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         rotorPrincipal.castShadow = true;
         corpo.add(rotorPrincipal);
 
+        /* ─── Helice Secundaria  ─── */
         // Rotor de cauda
         const rotorCauda = new THREE.Mesh(
           new THREE.BoxGeometry(0.05, 0.6, 0.05),
@@ -928,7 +955,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
         heliGroup.userData.rotorPrincipal = rotorPrincipal;
         heliGroup.userData.rotorCauda = rotorCauda;
 
-        // Patins (horizontais, como esquis)
+        /* ─── Base do Helicoptero (Patins) horizontal  ─── */
         const patimMaterial = new THREE.MeshStandardMaterial({
           color: 0x333333,
         });
@@ -956,6 +983,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
           // Valores ajustados
           const deslocamentoZ = patimComprimento / 2 - curvaComprimento * 0.6;
 
+          /* ─── Pontas inclinadas dos Patins  ─── */
           // Curva frontal
           const frente = new THREE.Mesh(
             new THREE.BoxGeometry(
@@ -988,15 +1016,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
           heliGroup.add(patimGroup);
         });
 
+        /* ─── Supote dos Patins  ─── */
         // Suportes verticais (ligam corpo aos patins)
         const alturaSuporte = 0.7;
         const largura = 0.05;
-
-        // Novo valor para abaixar os suportes no eixo Y
         const offsetYSuporte = -0.9;
-
-        const centroCorpo = new THREE.Vector3(0, 2, -0.4); // centro da esfera
-
+        const centroCorpo = new THREE.Vector3(0, 2, -0.4); 
         const suportesInfo = [
           { pos: new THREE.Vector3(-0.6, offsetYSuporte, -1.0) },
           { pos: new THREE.Vector3(-0.6, offsetYSuporte, 0.2) },
@@ -1043,9 +1068,10 @@ export async function loadLevel(levelName, scene, textureLoader) {
     });
   }
 
-  //construir o iglu
+  /* ─── Constuir o iglo  ─── */
   function createIglu(position, scene, igluTexture) {
-    // Corpo do iglu (esfera)
+
+    /* ─── Corpo do iglo (esfera)  ─── */
     const domeGeometry = new THREE.SphereGeometry(2.5, 32, 32);
     const domeMaterial = new THREE.MeshStandardMaterial({
       map: igluTexture,
@@ -1057,6 +1083,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     dome.userData.levelObject = true;
     scene.add(dome);
 
+    /* ─── Entrada do iglo (2 cilindros) ─── */
     // Grupo do túnel
     const tunnelGroup = new THREE.Group();
     // Túnel interior (totalmente aberto)
@@ -1067,7 +1094,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
       32,
       1,
       true
-    ); // openEnded: true
+    ); 
     const innerMaterial = new THREE.MeshStandardMaterial({
       map: igluTexture,
       side: THREE.DoubleSide,
@@ -1087,7 +1114,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
       32,
       1,
       true
-    ); // openEnded: true
+    ); 
     const outerMaterial = new THREE.MeshStandardMaterial({
       map: igluTexture,
       emissive: 0xffcc88,
@@ -1103,8 +1130,8 @@ export async function loadLevel(levelName, scene, textureLoader) {
     tunnelGroup.userData.levelObject = true;
     scene.add(tunnelGroup);
 
-    // Criar parede grossa entre o cilindro exterior e interior (visual)
-    const wallGeometry = new THREE.RingGeometry(0.9, 1.1, 32); // raio interior = raio do túnel interior, exterior = do túnel exterior
+    /* ─── Criar parede grossa entre o cilindro exterior e interior  ─── */
+    const wallGeometry = new THREE.RingGeometry(0.9, 1.1, 32);
     const wallMaterial = new THREE.MeshStandardMaterial({
       map: igluTexture,
       emissive: 0xffcc88,
@@ -1113,12 +1140,12 @@ export async function loadLevel(levelName, scene, textureLoader) {
     });
 
     const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-    wall.rotation.z = Math.PI / 2; // deitar no chão
+    wall.rotation.z = Math.PI / 2; 
     wall;
-    wall.position.set(0, 0.1, 3.3); // à frente dos túneis (ajusta se necessário)
+    wall.position.set(0, 0.1, 3.3); // à frente dos túneis 
     tunnelGroup.add(wall);
 
-    // Luzes
+    /* ─── Luzes do iglo  ─── */
     const igluLight = new THREE.PointLight(0xffcc88, 3.5, 6, 2);
     igluLight.position.set(position.x, 1.3, position.z);
     scene.add(igluLight);
@@ -1130,7 +1157,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
     return tunnelGroup;
   }
 
-  /* Novo design de portais (translúcido e plano) */
+  /* ─── Novo design de portais (translúcido e plano)  ─── */
   function mkPortal(cfg, pos) {
     // Anel translúcido e plano
     const ring = new THREE.Mesh(
@@ -1194,7 +1221,7 @@ export async function loadLevel(levelName, scene, textureLoader) {
   };
 }
 
-// === Rotação do iglu em relação ao carro ===
+/* ─── Rotação do iglu em relação ao carro  ─── */
 export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
   const dx = carPosition.x - igluPosition.x;
   const dz = carPosition.z - igluPosition.z;
@@ -1202,7 +1229,8 @@ export function updateTunnelDirection(tunnelGroup, igluPosition, carPosition) {
 
   tunnelGroup.rotation.y = angle;
 }
-// === Rotação do celeiro em relação ao carro ===
+
+/* ─── Rotação do celeiro em relação ao carro  ─── */
 export function updateBarnDirection(
   celeiroGroup,
   celeiroPosition,
